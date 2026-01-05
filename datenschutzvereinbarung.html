@@ -1,106 +1,538 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="de">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Datenschutz Unterschrift</title>
-<style>
-  body { font-family: Arial, sans-serif; padding: 20px; }
-  #privacy-text { border: 1px solid #ccc; padding: 10px; height: 300px; overflow-y: scroll; margin-bottom: 20px; }
-  #signature-pad { border: 1px solid #000; }
-  #controls { margin-top: 10px; }
-  button { margin-right: 10px; padding: 10px; }
-</style>
-</head>
-<body>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Datenschutzerklärung – RADIUS Praxis für Ernährung GmbH</title>
 
-<h2>Datenschutzerklärung der RADIUS Praxis für Ernährung GmbH zu den Personendaten</h2>
+  <style>
+    :root{
+      --text:#111;
+      --muted:#555;
+      --border:#e6e6e6;
+      --bg:#fff;
+      --card:#fafafa;
+      --max:920px;
+      --danger:#c62828;
+      --dangerBg:#ffebee;
+    }
+    html,body{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;line-height:1.55}
+    body{margin:0}
 
-<div id="privacy-text">
-  <!-- Hier deinen Text einfügen -->
-  <p><h2>1. Zweck</h2>
-Die vorliegende Datenschutzerklärung beschreibt den Umfang, den Zweck und die Art und Weise wie die RADIUS Praxis für Ernährung GmbH Personendaten bearbeitet.
-<h2>2. Bearbeitung von Personendaten</h2>
-Die RADIUS Praxis für Ernährung führt eine Kundendokumentation. Wir erfassen und bearbeiten folgende Kategorien der Personendaten:
-- Gesundheitsdaten (werden bei Bedarf bei Zuweisenden / Spitälern angefordert)
-- Administrative Daten zum Zweck der Rechnungsstellung, Buchführung, Terminvereinbarung (Vorname, Name, Adresse, Mailadresse, Telefonnummer, Krankenkasse, Versicherungsklasse, Geburtsdatum, AHV Nummer, zuweisende Ärztin/Arzt)
-- Wir bearbeiten Ihre Personendaten ausschliesslich zum Zweck der Vertragserfüllung.
-<h2>3. Weitergabe der Personendaten</h2>
-Die Personendaten werden in elektronischer Form gespeichert. Papierdokumente mit Kundendaten werden in der Ernährungsberatung des PFGM Medicalcenters respektive des ASANA Spitals Menziken aufbewahrt und sind unter Verschluss. Für die Führung, Verwaltung und Sicherung dieser Daten ist die RADIUS Praxis für Ernährung GmbH verantwortlich. Zum Schutz der Kundendaten werden angemessene technische und organisatorische Massnahmen getroffen. Unsere Rechnungsstellung erfolgt über das Rechnungswesen des PFGM Medicalcenters in Wauwil (LU). Im Falle eines Inkassos werden die Daten an eine für das Inkasso zuständige Institution übermittelt. Wir stellen vertraglich sicher, dass externe Dienstleister angemessene Massnahmen betreffend Sicherheit und Schutz der Personendaten treffen und die Daten nur zu dem Zweck bearbeiten, wie wir das selbst tun dürften. Mitarbeitende der RADIUS Praxis für Ernährung GmbH unterstehen einer beruflichen Schweigepflicht. Einsicht in Personendaten erhalten im Rahmen der gesetzlichen Bestimmungen grundsätzlich Vertrauensärztinnen und Vertrauensärzte von Versicherern und in bestimmten Einzelfällen die vom Gesetz bestimmten Behörden. Wenn Daten weitergegeben werden, müssen Sie darüber informiert werden. Ausgenommen ist die Datenweitergabe an die Kranken- und Unfallversicherer, Zuweisende im Rahmen standardisierter Melde- und Abrechnungsinstrumente sowie im Rahmen der Amtshilfe. Weitere Personen, Behörden und Institutionen werden Kundendaten nur mitgeteilt, wenn Sie ausdrücklich schriftlich zustimmen oder wenn das Departement Gesundheit und Soziales die RADIUS Praxis für Ernährung GmbH von der Schweigepflicht befreit. Dies gilt auch für Familienangehörige (einschliesslich Ehepartner und Kinder) und andere Personen, die im gleichen Haushalt leben.
-<h2>4. Aufbewahrung der Daten</h2>
-    Die Personendaten werden so lange aufbewahrt, wie es die gesetzlichen und vertraglichen Aufbewahrungsfristen verlangen. Die RADIUS Praxis für Ernährung GmbH ist verpflichtet, die Personendaten während mind. 10 Jahren aufzubewahren. Aus Sicherheitsgründen werden die Daten in der RADIUS Praxis für Ernährung GmbH 20 Jahre aufbewahrt. Nach Ablauf dieser Zeitspanne werden die Personendaten gelöscht oder anonymisiert.
-<h2>5. Betroffenenrechte</h2>
-    Sie haben als betroffene Person das Recht auf Auskunft, welche Daten wir über Sie bearbeiten. Sie haben zudem das Recht, die Berichtigung, Löschung oder Einschränkung der Bearbeitung Ihrer Daten zu verlangen, sowie das Recht auf Datenübertragbarkeit. Diese Rechte bestehen, sofern keine gesetzlichen Aufbewahrungspflichten oder eigene berechtigte Interessen dem Begehren entgegenstehen. Sie sind jederzeit berechtigt, eine einmal erteilte Einwilligung in eine Datenbearbeitung zu widerrufen. Ihre Rechte können Sie geltend machen, indem Sie sich an die Kontaktadresse wenden.
-<h2>6. Kontaktangaben</h2>
-    Bei Fragen können Sie uns unter folgenden Kontaktdaten erreichen: RADIUS Praxis für Ernährung GmbH Glasiweg 3a, 6242 Wauwil radius@hin.ch
-<h2>7. Änderungen</h2>
-    Wir können diese Datenschutzbestimmungen jederzeit anpassen. Es gilt die jeweils aktuelle, auf unserer Website publizierte Fassung.  
-  </p>
-</div>
+    header{border-bottom:1px solid var(--border);background:var(--card)}
+    .wrap{max-width:var(--max);margin:0 auto;padding:24px 16px}
+    h1{font-size:1.9rem;margin:0 0 6px}
+    .meta{color:var(--muted);font-size:.95rem;margin:0}
 
-<p>Datum: <span id="date"></span></p>
+    main{padding:24px 0 48px}
+    section{margin:22px 0}
+    h2{font-size:1.25rem;margin:0 0 10px}
+    p{margin:0 0 10px}
+    ul{margin:8px 0 0 18px}
+    li{margin:6px 0}
+    .box{border:1px solid var(--border);border-radius:12px;padding:14px 16px;background:#fff}
 
-<canvas id="signature-pad" width="400" height="150"></canvas>
+    .signature{
+      margin-top:14px;
+      border-top:1px dashed var(--border);
+      padding-top:14px;
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:16px;
+    }
+    .line{display:grid;gap:8px}
+    .line span{color:var(--muted);font-size:.9rem}
 
-<div id="controls">
-  <button id="clear">Unterschrift löschen</button>
-  <button id="save">PDF herunterladen</button>
-</div>
-
-<!-- Bibliotheken -->
-<script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.0/dist/signature_pad.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
-<script>
-  // Datum automatisch im Format dd.mm.yyyy einfügen
-  const now = new Date();
-  const day = String(now.getDate()).padStart(2, '0');
-  const month = String(now.getMonth() + 1).padStart(2, '0'); // Monate starten bei 0
-  const year = now.getFullYear();
-  const today = `${day}.${month}.${year}`;
-  document.getElementById('date').innerText = today;
-
-  // Signature Pad initialisieren
-  const canvas = document.getElementById('signature-pad');
-  const signaturePad = new SignaturePad(canvas, {
-    backgroundColor: 'rgba(255, 255, 255, 0)',
-    penColor: 'black'
-  });
-
-  // Signatur löschen
-  document.getElementById('clear').addEventListener('click', () => {
-    signaturePad.clear();
-  });
-
-  // PDF generieren
-  document.getElementById('save').addEventListener('click', () => {
-    if (signaturePad.isEmpty()) {
-      alert("Bitte unterschreiben, bevor Sie speichern!");
-      return;
+    .inputlike{
+      height:44px;border:1px solid var(--border);border-radius:10px;background:#fff;
+      display:flex;align-items:center;padding:0 12px;font-weight:600;
     }
 
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
+    .field{
+      display:grid;
+      gap:8px;
+      margin-top:10px;
+    }
+    .field label{color:var(--muted);font-size:.9rem}
+    .textinput{
+      height:44px;border:1px solid var(--border);border-radius:10px;background:#fff;
+      padding:0 12px;font-weight:600;font-size:1rem;
+    }
 
-    // Datenschutztext hinzufügen
-    const text = document.getElementById('privacy-text').innerText;
-    const lines = doc.splitTextToSize(text, 180);
-    doc.text(lines, 10, 10);
+    .sigbox{
+      border:1px solid var(--border);
+      border-radius:10px;
+      background:#fff;
+      overflow:hidden;
+      position:relative;
+      height:140px;
+    }
+    canvas#sigCanvas{width:100%;height:140px;touch-action:none;display:block}
 
-    // Datum einfügen
-    doc.text("Datum: " + today, 10, 280);
+    .sig-actions{
+      display:flex;
+      gap:8px;
+      margin-top:8px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
 
-    // Signatur als Bild hinzufügen
-    const dataURL = signaturePad.toDataURL('image/png');
-    doc.addImage(dataURL, 'PNG', 10, 230, 180, 40);
+    .actions-bottom{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      margin-top:16px;
+      padding-top:14px;
+      border-top:1px solid var(--border);
+    }
+    button{
+      border:1px solid var(--border);
+      background:#fff;
+      border-radius:10px;
+      padding:10px 12px;
+      font-weight:600;
+      cursor:pointer;
+    }
+    button:disabled{opacity:.55;cursor:not-allowed}
+    .hint{color:var(--muted);font-size:.95rem}
+    .hint.danger{color:var(--danger);font-weight:700}
 
-    // PDF herunterladen
-    doc.save("Datenschutz_Unterschrift.pdf");
-  });
-</script>
+    /* Pflichtfeld-Markierung */
+    .sigbox.required{
+      border-color: var(--danger);
+      box-shadow: 0 0 0 3px rgba(198,40,40,.12);
+      background: var(--dangerBg);
+    }
 
+    /* Elemente während PDF-Export ausblenden (aber im Browser sichtbar) */
+    body.pdf-exporting [data-hide-in-pdf="true"]{
+      display:none !important;
+    }
+
+    /* Print: ebenfalls ausblenden */
+    @media print{
+      [data-hide-in-pdf="true"]{display:none !important;}
+      header{background:#fff}
+      .box,body{background:#fff}
+      a{color:inherit;text-decoration:none}
+    }
+  </style>
+
+  <!-- PDF Export Libraries (CDN) -->
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+</head>
+
+<body>
+  <!-- Alles, was in die PDF soll, liegt in #pdfRoot (inkl. Titel/Header) -->
+  <div id="pdfRoot">
+    <header>
+      <div class="wrap">
+        <h1>Datenschutzerklärung</h1>
+        <p class="meta">RADIUS Praxis für Ernährung GmbH · Version: 10/25</p>
+      </div>
+    </header>
+
+    <main class="wrap">
+      <section class="box">
+        <h2>1. Zweck</h2>
+        <p>
+          Die vorliegende Datenschutzerklärung beschreibt den Umfang, den Zweck und die Art und Weise,
+          wie die RADIUS Praxis für Ernährung GmbH Personendaten bearbeitet.
+        </p>
+      </section>
+
+      <section class="box">
+        <h2>2. Bearbeitung von Personendaten</h2>
+        <p>Die RADIUS Praxis für Ernährung führt eine Kundendokumentation. Wir erfassen und bearbeiten folgende Kategorien der Personendaten:</p>
+        <ul>
+          <li>Gesundheitsdaten (werden bei Bedarf bei Zuweisenden / Spitälern angefordert)</li>
+          <li>
+            Administrative Daten zum Zweck der Rechnungsstellung, Buchführung, Terminvereinbarung
+            (Vorname, Name, Adresse, Mailadresse, Telefonnummer, Krankenkasse, Versicherungsklasse,
+            Geburtsdatum, AHV Nummer, zuweisende Ärztin/Arzt)
+          </li>
+          <li>Wir bearbeiten Ihre Personendaten ausschliesslich zum Zweck der Vertragserfüllung.</li>
+        </ul>
+      </section>
+
+      <section class="box">
+        <h2>3. Weitergabe der Personendaten</h2>
+        <p>
+          Die Personendaten werden in elektronischer Form gespeichert. Papierdokumente mit Kundendaten werden
+          in der Ernährungsberatung des PFGM Medicalcenters respektive des ASANA Spitals Menziken aufbewahrt
+          und sind unter Verschluss. Für die Führung, Verwaltung und Sicherung dieser Daten ist die RADIUS Praxis
+          für Ernährung GmbH verantwortlich. Zum Schutz der Kundendaten werden angemessene technische und
+          organisatorische Massnahmen getroffen.
+        </p>
+        <p>
+          Unsere Rechnungsstellung erfolgt über das Rechnungswesen des PFGM Medicalcenters in Wauwil (LU).
+          Im Falle eines Inkassos werden die Daten an eine für das Inkasso zuständige Institution übermittelt.
+          Wir stellen vertraglich sicher, dass externe Dienstleister angemessene Massnahmen betreffend Sicherheit
+          und Schutz der Personendaten treffen und die Daten nur zu dem Zweck bearbeiten, wie wir das selbst tun dürften.
+        </p>
+        <p>
+          Mitarbeitende der RADIUS Praxis für Ernährung GmbH unterstehen einer beruflichen Schweigepflicht.
+          Einsicht in Personendaten erhalten im Rahmen der gesetzlichen Bestimmungen grundsätzlich Vertrauensärztinnen
+          und Vertrauensärzte von Versicherern und in bestimmten Einzelfällen die vom Gesetz bestimmten Behörden.
+          Wenn Daten weitergegeben werden, müssen Sie darüber informiert werden.
+        </p>
+        <p>
+          Ausgenommen ist die Datenweitergabe an die Kranken- und Unfallversicherer, Zuweisende im Rahmen
+          standardisierter Melde- und Abrechnungsinstrumente sowie im Rahmen der Amtshilfe.
+        </p>
+        <p>
+          Weitere Personen, Behörden und Institutionen werden Kundendaten nur mitgeteilt, wenn Sie ausdrücklich
+          schriftlich zustimmen oder wenn das Departement Gesundheit und Soziales die RADIUS Praxis für Ernährung GmbH
+          von der Schweigepflicht befreit. Dies gilt auch für Familienangehörige (einschliesslich Ehepartner und Kinder)
+          und andere Personen, die im gleichen Haushalt leben.
+        </p>
+      </section>
+
+      <section class="box">
+        <h2>4. Aufbewahrung der Daten</h2>
+        <p>
+          Die Personendaten werden so lange aufbewahrt, wie es die gesetzlichen und vertraglichen Aufbewahrungsfristen
+          verlangen. Die RADIUS Praxis für Ernährung GmbH ist verpflichtet, die Personendaten während mind. 10 Jahren
+          aufzubewahren. Aus Sicherheitsgründen werden die Daten in der RADIUS Praxis für Ernährung GmbH 20 Jahre
+          aufbewahrt. Nach Ablauf dieser Zeitspanne werden die Personendaten gelöscht oder anonymisiert.
+        </p>
+      </section>
+
+      <section class="box">
+        <h2>5. Betroffenenrechte</h2>
+        <p>
+          Sie haben als betroffene Person das Recht auf Auskunft, welche Daten wir über Sie bearbeiten. Sie haben zudem
+          das Recht, die Berichtigung, Löschung oder Einschränkung der Bearbeitung Ihrer Daten zu verlangen, sowie das
+          Recht auf Datenübertragbarkeit. Diese Rechte bestehen, sofern keine gesetzlichen Aufbewahrungspflichten oder
+          eigene berechtigte Interessen dem Begehren entgegenstehen.
+        </p>
+        <p>
+          Sie sind jederzeit berechtigt, eine einmal erteilte Einwilligung in eine Datenbearbeitung zu widerrufen.
+          Ihre Rechte können Sie geltend machen, indem Sie sich an die Kontaktadresse wenden.
+        </p>
+      </section>
+
+      <section class="box">
+        <h2>6. Kontaktangaben</h2>
+        <p>
+          RADIUS Praxis für Ernährung GmbH<br />
+          Glasiweg 3a, 6242 Wauwil<br />
+          <a href="mailto:radius@hin.ch">radius@hin.ch</a>
+        </p>
+      </section>
+
+      <section class="box">
+        <h2>7. Änderungen</h2>
+        <p>
+          Wir können diese Datenschutzbestimmungen jederzeit anpassen. Es gilt die jeweils aktuelle, auf unserer Website
+          publizierte Fassung.
+        </p>
+      </section>
+
+      <section class="box">
+        <h2>Erlaubniserteilung</h2>
+        <p>
+          Ich bestätige, das Merkblatt Datenschutzerklärung der RADIUS Praxis für Ernährung GmbH zu den Personendaten
+          gelesen zu haben und über meine Datenschutzrechte aufgeklärt worden zu sein.
+        </p>
+        <p>
+          Ich ermächtige die RADIUS Praxis für Ernährung GmbH sowie ihre externen Dienstleister, während des laufenden
+          Beratungszeitraumes, längstens jedoch aber für fünf Jahre Personendaten an Zuweisende (z.B. für Rückmeldungen
+          zum Beratungsverlauf) sowie andere externe Dienstleister (z.B. zwecks Rechnungsstellung) weiterzugeben.
+        </p>
+        <p>
+          Ich bestätige ebenfalls, dass die RADIUS Praxis für Ernährung GmbH meine medizinischen Akten von Spitälern und
+          weiteren behandelnden Ärztinnen und Ärzten anfordern darf.
+        </p>
+        <p>
+          Ich wurde informiert, dass im Verhinderungs- oder Krankheitsfall vereinbarte Termine mindestens 24h vorher
+          abgesagt werden müssen. Ansonsten wird eine versäumte Konsultation Ernährungsberatung in der Höhe von
+          40 CHF privat in Rechnung gestellt.
+        </p>
+
+        <!-- Name für PDF-Dateiname -->
+        <div class="field">
+          <label for="customerName">Kundenname (für PDF-Dateiname)</label>
+          <input id="customerName" class="textinput" type="text" placeholder="z.B. Max Muster" autocomplete="name" />
+        </div>
+
+        <div class="signature">
+          <div class="line">
+            <span>Datum</span>
+            <div class="inputlike" id="autoDate" aria-label="Datum"></div>
+
+            <span>Zeitstempel (Lokal / UTC)</span>
+            <div class="inputlike" id="signTimestamp" aria-label="Zeitstempel">—</div>
+          </div>
+
+          <div class="line">
+            <span>Unterschrift (Pflichtfeld)</span>
+            <div class="sigbox required" id="sigBox" aria-label="Unterschrift">
+              <canvas id="sigCanvas"></canvas>
+            </div>
+
+            <div class="sig-actions" data-hide-in-pdf="true">
+              <button id="btnClearSig" type="button">Unterschrift löschen</button>
+              <span id="sigHint" class="hint danger">Bitte unterschreiben, um das PDF herunterladen zu können.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Buttons ganz unten (NICHT im PDF) -->
+        <div class="actions-bottom" data-hide-in-pdf="true">
+          <button id="btnDownload" disabled>Als PDF herunterladen</button>
+          <button id="btnPrint" type="button" onclick="window.print()">Drucken</button>
+          <span id="status" class="meta" aria-live="polite"></span>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    // ---------- Helpers ----------
+    const pad2 = (n) => String(n).padStart(2, '0');
+    const safeFilePart = (s) =>
+      (s || '')
+        .trim()
+        .replace(/\s+/g, '_')
+        .replace(/[^\wäöüÄÖÜß-]/g, '')
+        .slice(0, 60) || 'Kunde';
+
+    function formatLocalCH(d) {
+      // de-CH: DD.MM.YYYY, HH:MM
+      const date = `${pad2(d.getDate())}.${pad2(d.getMonth()+1)}.${d.getFullYear()}`;
+      const time = `${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+      return `${date} ${time}`;
+    }
+    function formatUTC(d) {
+      // YYYY-MM-DD HH:MM UTC
+      const y = d.getUTCFullYear();
+      const m = pad2(d.getUTCMonth()+1);
+      const day = pad2(d.getUTCDate());
+      const hh = pad2(d.getUTCHours());
+      const mm = pad2(d.getUTCMinutes());
+      return `${y}-${m}-${day} ${hh}:${mm} UTC`;
+    }
+    function isoDate(d) {
+      const y = d.getFullYear();
+      const m = pad2(d.getMonth()+1);
+      const day = pad2(d.getDate());
+      return `${y}-${m}-${day}`;
+    }
+
+    // ---------- Auto-Date ----------
+    (function setAutoDate() {
+      const el = document.getElementById('autoDate');
+      const now = new Date();
+      // Nur Datum, ohne Uhrzeit
+      const date = `${pad2(now.getDate())}.${pad2(now.getMonth()+1)}.${now.getFullYear()}`;
+      el.textContent = date;
+    })();
+
+    // ---------- Signature Canvas (required) ----------
+    const canvas = document.getElementById('sigCanvas');
+    const sigBox = document.getElementById('sigBox');
+    const btnDownload = document.getElementById('btnDownload');
+    const btnClearSig = document.getElementById('btnClearSig');
+    const sigHint = document.getElementById('sigHint');
+    const statusEl = document.getElementById('status');
+    const timestampEl = document.getElementById('signTimestamp');
+    const nameInput = document.getElementById('customerName');
+
+    const ctx = canvas.getContext('2d');
+
+    let drawing = false;
+    let last = null;
+    let hasSignature = false;
+    let signatureTimestamp = null; // фикс beim ersten Strich
+
+    function setSignatureState(signed) {
+      hasSignature = signed;
+      btnDownload.disabled = !signed;
+
+      if (signed) {
+        sigBox.classList.remove('required');
+        sigHint.classList.remove('danger');
+        sigHint.classList.add('hint');
+        sigHint.textContent = 'Unterschrift erfasst. PDF-Download ist freigeschaltet.';
+      } else {
+        sigBox.classList.add('required');
+        sigHint.classList.add('danger');
+        sigHint.textContent = 'Bitte unterschreiben, um das PDF herunterladen zu können.';
+        timestampEl.textContent = '—';
+        signatureTimestamp = null;
+      }
+    }
+
+    function setTimestampIfNeeded() {
+      if (signatureTimestamp) return;
+      signatureTimestamp = new Date();
+      // Lokal: Europe/Zurich (Browser-Local). Text nennt explizit Lokal/UTC.
+      const local = formatLocalCH(signatureTimestamp);
+      const utc = formatUTC(signatureTimestamp);
+      timestampEl.textContent = `${local} (Lokal) / ${utc}`;
+    }
+
+    function resizeCanvas() {
+      const rect = sigBox.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+
+      canvas.width = Math.max(1, Math.floor(rect.width * dpr));
+      canvas.height = Math.max(1, Math.floor(rect.height * dpr));
+
+      canvas.style.width = rect.width + 'px';
+      canvas.style.height = rect.height + 'px';
+
+      // Zeichnen in CSS-Pixeln
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.lineWidth = 2;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+    setSignatureState(false);
+
+    function getPos(e) {
+      const rect = canvas.getBoundingClientRect();
+      return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    }
+
+    canvas.addEventListener('pointerdown', (e) => {
+      drawing = true;
+      canvas.setPointerCapture(e.pointerId);
+      last = getPos(e);
+    });
+
+    canvas.addEventListener('pointermove', (e) => {
+      if (!drawing) return;
+      const pos = getPos(e);
+
+      ctx.beginPath();
+      ctx.moveTo(last.x, last.y);
+      ctx.lineTo(pos.x, pos.y);
+      ctx.stroke();
+
+      last = pos;
+
+      // erster echter Stroke -> Timestamp fixieren
+      setTimestampIfNeeded();
+
+      // Pflichtfeld erfüllt
+      if (!hasSignature) setSignatureState(true);
+    });
+
+    function endDraw(e) {
+      drawing = false;
+      last = null;
+      try { canvas.releasePointerCapture(e.pointerId); } catch (_) {}
+    }
+    canvas.addEventListener('pointerup', endDraw);
+    canvas.addEventListener('pointercancel', endDraw);
+    canvas.addEventListener('pointerleave', () => { drawing = false; last = null; });
+
+    btnClearSig.addEventListener('click', () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      setSignatureState(false);
+    });
+
+    // ---------- PDF Export ----------
+    btnDownload.addEventListener('click', async () => {
+      if (!hasSignature) {
+        setSignatureState(false);
+        return;
+      }
+
+      btnDownload.disabled = true;
+      statusEl.textContent = 'Erstelle PDF…';
+
+      // Buttons/Hinweise während Export ausblenden
+      document.body.classList.add('pdf-exporting');
+
+      try {
+        const root = document.getElementById('pdfRoot');
+
+        // 1) Haupt-PDF (Screenshot)
+        const shot = await html2canvas(root, {
+          scale: 2,
+          useCORS: true,
+          backgroundColor: '#ffffff',
+          scrollX: 0,
+          scrollY: -window.scrollY
+        });
+
+        const imgData = shot.toDataURL('image/jpeg', 0.92);
+
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF('p', 'mm', 'a4');
+
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
+
+        const imgProps = pdf.getImageProperties(imgData);
+        const imgWidth = pageWidth;
+        const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
+
+        let heightLeft = imgHeight;
+        let position = 0;
+
+        pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+
+        while (heightLeft > 0) {
+          position = position - pageHeight;
+          pdf.addPage();
+          pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+          heightLeft -= pageHeight;
+        }
+
+        // 2) Zusätzliche Seite: Unterschrift als eigenes Bild
+        // (Nur wenn wirklich vorhanden)
+        const sigDataUrl = canvas.toDataURL('image/png');
+
+        pdf.addPage();
+        pdf.setFontSize(16);
+        pdf.text('Unterschrift (separat)', 14, 18);
+
+        // optional: Name + Timestamp auf der Signatur-Seite
+        const customer = safeFilePart(nameInput.value);
+        const localDate = signatureTimestamp ? formatLocalCH(signatureTimestamp) : formatLocalCH(new Date());
+        const utcDate = signatureTimestamp ? formatUTC(signatureTimestamp) : formatUTC(new Date());
+
+        pdf.setFontSize(11);
+        pdf.text(`Kunde: ${customer}`, 14, 28);
+        pdf.text(`Zeitstempel: ${localDate} (Lokal) / ${utcDate}`, 14, 35);
+
+        // Signaturbild passend skalieren
+        const sigImgProps = pdf.getImageProperties(sigDataUrl);
+        const maxW = pageWidth - 28; // Ränder
+        const maxH = pageHeight - 60;
+        let w = maxW;
+        let h = (sigImgProps.height * w) / sigImgProps.width;
+        if (h > maxH) {
+          h = maxH;
+          w = (sigImgProps.width * h) / sigImgProps.height;
+        }
+        const x = (pageWidth - w) / 2;
+        const y = 45;
+
+        pdf.addImage(sigDataUrl, 'PNG', x, y, w, h);
+
+        // 3) Dateiname: Name + Datum
+        const today = isoDate(new Date());
+        pdf.save(`Datenschutzerklaerung_${customer}_${today}.pdf`);
+
+        statusEl.textContent = '';
+      } catch (err) {
+        console.error(err);
+        statusEl.textContent = 'PDF konnte nicht erstellt werden.';
+      } finally {
+        document.body.classList.remove('pdf-exporting');
+        btnDownload.disabled = !hasSignature;
+      }
+    });
+  </script>
 </body>
 </html>
-
-
-
