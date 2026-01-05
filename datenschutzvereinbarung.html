@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Datenschutz Unterschrift</title>
+<style>
+  body { font-family: Arial, sans-serif; padding: 20px; }
+  #privacy-text { border: 1px solid #ccc; padding: 10px; height: 300px; overflow-y: scroll; margin-bottom: 20px; }
+  #signature-pad { border: 1px solid #000; }
+  #controls { margin-top: 10px; }
+  button { margin-right: 10px; padding: 10px; }
+</style>
+</head>
+<body>
+
+<h2>Datenschutzvereinbarung</h2>
+
+<div id="privacy-text">
+  <!-- Hier deinen Text einfügen -->
+  <p>Hier kommt der Inhalt der Datenschutzvereinbarung. Benutzer können sie lesen und dann unterschreiben.</p>
+</div>
+
+<p>Datum: <span id="date"></span></p>
+
+<canvas id="signature-pad" width="400" height="150"></canvas>
+
+<div id="controls">
+  <button id="clear">Unterschrift löschen</button>
+  <button id="save">PDF herunterladen</button>
+</div>
+
+<!-- Bibliotheken -->
+<script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.0/dist/signature_pad.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<script>
+  // Datum automatisch im Format dd.mm.yyyy einfügen
+  const now = new Date();
+  const day = String(now.getDate()).padStart(2, '0');
+  const month = String(now.getMonth() + 1).padStart(2, '0'); // Monate starten bei 0
+  const year = now.getFullYear();
+  const today = `${day}.${month}.${year}`;
+  document.getElementById('date').innerText = today;
+
+  // Signature Pad initialisieren
+  const canvas = document.getElementById('signature-pad');
+  const signaturePad = new SignaturePad(canvas, {
+    backgroundColor: 'rgba(255, 255, 255, 0)',
+    penColor: 'black'
+  });
+
+  // Signatur löschen
+  document.getElementById('clear').addEventListener('click', () => {
+    signaturePad.clear();
+  });
+
+  // PDF generieren
+  document.getElementById('save').addEventListener('click', () => {
+    if (signaturePad.isEmpty()) {
+      alert("Bitte unterschreiben, bevor Sie speichern!");
+      return;
+    }
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    // Datenschutztext hinzufügen
+    const text = document.getElementById('privacy-text').innerText;
+    const lines = doc.splitTextToSize(text, 180);
+    doc.text(lines, 10, 10);
+
+    // Datum einfügen
+    doc.text("Datum: " + today, 10, 280);
+
+    // Signatur als Bild hinzufügen
+    const dataURL = signaturePad.toDataURL('image/png');
+    doc.addImage(dataURL, 'PNG', 10, 230, 180, 40);
+
+    // PDF herunterladen
+    doc.save("Datenschutz_Unterschrift.pdf");
+  });
+</script>
+
+</body>
+</html>
