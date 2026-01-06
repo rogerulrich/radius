@@ -253,24 +253,41 @@
           40 CHF privat in Rechnung gestellt.
         </p>
 
-        <!-- Patientenname (Pflicht) -->
-        <div class="field">
-          <label for="patientName">Patientenname <span style="color:#c62828">*</span></label>
-          <input
-            id="patientName"
-            class="textinput"
-            type="text"
-            placeholder="z.B. Max Muster"
-            autocomplete="name"
-            required
-          />
-          <div id="nameError" class="hint danger" style="display:none;">
-            Bitte Patientenname ausfüllen.
+        <!-- Patientenname + Geburtsdatum (Pflicht) -->
+        <div class="field" style="margin-top:10px;">
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div style="display:grid; gap:8px;">
+              <label for="patientName">Patientenname <span style="color:#c62828">*</span></label>
+              <input
+                id="patientName"
+                class="textinput"
+                type="text"
+                placeholder="z.B. Max Muster"
+                autocomplete="name"
+                required
+              />
+              <div id="nameError" class="hint danger" style="display:none;">
+                Bitte Patientenname ausfüllen.
+              </div>
+            </div>
+
+            <div style="display:grid; gap:8px;">
+              <label for="birthDate">Geburtsdatum <span style="color:#c62828">*</span></label>
+              <input
+                id="birthDate"
+                class="textinput"
+                type="date"
+                required
+              />
+              <div id="birthError" class="hint danger" style="display:none;">
+                Bitte Geburtsdatum ausfüllen.
+              </div>
+            </div>
           </div>
 
-          <!-- Patientenname auch im PDF-Inhalt sichtbar -->
-          <p class="meta" style="margin-top:6px;">
-            Patient: <strong id="patientNamePrint">—</strong>
+          <!-- Im PDF sichtbar -->
+          <p class="meta" style="margin-top:10px;">
+            Patient: <strong id="patientNamePrint">—</strong> · Geburtsdatum: <strong id="birthDatePrint">—</strong>
           </p>
         </div>
 
@@ -292,7 +309,7 @@
             <!-- Aktionen (nicht im PDF) -->
             <div class="sig-actions" data-hide-in-pdf="true">
               <button id="btnClearSig" type="button">Unterschrift löschen</button>
-              <span id="sigHint" class="hint danger">Bitte Patientenname ausfüllen und unterschreiben, um das PDF herunterladen zu können.</span>
+              <span id="sigHint" class="hint danger">Bitte Patientenname und Geburtsdatum ausfüllen und unterschreiben, um das PDF herunterladen zu können.</span>
             </div>
           </div>
         </div>
@@ -318,13 +335,11 @@
         .slice(0, 60) || 'Patient';
 
     function formatLocalCH(d) {
-      // DD.MM.YYYY HH:MM
       const date = `${pad2(d.getDate())}.${pad2(d.getMonth()+1)}.${d.getFullYear()}`;
       const time = `${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
       return `${date} ${time}`;
     }
     function formatUTC(d) {
-      // YYYY-MM-DD HH:MM UTC
       const y = d.getUTCFullYear();
       const m = pad2(d.getUTCMonth()+1);
       const day = pad2(d.getUTCDate());
@@ -337,6 +352,11 @@
       const m = pad2(d.getMonth()+1);
       const day = pad2(d.getDate());
       return `${y}-${m}-${day}`;
+    }
+    function formatBirthForPrint(iso) {
+      const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || "");
+      if (!m) return "—";
+      return `${m[3]}.${m[2]}.${m[1]}`;
     }
 
     // ---------- Auto-Date (nur Datum) ----------
@@ -359,21 +379,31 @@
     const nameError = document.getElementById('nameError');
     const patientNamePrint = document.getElementById('patientNamePrint');
 
+    const birthInput = document.getElementById('birthDate');
+    const birthError = document.getElementById('birthError');
+    const birthDatePrint = document.getElementById('birthDatePrint');
+
     const ctx = canvas.getContext('2d');
 
     let drawing = false;
     let last = null;
     let hasSignature = false;
-    let signatureTimestamp = null; // fix beim ersten Strich
+    let signatureTimestamp = null;
 
-    // ---------- Name (required) ----------
+    // ---------- Required: Name + Birthdate ----------
     function isNameValid() {
       return nameInput.value.trim().length >= 2;
     }
+    function isBirthValid() {
+      return birthInput.value && birthInput.value.trim().length > 0;
+    }
 
-    function syncPatientNamePrint() {
+    function syncPatientPrint() {
       const v = nameInput.value.trim();
       patientNamePrint.textContent = v.length ? v : '—';
+    }
+    function syncBirthPrint() {
+      birthDatePrint.textContent = isBirthValid() ? formatBirthForPrint(birthInput.value) : '—';
     }
 
     function updateNameUI() {
@@ -381,8 +411,13 @@
       nameInput.classList.toggle('required', !ok);
       nameError.style.display = ok ? 'none' : 'block';
     }
+    function updateBirthUI() {
+      const ok = isBirthValid();
+      birthInput.classList.toggle('required', !ok);
+      birthError.style.display = ok ? 'none' : 'block';
+    }
 
-    // ---------- Signature state + download gating ----------
+    // ---------- Signature ----------
     function setTimestampIfNeeded() {
       if (signatureTimestamp) return;
       signatureTimestamp = new Date();
@@ -391,16 +426,18 @@
 
     function updateDownloadState() {
       updateNameUI();
-      syncPatientNamePrint();
+      updateBirthUI();
+      syncPatientPrint();
+      syncBirthPrint();
 
-      const ok = hasSignature && isNameValid();
+      const ok = hasSignature && isNameValid() && isBirthValid();
       btnDownload.disabled = !ok;
 
-      if (!hasSignature && !isNameValid()) {
-        sigHint.textContent = 'Bitte Patientenname ausfüllen und unterschreiben, um das PDF herunterladen zu können.';
+      if (!hasSignature && (!isNameValid() || !isBirthValid())) {
+        sigHint.textContent = 'Bitte Patientenname und Geburtsdatum ausfüllen und unterschreiben, um das PDF herunterladen zu können.';
         sigHint.classList.add('danger');
-      } else if (!isNameValid()) {
-        sigHint.textContent = 'Bitte Patientenname ausfüllen, um das PDF herunterzuladen.';
+      } else if (!isNameValid() || !isBirthValid()) {
+        sigHint.textContent = 'Bitte Patientenname und Geburtsdatum ausfüllen, um das PDF herunterzuladen.';
         sigHint.classList.add('danger');
       } else if (!hasSignature) {
         sigHint.textContent = 'Bitte unterschreiben, um das PDF herunterladen zu können.';
@@ -481,20 +518,26 @@
       setSignatureState(false);
     });
 
-    // Name live prüfen + PDF-Name im Dokument spiegeln
+    // Live validation
     nameInput.addEventListener('input', updateDownloadState);
+    birthInput.addEventListener('input', updateDownloadState);
+    birthInput.addEventListener('change', updateDownloadState);
 
     // Initial state
     setSignatureState(false);
     updateDownloadState();
-    syncPatientNamePrint();
 
     // ---------- PDF Export ----------
     btnDownload.addEventListener('click', async () => {
-      // Extra-Sicherheit: falls Name fehlt -> highlight + focus
+      // Extra-Sicherheit: falls Pflichtfelder fehlen -> highlight + focus
       if (!isNameValid()) {
         updateDownloadState();
         nameInput.focus();
+        return;
+      }
+      if (!isBirthValid()) {
+        updateDownloadState();
+        birthInput.focus();
         return;
       }
       if (!hasSignature) {
@@ -504,8 +547,6 @@
 
       btnDownload.disabled = true;
       statusEl.textContent = 'Erstelle PDF…';
-
-      // Buttons/Hinweise während Export ausblenden
       document.body.classList.add('pdf-exporting');
 
       try {
@@ -553,15 +594,17 @@
         pdf.text('Unterschrift (separat)', 14, 18);
 
         const patient = safeFilePart(nameInput.value);
+        const birth = formatBirthForPrint(birthInput.value);
         const ts = signatureTimestamp ? signatureTimestamp : new Date();
 
         pdf.setFontSize(11);
         pdf.text(`Patient: ${patient}`, 14, 28);
-        pdf.text(`Zeitstempel: ${formatLocalCH(ts)} (Lokal) / ${formatUTC(ts)}`, 14, 35);
+        pdf.text(`Geburtsdatum: ${birth}`, 14, 34);
+        pdf.text(`Zeitstempel: ${formatLocalCH(ts)} (Lokal) / ${formatUTC(ts)}`, 14, 40);
 
         const sigImgProps = pdf.getImageProperties(sigDataUrl);
         const maxW = pageWidth - 28;
-        const maxH = pageHeight - 60;
+        const maxH = pageHeight - 70;
 
         let w = maxW;
         let h = (sigImgProps.height * w) / sigImgProps.width;
@@ -569,14 +612,16 @@
           h = maxH;
           w = (sigImgProps.width * h) / sigImgProps.height;
         }
+
         const x = (pageWidth - w) / 2;
-        const y = 45;
+        const y = 50;
 
         pdf.addImage(sigDataUrl, 'PNG', x, y, w, h);
 
-        // 3) Dateiname: Patientenname + Datum
+        // 3) Dateiname: Patientenname + Geburtsdatum + Datum
         const today = isoDate(new Date());
-        pdf.save(`Datenschutzerklaerung_${patient}_${today}.pdf`);
+        const birthIso = (birthInput.value || '').trim(); // YYYY-MM-DD
+        pdf.save(`Datenschutzerklaerung_${patient}_${birthIso}_${today}.pdf`);
 
         statusEl.textContent = '';
       } catch (err) {
@@ -584,7 +629,7 @@
         statusEl.textContent = 'PDF konnte nicht erstellt werden.';
       } finally {
         document.body.classList.remove('pdf-exporting');
-        btnDownload.disabled = !(hasSignature && isNameValid());
+        btnDownload.disabled = !(hasSignature && isNameValid() && isBirthValid());
       }
     });
   </script>
