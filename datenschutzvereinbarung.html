@@ -48,15 +48,16 @@
       display:flex;align-items:center;padding:0 12px;font-weight:600;
     }
 
-    .field{
-      display:grid;
-      gap:8px;
-      margin-top:10px;
-    }
+    .field{display:grid;gap:8px;margin-top:10px;}
     .field label{color:var(--muted);font-size:.9rem}
     .textinput{
       height:44px;border:1px solid var(--border);border-radius:10px;background:#fff;
       padding:0 12px;font-weight:600;font-size:1rem;
+    }
+    .textinput.required{
+      border-color: var(--danger);
+      box-shadow: 0 0 0 3px rgba(198,40,40,.12);
+      background: var(--dangerBg);
     }
 
     .sigbox{
@@ -98,7 +99,7 @@
     .hint{color:var(--muted);font-size:.95rem}
     .hint.danger{color:var(--danger);font-weight:700}
 
-    /* Pflichtfeld-Markierung */
+    /* Pflichtfeld-Markierung Unterschrift */
     .sigbox.required{
       border-color: var(--danger);
       box-shadow: 0 0 0 3px rgba(198,40,40,.12);
@@ -252,10 +253,25 @@
           40 CHF privat in Rechnung gestellt.
         </p>
 
-        <!-- Name für PDF-Dateiname -->
+        <!-- Patientenname (Pflicht) -->
         <div class="field">
-          <label for="customerName">Patientenname (für PDF-Dateiname)</label>
-          <input id="customerName" class="textinput" type="text" placeholder="z.B. Max Muster" autocomplete="name" />
+          <label for="patientName">Patientenname <span style="color:#c62828">*</span></label>
+          <input
+            id="patientName"
+            class="textinput"
+            type="text"
+            placeholder="z.B. Max Muster"
+            autocomplete="name"
+            required
+          />
+          <div id="nameError" class="hint danger" style="display:none;">
+            Bitte Patientenname ausfüllen.
+          </div>
+
+          <!-- Patientenname auch im PDF-Inhalt sichtbar -->
+          <p class="meta" style="margin-top:6px;">
+            Patient: <strong id="patientNamePrint">—</strong>
+          </p>
         </div>
 
         <div class="signature">
@@ -273,9 +289,10 @@
               <canvas id="sigCanvas"></canvas>
             </div>
 
+            <!-- Aktionen (nicht im PDF) -->
             <div class="sig-actions" data-hide-in-pdf="true">
               <button id="btnClearSig" type="button">Unterschrift löschen</button>
-              <span id="sigHint" class="hint danger">Bitte unterschreiben, um das PDF herunterladen zu können.</span>
+              <span id="sigHint" class="hint danger">Bitte Patientenname ausfüllen und unterschreiben, um das PDF herunterladen zu können.</span>
             </div>
           </div>
         </div>
@@ -298,10 +315,10 @@
         .trim()
         .replace(/\s+/g, '_')
         .replace(/[^\wäöüÄÖÜß-]/g, '')
-        .slice(0, 60) || 'Kunde';
+        .slice(0, 60) || 'Patient';
 
     function formatLocalCH(d) {
-      // de-CH: DD.MM.YYYY, HH:MM
+      // DD.MM.YYYY HH:MM
       const date = `${pad2(d.getDate())}.${pad2(d.getMonth()+1)}.${d.getFullYear()}`;
       const time = `${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
       return `${date} ${time}`;
@@ -322,16 +339,14 @@
       return `${y}-${m}-${day}`;
     }
 
-    // ---------- Auto-Date ----------
+    // ---------- Auto-Date (nur Datum) ----------
     (function setAutoDate() {
       const el = document.getElementById('autoDate');
       const now = new Date();
-      // Nur Datum, ohne Uhrzeit
-      const date = `${pad2(now.getDate())}.${pad2(now.getMonth()+1)}.${now.getFullYear()}`;
-      el.textContent = date;
+      el.textContent = `${pad2(now.getDate())}.${pad2(now.getMonth()+1)}.${now.getFullYear()}`;
     })();
 
-    // ---------- Signature Canvas (required) ----------
+    // ---------- Elements ----------
     const canvas = document.getElementById('sigCanvas');
     const sigBox = document.getElementById('sigBox');
     const btnDownload = document.getElementById('btnDownload');
@@ -339,42 +354,74 @@
     const sigHint = document.getElementById('sigHint');
     const statusEl = document.getElementById('status');
     const timestampEl = document.getElementById('signTimestamp');
-    const nameInput = document.getElementById('customerName');
+
+    const nameInput = document.getElementById('patientName');
+    const nameError = document.getElementById('nameError');
+    const patientNamePrint = document.getElementById('patientNamePrint');
 
     const ctx = canvas.getContext('2d');
 
     let drawing = false;
     let last = null;
     let hasSignature = false;
-    let signatureTimestamp = null; // фикс beim ersten Strich
+    let signatureTimestamp = null; // fix beim ersten Strich
 
-    function setSignatureState(signed) {
-      hasSignature = signed;
-      btnDownload.disabled = !signed;
-
-      if (signed) {
-        sigBox.classList.remove('required');
-        sigHint.classList.remove('danger');
-        sigHint.classList.add('hint');
-        sigHint.textContent = 'Unterschrift erfasst. PDF-Download ist freigeschaltet.';
-      } else {
-        sigBox.classList.add('required');
-        sigHint.classList.add('danger');
-        sigHint.textContent = 'Bitte unterschreiben, um das PDF herunterladen zu können.';
-        timestampEl.textContent = '—';
-        signatureTimestamp = null;
-      }
+    // ---------- Name (required) ----------
+    function isNameValid() {
+      return nameInput.value.trim().length >= 2;
     }
 
+    function syncPatientNamePrint() {
+      const v = nameInput.value.trim();
+      patientNamePrint.textContent = v.length ? v : '—';
+    }
+
+    function updateNameUI() {
+      const ok = isNameValid();
+      nameInput.classList.toggle('required', !ok);
+      nameError.style.display = ok ? 'none' : 'block';
+    }
+
+    // ---------- Signature state + download gating ----------
     function setTimestampIfNeeded() {
       if (signatureTimestamp) return;
       signatureTimestamp = new Date();
-      // Lokal: Europe/Zurich (Browser-Local). Text nennt explizit Lokal/UTC.
-      const local = formatLocalCH(signatureTimestamp);
-      const utc = formatUTC(signatureTimestamp);
-      timestampEl.textContent = `${local} (Lokal) / ${utc}`;
+      timestampEl.textContent = `${formatLocalCH(signatureTimestamp)} (Lokal) / ${formatUTC(signatureTimestamp)}`;
     }
 
+    function updateDownloadState() {
+      updateNameUI();
+      syncPatientNamePrint();
+
+      const ok = hasSignature && isNameValid();
+      btnDownload.disabled = !ok;
+
+      if (!hasSignature && !isNameValid()) {
+        sigHint.textContent = 'Bitte Patientenname ausfüllen und unterschreiben, um das PDF herunterladen zu können.';
+        sigHint.classList.add('danger');
+      } else if (!isNameValid()) {
+        sigHint.textContent = 'Bitte Patientenname ausfüllen, um das PDF herunterzuladen.';
+        sigHint.classList.add('danger');
+      } else if (!hasSignature) {
+        sigHint.textContent = 'Bitte unterschreiben, um das PDF herunterladen zu können.';
+        sigHint.classList.add('danger');
+      } else {
+        sigHint.textContent = 'Alle Pflichtfelder erfüllt. PDF-Download ist freigeschaltet.';
+        sigHint.classList.remove('danger');
+      }
+    }
+
+    function setSignatureState(signed) {
+      hasSignature = signed;
+      sigBox.classList.toggle('required', !signed);
+      if (!signed) {
+        timestampEl.textContent = '—';
+        signatureTimestamp = null;
+      }
+      updateDownloadState();
+    }
+
+    // ---------- Canvas sizing ----------
     function resizeCanvas() {
       const rect = sigBox.getBoundingClientRect();
       const dpr = window.devicePixelRatio || 1;
@@ -385,7 +432,6 @@
       canvas.style.width = rect.width + 'px';
       canvas.style.height = rect.height + 'px';
 
-      // Zeichnen in CSS-Pixeln
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.lineWidth = 2;
       ctx.lineCap = 'round';
@@ -393,8 +439,8 @@
     }
     window.addEventListener('resize', resizeCanvas);
     resizeCanvas();
-    setSignatureState(false);
 
+    // ---------- Drawing ----------
     function getPos(e) {
       const rect = canvas.getBoundingClientRect();
       return { x: e.clientX - rect.left, y: e.clientY - rect.top };
@@ -417,10 +463,7 @@
 
       last = pos;
 
-      // erster echter Stroke -> Timestamp fixieren
       setTimestampIfNeeded();
-
-      // Pflichtfeld erfüllt
       if (!hasSignature) setSignatureState(true);
     });
 
@@ -438,10 +481,24 @@
       setSignatureState(false);
     });
 
+    // Name live prüfen + PDF-Name im Dokument spiegeln
+    nameInput.addEventListener('input', updateDownloadState);
+
+    // Initial state
+    setSignatureState(false);
+    updateDownloadState();
+    syncPatientNamePrint();
+
     // ---------- PDF Export ----------
     btnDownload.addEventListener('click', async () => {
+      // Extra-Sicherheit: falls Name fehlt -> highlight + focus
+      if (!isNameValid()) {
+        updateDownloadState();
+        nameInput.focus();
+        return;
+      }
       if (!hasSignature) {
-        setSignatureState(false);
+        updateDownloadState();
         return;
       }
 
@@ -454,7 +511,7 @@
       try {
         const root = document.getElementById('pdfRoot');
 
-        // 1) Haupt-PDF (Screenshot)
+        // 1) Haupt-PDF (Screenshot von Header+Inhalt)
         const shot = await html2canvas(root, {
           scale: 2,
           useCORS: true,
@@ -488,27 +545,24 @@
           heightLeft -= pageHeight;
         }
 
-        // 2) Zusätzliche Seite: Unterschrift als eigenes Bild
-        // (Nur wenn wirklich vorhanden)
+        // 2) Zusätzliche Seite: Unterschrift separat
         const sigDataUrl = canvas.toDataURL('image/png');
 
         pdf.addPage();
         pdf.setFontSize(16);
         pdf.text('Unterschrift (separat)', 14, 18);
 
-        // optional: Name + Timestamp auf der Signatur-Seite
-        const customer = safeFilePart(nameInput.value);
-        const localDate = signatureTimestamp ? formatLocalCH(signatureTimestamp) : formatLocalCH(new Date());
-        const utcDate = signatureTimestamp ? formatUTC(signatureTimestamp) : formatUTC(new Date());
+        const patient = safeFilePart(nameInput.value);
+        const ts = signatureTimestamp ? signatureTimestamp : new Date();
 
         pdf.setFontSize(11);
-        pdf.text(`Kunde: ${customer}`, 14, 28);
-        pdf.text(`Zeitstempel: ${localDate} (Lokal) / ${utcDate}`, 14, 35);
+        pdf.text(`Patient: ${patient}`, 14, 28);
+        pdf.text(`Zeitstempel: ${formatLocalCH(ts)} (Lokal) / ${formatUTC(ts)}`, 14, 35);
 
-        // Signaturbild passend skalieren
         const sigImgProps = pdf.getImageProperties(sigDataUrl);
-        const maxW = pageWidth - 28; // Ränder
+        const maxW = pageWidth - 28;
         const maxH = pageHeight - 60;
+
         let w = maxW;
         let h = (sigImgProps.height * w) / sigImgProps.width;
         if (h > maxH) {
@@ -520,9 +574,9 @@
 
         pdf.addImage(sigDataUrl, 'PNG', x, y, w, h);
 
-        // 3) Dateiname: Name + Datum
+        // 3) Dateiname: Patientenname + Datum
         const today = isoDate(new Date());
-        pdf.save(`Datenschutzerklaerung_${customer}_${today}.pdf`);
+        pdf.save(`Datenschutzerklaerung_${patient}_${today}.pdf`);
 
         statusEl.textContent = '';
       } catch (err) {
@@ -530,10 +584,9 @@
         statusEl.textContent = 'PDF konnte nicht erstellt werden.';
       } finally {
         document.body.classList.remove('pdf-exporting');
-        btnDownload.disabled = !hasSignature;
+        btnDownload.disabled = !(hasSignature && isNameValid());
       }
     });
   </script>
 </body>
 </html>
-
