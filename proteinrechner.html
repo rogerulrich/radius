@@ -132,6 +132,24 @@
 <div class="container">
   <div class="bedarf-panel">
     <div class="panel-title">Patientendaten &amp; Proteinbedarf</div>
+    <div class="bedarf-grid" style="margin-bottom:14px;">
+      <div class="field">
+        <label>Name</label>
+        <input type="text" id="pat-name" placeholder="z.B. Muster">
+      </div>
+      <div class="field">
+        <label>Vorname</label>
+        <input type="text" id="pat-vorname" placeholder="z.B. Maria">
+      </div>
+      <div class="field">
+        <label>Geburtsdatum</label>
+        <input type="date" id="pat-geburt" oninput="updateAlter()">
+      </div>
+      <div class="bedarf-result" id="alter-display-box" style="display:none;">
+        <div class="label">Alter</div>
+        <div class="value" id="alter-display">– Jahre</div>
+      </div>
+    </div>
     <div class="bedarf-grid">
       <div class="field">
         <label>Gewicht (kg)</label>
@@ -381,6 +399,21 @@ const FOODS = [
 const portionen = {};
 let bedarfMin = null, bedarfMax = null;
 
+function updateAlter() {
+  const val = document.getElementById('pat-geburt').value;
+  const box = document.getElementById('alter-display-box');
+  const disp = document.getElementById('alter-display');
+  if (!val) { box.style.display = 'none'; return; }
+  const birth = new Date(val);
+  const today = new Date();
+  let age = today.getFullYear() - birth.getFullYear();
+  const m = today.getMonth() - birth.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+  if (age < 0 || age > 130) { box.style.display = 'none'; return; }
+  disp.textContent = age + ' Jahre';
+  box.style.display = '';
+}
+
 function buildUI() {
   const cats = {};
   FOODS.forEach((f, i) => {
@@ -550,12 +583,18 @@ function exportPDF() {
   const zufuhrText = document.getElementById('rb-zufuhr').textContent;
   const diffText = document.getElementById('rb-diff').textContent;
   const pctText = document.getElementById('rb-pct').textContent;
+  const patName = document.getElementById('pat-name').value;
+  const patVorname = document.getElementById('pat-vorname').value;
+  const patGeburt = document.getElementById('pat-geburt').value;
+  const patAlter = document.getElementById('alter-display').textContent;
+  const patLabel = [patVorname, patName].filter(Boolean).join(' ') || '–';
+  const geburtFormatted = patGeburt ? new Date(patGeburt).toLocaleDateString('de-CH') : '–';
 
   doc.setFillColor(...lightGreen);
-  doc.roundedRect(margin, y, colW, 44, 3, 3, 'F');
+  doc.roundedRect(margin, y, colW, 52, 3, 3, 'F');
   doc.setDrawColor(...green);
   doc.setLineWidth(0.4);
-  doc.roundedRect(margin, y, colW, 44, 3, 3, 'S');
+  doc.roundedRect(margin, y, colW, 52, 3, 3, 'S');
 
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(9);
@@ -566,12 +605,14 @@ function exportPDF() {
   doc.setFontSize(8.5);
   doc.setTextColor(...text);
   const col1x = margin + 5, col2x = margin + colW / 2;
-  doc.text('Gewicht: ' + gewicht + ' kg', col1x, y + 17);
-  doc.text('Proteinbedarf: ' + bedarfText, col1x, y + 25);
+  doc.text('Patient/in: ' + patLabel, col1x, y + 17);
+  doc.text('Geburtsdatum: ' + geburtFormatted + (patAlter && patAlter !== '– Jahre' ? '  (' + patAlter + ')' : ''), col2x, y + 17);
+  doc.text('Gewicht: ' + gewicht + ' kg', col1x, y + 25);
+  doc.text('Proteinbedarf: ' + bedarfText, col1x, y + 33);
   const agLines = doc.splitTextToSize('Situation: ' + agText, colW / 2 - 5);
-  doc.text(agLines, col2x, y + 17);
-  doc.text('Tägliche Ø-Zufuhr: ' + zufuhrText + '  |  Differenz: ' + diffText + '  |  Deckung: ' + pctText, col1x, y + 33);
-  y += 54;
+  doc.text(agLines, col2x, y + 25);
+  doc.text('Tägliche Ø-Zufuhr: ' + zufuhrText + '  |  Differenz: ' + diffText + '  |  Deckung: ' + pctText, col1x, y + 41);
+  y += 62;
 
   // Collect active foods
   const active = [];
