@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Proteinrechner</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f0ea;
+    --card: #ffffff;
+    --accent: #2d6a4f;
+    --accent2: #52b788;
+    --text: #1a1a1a;
+    --muted: #6b7280;
+    --border: #e5e0d8;
+    --tag-bg: #e8f5ef;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 0 0 60px; }
+  header { background: var(--accent); color: white; padding: 28px 40px 24px; }
+  header h1 { font-family: 'DM Serif Display', serif; font-size: 1.9rem; letter-spacing: -0.5px; }
+  header p { font-size: 0.85rem; opacity: 0.72; margin-top: 4px; }
+  .container { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+
+  .result-bar { background: var(--accent); border-top: 1px solid rgba(255,255,255,0.12); position: sticky; top: 0; z-index: 100; box-shadow: 0 4px 20px rgba(45,106,79,0.22); }
+  .result-bar-inner { display: flex; align-items: stretch; max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+  .result-segment { flex: 1; padding: 12px 18px; border-right: 1px solid rgba(255,255,255,0.13); display: flex; flex-direction: column; gap: 2px; color: white; }
+  .result-segment:last-child { border-right: none; }
+  .rs-label { font-size: 0.68rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.65; }
+  .rs-value { font-family: 'DM Serif Display', serif; font-size: 1.45rem; line-height: 1; }
+  .rs-value.ok { color: #b7e4c7; }
+  .rs-value.warn { color: #ffd166; }
+  .rs-value.bad { color: #ff8585; }
+  .progress-wrap { flex: 2; padding: 12px 18px; display: flex; flex-direction: column; justify-content: center; gap: 5px; color: white; }
+  .progress-labels { display: flex; justify-content: space-between; font-size: 0.68rem; opacity: 0.65; }
+  .progress-bar { height: 7px; border-radius: 100px; background: rgba(255,255,255,0.18); }
+  .progress-fill { height: 100%; border-radius: 100px; transition: width 0.35s ease, background 0.3s; background: #52b788; }
+
+  .bedarf-panel { background: var(--card); border-radius: 14px; padding: 24px 28px; margin: 28px 0 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border: 1px solid var(--border); }
+  .panel-title { font-family: 'DM Serif Display', serif; font-size: 1.2rem; margin-bottom: 18px; color: var(--accent); }
+  .bedarf-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; align-items: end; }
+  .field label { display: block; font-size: 0.76rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 5px; }
+  .field input, .field select { width: 100%; padding: 9px 12px; border: 1.5px solid var(--border); border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 0.95rem; background: var(--bg); outline: none; transition: border-color 0.2s; }
+  .field input:focus, .field select:focus { border-color: var(--accent2); }
+  .bedarf-result { background: var(--tag-bg); border: 1.5px solid var(--accent2); border-radius: 10px; padding: 11px 16px; }
+  .bedarf-result .label { font-size: 0.72rem; font-weight: 600; color: var(--accent); text-transform: uppercase; letter-spacing: 0.06em; }
+  .bedarf-result .value { font-family: 'DM Serif Display', serif; font-size: 1.55rem; color: var(--accent); line-height: 1.1; margin-top: 2px; }
+
+  .section-heading { font-family: 'DM Serif Display', serif; font-size: 1.4rem; color: var(--accent); margin: 28px 0 8px; }
+  .section-note { color: var(--muted); font-size: 0.85rem; margin-bottom: 18px; }
+  .category { margin-bottom: 22px; }
+  .category-title { font-size: 0.72rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; padding-left: 2px; }
+  .food-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 8px; }
+
+  .food-card { background: var(--card); border: 1.5px solid var(--border); border-radius: 11px; padding: 12px 14px; display: flex; align-items: center; gap: 10px; transition: border-color 0.2s, box-shadow 0.2s; }
+  .food-card.active { border-color: var(--accent2); box-shadow: 0 0 0 3px rgba(82,183,136,0.12); }
+  .food-info { flex: 1; min-width: 0; }
+  .food-name { font-size: 0.875rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .food-protein { font-size: 0.75rem; color: var(--muted); margin-top: 1px; }
+  .food-protein span { font-weight: 600; color: var(--accent); }
+  .portion-wrap { display: flex; align-items: center; gap: 5px; flex-shrink: 0; }
+  .portion-btn { width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid var(--border); background: var(--bg); font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; font-weight: 700; color: var(--accent); line-height: 1; user-select: none; }
+  .portion-btn:hover { background: var(--accent2); border-color: var(--accent2); color: white; }
+  .portion-input { width: 36px; text-align: center; border: 1.5px solid var(--border); border-radius: 6px; font-family: 'DM Sans', sans-serif; font-size: 0.92rem; font-weight: 600; padding: 3px 0; background: var(--bg); outline: none; }
+  .portion-input:focus { border-color: var(--accent2); }
+  .portion-label { font-size: 0.67rem; color: var(--muted); width: 26px; }
+  .reset-btn { display: inline-flex; align-items: center; gap: 6px; margin-top: 28px; padding: 9px 18px; background: none; border: 1.5px solid var(--border); border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 0.85rem; color: var(--muted); cursor: pointer; transition: all 0.2s; }
+  .reset-btn:hover { border-color: #c0392b; color: #c0392b; }
+
+  @media (max-width: 620px) {
+    header { padding: 18px 16px 14px; }
+    .bedarf-panel { padding: 18px 14px; }
+    .result-bar-inner { flex-wrap: wrap; }
+    .result-segment { flex: 1 1 auto; min-width: 110px; }
+    .progress-wrap { flex: 1 1 100%; border-top: 1px solid rgba(255,255,255,0.12); }
+    .container { padding: 0 12px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="container">
+    <h1>Proteinrechner</h1>
+    <p>Tägliche Proteinzufuhr planen – Datengrundlage: Schweizer Nährwertdatenbank V 7.0</p>
+  </div>
+</header>
+
+<div class="result-bar">
+  <div class="result-bar-inner">
+    <div class="result-segment">
+      <div class="rs-label">Mindestbedarf / Tag</div>
+      <div class="rs-value" id="rb-bedarf">– g</div>
+    </div>
+    <div class="result-segment">
+      <div class="rs-label">Zufuhr / Tag (Ø)</div>
+      <div class="rs-value" id="rb-zufuhr">0 g</div>
+    </div>
+    <div class="result-segment">
+      <div class="rs-label">Differenz</div>
+      <div class="rs-value" id="rb-diff">–</div>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-labels">
+        <span>0%</span>
+        <span id="rb-pct">0%</span>
+        <span>100% Mindestbedarf</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="pb-fill" style="width:0%"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="bedarf-panel">
+    <div class="panel-title">Patientendaten &amp; Proteinbedarf</div>
+    <div class="bedarf-grid">
+      <div class="field">
+        <label>Gewicht (kg)</label>
+        <input type="number" id="gewicht" min="20" max="200" placeholder="z.B. 70" oninput="updateBedarf()">
+      </div>
+      <div class="field">
+        <label>Altersgruppe / Situation</label>
+        <select id="altersgruppe" onchange="updateBedarf()">
+          <option value="">– wählen –</option>
+          <optgroup label="Gesunde Erwachsene">
+            <option value="0.8|2.0">Erwachsene 18–64 Jahre (0.8–2.0 g/kg)</option>
+            <option value="1.0|1.2">Ältere Erwachsene 65+ Jahre (1.0–1.2 g/kg)</option>
+          </optgroup>
+          <optgroup label="Geriatrie &amp; Sarkopenie">
+            <option value="1.2|1.2">Sarkopenie / funktioneller Abbau, Prävention (≥ 1.2 g/kg)</option>
+          </optgroup>
+          <optgroup label="Akute Erkrankung &amp; postoperativ">
+            <option value="1.2|1.5">Akut krank / postoperativ, gut ernährt (1.2–1.5 g/kg)</option>
+            <option value="1.5|2.0">Schwer katabol / schwere akute Erkrankung (1.5–2.0 g/kg)</option>
+            <option value="1.5|2.0">Verbrennungen / Polytrauma (1.5–2.0 g/kg)</option>
+          </optgroup>
+          <optgroup label="Kritisch krank">
+            <option value="1.2|1.5">Kritisch krank, weniger schwer (1.2–1.5 g/kg)</option>
+            <option value="1.5|2.0">Kritisch krank, schwer katabol / Sepsis (1.5–2.0 g/kg)</option>
+          </optgroup>
+          <optgroup label="Lebererkrankung">
+            <option value="1.2|1.5">Zirrhose / Leberinsuffizienz – AASLD (1.2–1.5 g/kg IBW)</option>
+          </optgroup>
+          <optgroup label="Niereninsuffizienz">
+            <option value="0.6|0.8">Chron. Niereninsuffizienz, nicht dialysepflichtig, GFR &lt;30 (0.6–0.8 g/kg)</option>
+            <option value="1.2|1.4">Hämodialyse / Peritonealdialyse (1.2–1.4 g/kg)</option>
+          </optgroup>
+          <optgroup label="Weitere Situationen">
+            <option value="1.2|2.0">Sport / Training (1.2–2.0 g/kg)</option>
+            <option value="1.2|1.5">Schwangerschaft / Stillzeit (1.2–1.5 g/kg)</option>
+          </optgroup>
+          <optgroup label="Individuell">
+            <option value="custom">Eigener Faktor eingeben</option>
+          </optgroup>
+        </select>
+      </div>
+      <div class="field" id="field-custom" style="display:none;">
+        <label>Faktor (g/kg KG)</label>
+        <input type="number" id="custom-faktor" min="0.5" max="3.0" step="0.1" placeholder="z.B. 1.5" oninput="updateBedarf()">
+      </div>
+      <div class="bedarf-result">
+        <div class="label">Mindest-Proteinbedarf</div>
+        <div class="value" id="bedarf-display">– g/Tag</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-heading">Portionen pro Woche</div>
+  <p class="section-note">Anzahl Portionen pro Woche eingeben — der Fortschrittsbalken zeigt, ob der Mindestbedarf erreicht wird.</p>
+
+  <div id="food-list"></div>
+  <button class="reset-btn" onclick="resetAll()">↺ Alle Portionen zurücksetzen</button>
+</div>
+
+<script>
+const FOODS = [
+  // Fleisch
+  { cat: "🥩 Fleisch", name: "Pouletbrust, gebraten", protein: 36, portion: "120 g" },
+  { cat: "🥩 Fleisch", name: "Pouletschenkel, gebraten", protein: 29, portion: "120 g" },
+  { cat: "🥩 Fleisch", name: "Truthahn, Brust, gebraten", protein: 38, portion: "120 g" },
+  { cat: "🥩 Fleisch", name: "Rindfleisch, Geschnetzeltes, gebraten", protein: 35, portion: "120 g" },
+  { cat: "🥩 Fleisch", name: "Rind, Hackfleisch, gebraten", protein: 39, portion: "120 g" },
+  { cat: "🥩 Fleisch", name: "Schwein, Plätzli, gebraten", protein: 40, portion: "120 g" },
+  { cat: "🥩 Fleisch", name: "Schwein, Filet, gebraten", protein: 35, portion: "120 g" },
+  { cat: "🥩 Fleisch", name: "Kalb, Geschnetzeltes, gebraten", protein: 34, portion: "120 g" },
+  { cat: "🥩 Fleisch", name: "Kalbsplätzli, gebraten", protein: 34, portion: "120 g" },
+  { cat: "🥩 Fleisch", name: "Lamm, Gigot, gebraten", protein: 34, portion: "120 g" },
+  { cat: "🥩 Fleisch", name: "Hirsch (Durchschnitt), roh", protein: 28, portion: "120 g" },
+  { cat: "🥩 Fleisch", name: "Wildfleisch (Durchschnitt), gekocht", protein: 33, portion: "120 g" },
+  { cat: "🥩 Fleisch", name: "Leber (Rind/Kalb/Schwein), gebraten", protein: 28, portion: "120 g" },
+  // Wurst & Charcuterie
+  { cat: "🥓 Wurst & Charcuterie", name: "Rohschinken", protein: 9, portion: "30 g" },
+  { cat: "🥓 Wurst & Charcuterie", name: "Mostbröckli", protein: 10, portion: "30 g" },
+  { cat: "🥓 Wurst & Charcuterie", name: "Bresaola", protein: 10, portion: "30 g" },
+  { cat: "🥓 Wurst & Charcuterie", name: "Trockenfleisch (Bündnerfleisch)", protein: 12, portion: "30 g" },
+  { cat: "🥓 Wurst & Charcuterie", name: "Salami", protein: 7, portion: "30 g" },
+  { cat: "🥓 Wurst & Charcuterie", name: "Cervelat / Wienerli", protein: 10, portion: "80 g" },
+  { cat: "🥓 Wurst & Charcuterie", name: "Gekochter Schinken", protein: 10, portion: "50 g" },
+  // Milchprodukte
+  { cat: "🧀 Milchprodukte & Käse", name: "Vollmilch", protein: 6, portion: "200 ml" },
+  { cat: "🧀 Milchprodukte & Käse", name: "Magermilch", protein: 7, portion: "200 ml" },
+  { cat: "🧀 Milchprodukte & Käse", name: "Magerquark", protein: 19, portion: "180 g" },
+  { cat: "🧀 Milchprodukte & Käse", name: "Halbfettquark", protein: 16, portion: "180 g" },
+  { cat: "🧀 Milchprodukte & Käse", name: "Rahmquark", protein: 12, portion: "180 g" },
+  { cat: "🧀 Milchprodukte & Käse", name: "Skyr / Hüttenkäse", protein: 19, portion: "150 g" },
+  { cat: "🧀 Milchprodukte & Käse", name: "Naturejoghurt", protein: 7, portion: "180 g" },
+  { cat: "🧀 Milchprodukte & Käse", name: "Griechenjoghurt (10% Fett)", protein: 10, portion: "180 g" },
+  { cat: "🧀 Milchprodukte & Käse", name: "Emmentaler, vollfett", protein: 9, portion: "30 g" },
+  { cat: "🧀 Milchprodukte & Käse", name: "Greyerzer, vollfett", protein: 8, portion: "30 g" },
+  { cat: "🧀 Milchprodukte & Käse", name: "Appenzeller", protein: 10, portion: "30 g" },
+  { cat: "🧀 Milchprodukte & Käse", name: "Raclettekäse", protein: 8, portion: "30 g" },
+  { cat: "🧀 Milchprodukte & Käse", name: "Parmesan / Sbrinz (Reibkäse)", protein: 9, portion: "30 g" },
+  { cat: "🧀 Milchprodukte & Käse", name: "Weichkäse (Camembert, Brie)", protein: 10, portion: "60 g" },
+  { cat: "🧀 Milchprodukte & Käse", name: "Mozzarella", protein: 10, portion: "60 g" },
+  { cat: "🧀 Milchprodukte & Käse", name: "Magermilchpulver", protein: 10, portion: "30 g" },
+  // Eier
+  { cat: "🥚 Eier", name: "Hühnerei, ganz (roh/gekocht)", protein: 8, portion: "1 Ei (63 g)" },
+  { cat: "🥚 Eier", name: "Rührei / Spiegelei (2 Eier)", protein: 15, portion: "2 Eier" },
+  // Fisch
+  { cat: "🐟 Fisch & Meeresfrüchte", name: "Thunfisch im Wasser, Konserve", protein: 30, portion: "120 g" },
+  { cat: "🐟 Fisch & Meeresfrüchte", name: "Thunfisch im Öl, Konserve", protein: 33, portion: "120 g" },
+  { cat: "🐟 Fisch & Meeresfrüchte", name: "Lachs, frisch / gebraten", protein: 24, portion: "120 g" },
+  { cat: "🐟 Fisch & Meeresfrüchte", name: "Forelle, gegart", protein: 24, portion: "120 g" },
+  { cat: "🐟 Fisch & Meeresfrüchte", name: "Sardinen im Öl, Konserve", protein: 29, portion: "120 g" },
+  { cat: "🐟 Fisch & Meeresfrüchte", name: "Sardellen im Öl, abgetropft", protein: 32, portion: "120 g" },
+  { cat: "🐟 Fisch & Meeresfrüchte", name: "Felchen / Egli, gebraten", protein: 24, portion: "120 g" },
+  { cat: "🐟 Fisch & Meeresfrüchte", name: "Pangasius / Seelachs, gegart", protein: 22, portion: "120 g" },
+  { cat: "🐟 Fisch & Meeresfrüchte", name: "Dorsch / Kabeljau, gedämpft", protein: 20, portion: "120 g" },
+  { cat: "🐟 Fisch & Meeresfrüchte", name: "Heilbutt, roh", protein: 25, portion: "120 g" },
+  { cat: "🐟 Fisch & Meeresfrüchte", name: "Makrele, geräuchert", protein: 22, portion: "100 g" },
+  { cat: "🐟 Fisch & Meeresfrüchte", name: "Garnelen / Crevetten, gekocht", protein: 11, portion: "120 g" },
+  { cat: "🐟 Fisch & Meeresfrüchte", name: "Miesmuscheln, gekocht", protein: 21, portion: "120 g" },
+  // Hülsenfrüchte
+  { cat: "🌿 Hülsenfrüchte", name: "Linsen, getrocknet", protein: 22, portion: "80 g" },
+  { cat: "🌿 Hülsenfrüchte", name: "Linsen, gekocht", protein: 9, portion: "150 g" },
+  { cat: "🌿 Hülsenfrüchte", name: "Kidneybohnen, gekocht", protein: 9, portion: "150 g" },
+  { cat: "🌿 Hülsenfrüchte", name: "Weisse Bohnen, gekocht", protein: 9, portion: "150 g" },
+  { cat: "🌿 Hülsenfrüchte", name: "Kichererbsen, gekocht", protein: 9, portion: "150 g" },
+  { cat: "🌿 Hülsenfrüchte", name: "Sojabohnen, getrocknet", protein: 31, portion: "80 g" },
+  { cat: "🌿 Hülsenfrüchte", name: "Edamame (unreife Sojabohne)", protein: 9, portion: "80 g" },
+  { cat: "🌿 Hülsenfrüchte", name: "Erbsen, grün, gedämpft", protein: 6, portion: "80 g" },
+  // Pflanzliche Alternativen
+  { cat: "🌾 Pflanzliche Alternativen", name: "Tofu", protein: 17, portion: "120 g" },
+  { cat: "🌾 Pflanzliche Alternativen", name: "Tempeh", protein: 20, portion: "120 g" },
+  { cat: "🌾 Pflanzliche Alternativen", name: "Seitan", protein: 34, portion: "120 g" },
+  { cat: "🌾 Pflanzliche Alternativen", name: "Quorn™", protein: 15, portion: "120 g" },
+  { cat: "🌾 Pflanzliche Alternativen", name: "Sojaschnetzel / -granulat, trocken", protein: 15, portion: "30 g" },
+  { cat: "🌾 Pflanzliche Alternativen", name: "Veganer Burger (Soja/Erbse)", protein: 18, portion: "100 g" },
+  { cat: "🌾 Pflanzliche Alternativen", name: "Sojadrink", protein: 4, portion: "200 ml" },
+  // Getreide
+  { cat: "🍞 Getreide & Beilagen", name: "Quinoa, roh", protein: 9, portion: "60 g" },
+  { cat: "🍞 Getreide & Beilagen", name: "Haferflocken", protein: 8, portion: "60 g" },
+  { cat: "🍞 Getreide & Beilagen", name: "Vollkornteigwaren, trocken", protein: 8, portion: "60 g" },
+  { cat: "🍞 Getreide & Beilagen", name: "Hirse, trocken", protein: 6, portion: "60 g" },
+  { cat: "🍞 Getreide & Beilagen", name: "Buchweizen, trocken", protein: 6, portion: "60 g" },
+  { cat: "🍞 Getreide & Beilagen", name: "Reis, trocken", protein: 5, portion: "60 g" },
+  { cat: "🍞 Getreide & Beilagen", name: "Kartoffeln, gedämpft", protein: 5, portion: "250 g" },
+  { cat: "🍞 Getreide & Beilagen", name: "Weizenkeime", protein: 9, portion: "30 g" },
+  // Nüsse
+  { cat: "🥜 Nüsse & Samen", name: "Mandeln", protein: 8, portion: "30 g" },
+  { cat: "🥜 Nüsse & Samen", name: "Erdnüsse", protein: 8, portion: "30 g" },
+  { cat: "🥜 Nüsse & Samen", name: "Pistazien", protein: 8, portion: "30 g" },
+  { cat: "🥜 Nüsse & Samen", name: "Cashewnüsse", protein: 6, portion: "30 g" },
+  { cat: "🥜 Nüsse & Samen", name: "Kürbiskerne", protein: 11, portion: "30 g" },
+  { cat: "🥜 Nüsse & Samen", name: "Sonnenblumenkerne", protein: 8, portion: "30 g" },
+  { cat: "🥜 Nüsse & Samen", name: "Sesamsamen", protein: 8, portion: "30 g" },
+  { cat: "🥜 Nüsse & Samen", name: "Chia-Samen", protein: 6, portion: "30 g" },
+  { cat: "🥜 Nüsse & Samen", name: "Leinsamen", protein: 6, portion: "30 g" },
+  { cat: "🥜 Nüsse & Samen", name: "Baumnüsse", protein: 5, portion: "30 g" },
+  { cat: "🥜 Nüsse & Samen", name: "Haselnüsse", protein: 5, portion: "30 g" },
+  { cat: "🥜 Nüsse & Samen", name: "Erdnussbutter", protein: 8, portion: "30 g" },
+];
+
+const portionen = {};
+let bedarfMin = null, bedarfMax = null;
+
+function buildUI() {
+  const cats = {};
+  FOODS.forEach((f, i) => {
+    if (!cats[f.cat]) cats[f.cat] = [];
+    cats[f.cat].push({ ...f, idx: i });
+  });
+  const container = document.getElementById('food-list');
+  container.innerHTML = '';
+  Object.entries(cats).forEach(([cat, items]) => {
+    const div = document.createElement('div');
+    div.className = 'category';
+    const grid = document.createElement('div');
+    grid.className = 'food-grid';
+    div.innerHTML = '<div class="category-title">' + cat + '</div>';
+    div.appendChild(grid);
+    container.appendChild(div);
+    items.forEach(f => {
+      portionen[f.idx] = 0;
+      const card = document.createElement('div');
+      card.className = 'food-card';
+      card.id = 'card-' + f.idx;
+      card.innerHTML =
+        '<div class="food-info">' +
+          '<div class="food-name" title="' + f.name + '">' + f.name + '</div>' +
+          '<div class="food-protein"><span>' + f.protein + ' g</span> Protein / Portion (' + f.portion + ')</div>' +
+        '</div>' +
+        '<div class="portion-wrap">' +
+          '<button class="portion-btn" onclick="changeP(' + f.idx + ',-1)">−</button>' +
+          '<input class="portion-input" type="number" min="0" max="99" value="0" id="inp-' + f.idx + '" oninput="setP(' + f.idx + ',this.value)">' +
+          '<div class="portion-label">×/Wo</div>' +
+          '<button class="portion-btn" onclick="changeP(' + f.idx + ',1)">+</button>' +
+        '</div>';
+      grid.appendChild(card);
+    });
+  });
+}
+
+function changeP(idx, delta) {
+  const val = Math.max(0, Math.min(99, (portionen[idx] || 0) + delta));
+  portionen[idx] = val;
+  document.getElementById('inp-' + idx).value = val;
+  updateCard(idx);
+  updateResult();
+}
+
+function setP(idx, val) {
+  portionen[idx] = Math.max(0, Math.min(99, parseInt(val) || 0));
+  updateCard(idx);
+  updateResult();
+}
+
+function updateCard(idx) {
+  const card = document.getElementById('card-' + idx);
+  if (card) card.classList.toggle('active', portionen[idx] > 0);
+}
+
+function updateBedarf() {
+  const g = parseFloat(document.getElementById('gewicht').value);
+  const ag = document.getElementById('altersgruppe').value;
+  document.getElementById('field-custom').style.display = ag === 'custom' ? '' : 'none';
+  if (!g || !ag) { bedarfMin = bedarfMax = null; updateResult(); return; }
+  if (ag === 'custom') {
+    const f = parseFloat(document.getElementById('custom-faktor').value);
+    bedarfMin = bedarfMax = f ? Math.round(g * f) : null;
+  } else {
+    const parts = ag.split('|');
+    bedarfMin = Math.round(g * parseFloat(parts[0]));
+    bedarfMax = parts.length > 1 ? Math.round(g * parseFloat(parts[1])) : bedarfMin;
+  }
+  updateResult();
+}
+
+function updateResult() {
+  let weeklyTotal = 0;
+  FOODS.forEach((f, i) => { weeklyTotal += (portionen[i] || 0) * f.protein; });
+  const daily = Math.round(weeklyTotal / 7 * 10) / 10;
+
+  const zufuhrEl = document.getElementById('rb-zufuhr');
+  const diffEl = document.getElementById('rb-diff');
+  const fill = document.getElementById('pb-fill');
+
+  zufuhrEl.textContent = daily + ' g';
+
+  if (bedarfMin !== null) {
+    const bedarfStr = (bedarfMax && bedarfMax !== bedarfMin) ? bedarfMin + '–' + bedarfMax + ' g' : bedarfMin + ' g';
+    document.getElementById('rb-bedarf').textContent = bedarfMin + ' g';
+    document.getElementById('bedarf-display').textContent = (bedarfMax && bedarfMax !== bedarfMin) ? bedarfMin + '–' + bedarfMax + ' g/Tag' : bedarfMin + ' g/Tag';
+    const pct = Math.min(200, Math.round((daily / bedarfMin) * 100));
+    document.getElementById('rb-pct').textContent = pct + '%';
+    fill.style.width = Math.min(100, pct) + '%';
+    const diff = Math.round((daily - bedarfMin) * 10) / 10;
+    diffEl.textContent = (diff >= 0 ? '+' : '') + diff + ' g';
+
+    if (daily >= bedarfMin) {
+      fill.style.background = '#52b788';
+      zufuhrEl.className = 'rs-value ok';
+      diffEl.className = 'rs-value ok';
+    } else if (pct >= 75) {
+      fill.style.background = '#ffd166';
+      zufuhrEl.className = 'rs-value warn';
+      diffEl.className = 'rs-value warn';
+    } else {
+      fill.style.background = '#ff8585';
+      zufuhrEl.className = 'rs-value bad';
+      diffEl.className = 'rs-value bad';
+    }
+  } else {
+    document.getElementById('rb-bedarf').textContent = '– g';
+    document.getElementById('bedarf-display').textContent = '– g/Tag';
+    diffEl.textContent = '–';
+    document.getElementById('rb-pct').textContent = '–';
+    fill.style.width = '0%';
+    zufuhrEl.className = 'rs-value';
+  }
+}
+
+function resetAll() {
+  FOODS.forEach((_, i) => {
+    portionen[i] = 0;
+    const inp = document.getElementById('inp-' + i);
+    if (inp) inp.value = 0;
+    const card = document.getElementById('card-' + i);
+    if (card) card.classList.remove('active');
+  });
+  updateResult();
+}
+
+buildUI();
+updateResult();
+</script>
+</body>
+</html>
