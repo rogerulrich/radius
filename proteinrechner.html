@@ -67,6 +67,17 @@
   .portion-label { font-size: 0.67rem; color: var(--muted); width: 26px; }
   .reset-btn { display: inline-flex; align-items: center; gap: 6px; margin-top: 28px; padding: 9px 18px; background: none; border: 1.5px solid var(--border); border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 0.85rem; color: var(--muted); cursor: pointer; transition: all 0.2s; }
   .reset-btn:hover { border-color: #c0392b; color: #c0392b; }
+  .pdf-btn { display: inline-flex; align-items: center; gap: 8px; margin-top: 28px; margin-left: 12px; padding: 9px 20px; background: var(--accent); border: none; border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 0.85rem; font-weight: 600; color: white; cursor: pointer; transition: all 0.2s; }
+  .pdf-btn:hover { background: #1f4d38; }
+  .sources-section { margin-top: 52px; padding-top: 32px; border-top: 1.5px solid var(--border); margin-bottom: 40px; }
+  .sources-title { font-family: 'DM Serif Display', serif; font-size: 1.1rem; color: var(--accent); margin-bottom: 16px; }
+  .sources-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  .sources-table th { text-align: left; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); padding: 0 12px 8px 0; border-bottom: 1.5px solid var(--border); }
+  .sources-table td { padding: 9px 12px 9px 0; border-bottom: 1px solid var(--border); vertical-align: top; color: var(--text); line-height: 1.45; }
+  .sources-table tr:last-child td { border-bottom: none; }
+  .sources-table td:first-child { font-weight: 600; color: var(--accent); padding-right: 20px; min-width: 200px; }
+  .sources-table td em { color: var(--muted); font-style: normal; font-size: 0.78rem; display: block; margin-top: 2px; }
+  .db-note { margin-top: 14px; font-size: 0.78rem; color: var(--muted); line-height: 1.5; }
 
   @media (max-width: 620px) {
     header { padding: 18px 16px 14px; }
@@ -77,6 +88,7 @@
     .container { padding: 0 12px; }
   }
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
 
@@ -173,7 +185,94 @@
   <p class="section-note">Anzahl Portionen pro Woche eingeben — der Fortschrittsbalken zeigt, ob der Mindestbedarf erreicht wird.</p>
 
   <div id="food-list"></div>
-  <button class="reset-btn" onclick="resetAll()">↺ Alle Portionen zurücksetzen</button>
+  <div style="display:flex;flex-wrap:wrap;gap:0;align-items:center;">
+    <button class="reset-btn" onclick="resetAll()">↺ Alle Portionen zurücksetzen</button>
+    <button class="pdf-btn" onclick="exportPDF()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+      PDF exportieren
+    </button>
+  </div>
+
+  <div class="sources-section">
+    <div class="sources-title">Quellen – Proteinempfehlungen nach Situation</div>
+    <table class="sources-table">
+      <thead>
+        <tr>
+          <th>Situation</th>
+          <th>Empfehlung</th>
+          <th>Quelle</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Gesunde Erwachsene 18–64 J.</td>
+          <td>0.8–2.0 g/kg/Tag</td>
+          <td>Heymsfield SB, Shapses SA. <em>Guidance on Energy and Macronutrients across the Life Span.</em> N Engl J Med. 2024.</td>
+        </tr>
+        <tr>
+          <td>Ältere Erwachsene 65+ J.</td>
+          <td>1.0–1.2 g/kg/Tag</td>
+          <td>Traylor DA, Gorissen SHM, Phillips SM. <em>Perspective: Protein Requirements and Optimal Intakes in Aging.</em> Advances in Nutrition. 2018.</td>
+        </tr>
+        <tr>
+          <td>Sarkopenie / funktioneller Abbau</td>
+          <td>≥ 1.2 g/kg/Tag</td>
+          <td>Traylor DA et al. <em>Advances in Nutrition.</em> 2018.</td>
+        </tr>
+        <tr>
+          <td>Akut krank / postoperativ, gut ernährt</td>
+          <td>1.2–1.5 g/kg/Tag</td>
+          <td>Cederholm T, Bosaeus I. <em>Malnutrition in Adults.</em> N Engl J Med. 2024.</td>
+        </tr>
+        <tr>
+          <td>Schwer katabol / schwere akute Erkrankung</td>
+          <td>1.5–2.0 g/kg/Tag</td>
+          <td>Cederholm T, Bosaeus I. <em>Malnutrition in Adults.</em> N Engl J Med. 2024.</td>
+        </tr>
+        <tr>
+          <td>Verbrennungen / Polytrauma</td>
+          <td>1.5–2.0 g/kg/Tag</td>
+          <td>Cederholm T, Bosaeus I. <em>Malnutrition in Adults.</em> N Engl J Med. 2024.</td>
+        </tr>
+        <tr>
+          <td>Kritisch krank, weniger schwer</td>
+          <td>1.2–1.5 g/kg/Tag</td>
+          <td>De Waele E et al. <em>Review of Evolution and Current Status of Protein Requirements in Acute Illness and Critical Care.</em> Clin Nutr. 2021.</td>
+        </tr>
+        <tr>
+          <td>Kritisch krank, schwer katabol / Sepsis</td>
+          <td>1.5–2.0 g/kg/Tag</td>
+          <td>De Waele E et al. <em>Clin Nutr.</em> 2021.</td>
+        </tr>
+        <tr>
+          <td>Zirrhose / Leberinsuffizienz</td>
+          <td>1.2–1.5 g/kg/Tag (Idealgewicht)</td>
+          <td>Lai JC, Tandon P, Bernal W et al. <em>Malnutrition, Frailty, and Sarcopenia in Patients With Cirrhosis: 2021 Practice Guidance.</em> Hepatology. 2021. (AASLD Guideline)</td>
+        </tr>
+        <tr>
+          <td>Chron. Niereninsuffizienz (GFR &lt;30), nicht dialysepflichtig</td>
+          <td>0.6–0.8 g/kg/Tag</td>
+          <td>Cederholm T, Bosaeus I. <em>Malnutrition in Adults.</em> N Engl J Med. 2024.</td>
+        </tr>
+        <tr>
+          <td>Hämodialyse / Peritonealdialyse</td>
+          <td>1.2–1.4 g/kg/Tag</td>
+          <td>Cederholm T, Bosaeus I. <em>Malnutrition in Adults.</em> N Engl J Med. 2024.</td>
+        </tr>
+        <tr>
+          <td>Sport / Training</td>
+          <td>1.2–2.0 g/kg/Tag</td>
+          <td>Matsumoto M et al. <em>Evaluation of Protein Requirements Using the Indicator Amino Acid Oxidation Method.</em> J Nutr. 2023.</td>
+        </tr>
+        <tr>
+          <td>Schwangerschaft / Stillzeit</td>
+          <td>1.2–1.5 g/kg/Tag</td>
+          <td>Burstad KM et al. <em>Evaluation of Dietary Protein and Amino Acid Requirements: A Systematic Review.</em> Am J Clin Nutr. 2025.</td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="db-note">Nährwertdaten: Bundesamt für Lebensmittelsicherheit und Veterinärwesen (BLV). <em>Schweizer Nährwertdatenbank V 7.0</em>, 01.07.2025.</p>
+  </div>
 </div>
 
 <script>
@@ -407,6 +506,142 @@ function resetAll() {
 
 buildUI();
 updateResult();
+
+function exportPDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+  const green = [45, 106, 79];
+  const lightGreen = [232, 245, 239];
+  const muted = [107, 114, 128];
+  const text = [26, 26, 26];
+  const pageW = 210;
+  const margin = 18;
+  const colW = pageW - margin * 2;
+  let y = 0;
+
+  // Header bar
+  doc.setFillColor(...green);
+  doc.rect(0, 0, pageW, 28, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(16);
+  doc.text('Proteinrechner – Auswertung', margin, 12);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
+  doc.text('Schweizer Nährwertdatenbank V 7.0 | ' + new Date().toLocaleDateString('de-CH'), margin, 20);
+  y = 38;
+
+  // Patient / Bedarf box
+  const gewicht = document.getElementById('gewicht').value || '–';
+  const agSelect = document.getElementById('altersgruppe');
+  const agText = agSelect.options[agSelect.selectedIndex]?.text || '–';
+  const bedarfText = document.getElementById('bedarf-display').textContent;
+  const zufuhrText = document.getElementById('rb-zufuhr').textContent;
+  const diffText = document.getElementById('rb-diff').textContent;
+  const pctText = document.getElementById('rb-pct').textContent;
+
+  doc.setFillColor(...lightGreen);
+  doc.roundedRect(margin, y, colW, 38, 3, 3, 'F');
+  doc.setDrawColor(...green);
+  doc.setLineWidth(0.4);
+  doc.roundedRect(margin, y, colW, 38, 3, 3, 'S');
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9);
+  doc.setTextColor(...green);
+  doc.text('Patientendaten & Bedarf', margin + 5, y + 8);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8.5);
+  doc.setTextColor(...text);
+  const col1x = margin + 5, col2x = margin + colW / 2;
+  doc.text('Gewicht: ' + gewicht + ' kg', col1x, y + 17);
+  doc.text('Mindest-Proteinbedarf: ' + bedarfText, col1x, y + 25);
+  doc.text('Situation: ' + agText, col2x, y + 17);
+  doc.text('Tägliche Ø-Zufuhr: ' + zufuhrText + '  |  Differenz: ' + diffText + '  |  Deckung: ' + pctText, col1x, y + 33);
+  y += 48;
+
+  // Collect active foods
+  const active = [];
+  FOODS.forEach((f, i) => {
+    if (portionen[i] > 0) {
+      const dailyProt = Math.round(portionen[i] * f.protein / 7 * 10) / 10;
+      active.push({ ...f, portions: portionen[i], daily: dailyProt });
+    }
+  });
+
+  if (active.length === 0) {
+    doc.setFont('helvetica', 'italic');
+    doc.setFontSize(9);
+    doc.setTextColor(...muted);
+    doc.text('Keine Portionen erfasst.', margin, y + 8);
+    y += 20;
+  } else {
+    // Section title
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
+    doc.setTextColor(...green);
+    doc.text('Erfasste Portionen', margin, y);
+    y += 7;
+
+    // Table header
+    const c1 = margin, c2 = margin + 78, c3 = margin + 110, c4 = margin + 138, c5 = margin + 160;
+    doc.setFillColor(...green);
+    doc.rect(margin, y, colW, 7, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7.5);
+    doc.setTextColor(255, 255, 255);
+    doc.text('Lebensmittel', c1 + 2, y + 5);
+    doc.text('Kategorie', c2 + 2, y + 5);
+    doc.text('g Prot./Portion', c3 + 2, y + 5);
+    doc.text('Portionen/Wo', c4 + 2, y + 5);
+    doc.text('Ø g/Tag', c5 + 2, y + 5);
+    y += 7;
+
+    let rowEven = false;
+    let totalDaily = 0;
+    active.forEach(f => {
+      if (y > 270) { doc.addPage(); y = 18; }
+      doc.setFillColor(rowEven ? 248 : 255, rowEven ? 248 : 255, rowEven ? 248 : 255);
+      doc.rect(margin, y, colW, 6.5, 'F');
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(7.5);
+      doc.setTextColor(...text);
+      const name = f.name.length > 32 ? f.name.substring(0, 30) + '…' : f.name;
+      const cat = f.cat.replace(/^[^\s]+ /, '').substring(0, 20);
+      doc.text(name, c1 + 2, y + 4.5);
+      doc.text(cat, c2 + 2, y + 4.5);
+      doc.text(f.protein + ' g (' + f.portion + ')', c3 + 2, y + 4.5);
+      doc.text(String(f.portions) + 'x', c4 + 2, y + 4.5);
+      doc.setFont('helvetica', 'bold');
+      doc.text(f.daily + ' g', c5 + 2, y + 4.5);
+      doc.setFont('helvetica', 'normal');
+      totalDaily += f.daily;
+      y += 6.5;
+      rowEven = !rowEven;
+    });
+
+    // Total row
+    doc.setFillColor(...green);
+    doc.rect(margin, y, colW, 8, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8.5);
+    doc.setTextColor(255, 255, 255);
+    doc.text('Total durchschnittliche tägliche Proteinzufuhr', c1 + 2, y + 5.5);
+    doc.text(Math.round(totalDaily * 10) / 10 + ' g', c5 + 2, y + 5.5);
+    y += 16;
+  }
+
+  // Footer note
+  if (y > 262) { doc.addPage(); y = 18; }
+  doc.setFont('helvetica', 'italic');
+  doc.setFontSize(7);
+  doc.setTextColor(...muted);
+  doc.text('Quellen: Heymsfield & Shapses, NEJM 2024 | Cederholm & Bosaeus, NEJM 2024 | De Waele et al., Clin Nutr 2021 | Lai et al., Hepatology 2021 (AASLD) | Traylor et al., Adv Nutr 2018', margin, y);
+  doc.text('Nährwertdaten: BLV Schweizer Nährwertdatenbank V 7.0 (2025)', margin, y + 4);
+
+  doc.save('Proteinrechner_' + new Date().toISOString().slice(0,10) + '.pdf');
+}
 </script>
 </body>
 </html>
