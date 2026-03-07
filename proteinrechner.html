@@ -627,7 +627,7 @@ function exportPDF() {
   doc.text('Geburtsdatum: ' + geburtFormatted + (patAlter && patAlter !== '– Jahre' ? '  (' + patAlter + ')' : ''), col2x, y + 17);
   doc.text('Gewicht: ' + gewicht + ' kg', col1x, y + 25);
   doc.text('Proteinbedarf: ' + bedarfText, col1x, y + 33);
-  const agLines = doc.splitTextToSize('Situation: ' + agText, colW / 2 - 5);
+  const agLines = doc.splitTextToSize('Situation: ' + agText, pageW - margin - col2x - 3);
   doc.text(agLines, col2x, y + 25);
   doc.text('Tägliche Ø-Zufuhr: ' + zufuhrText + '  |  Differenz: ' + diffText + '  |  Deckung: ' + pctText, col1x, y + 41);
   y += 62;
