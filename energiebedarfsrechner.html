@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Energiebedarfsrechner</title>
+  <style>@font-face { font-family: "Century Gothic"; src: local("Century Gothic"), local("CenturyGothic"); }</style>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Century Gothic', 'Gill Sans', 'Trebuchet MS', sans-serif; background: #f0ede8; }
+    .app { min-height: 100vh; background: #f0ede8; padding: 2rem 1rem; }
+    .container { max-width: 900px; margin: 0 auto; }
+    .header { text-align: center; margin-bottom: 2.5rem; }
+    .header h1 { font-family: 'Century Gothic', 'Gill Sans', 'Trebuchet MS', sans-serif; font-size: 2.2rem; color: #3d5a52; letter-spacing: -0.5px; }
+    .header p { color: #6b8a82; font-size: 0.95rem; margin-top: 0.4rem; font-weight: 300; }
+    .card { background: white; border-radius: 16px; padding: 1.8rem; margin-bottom: 1.2rem; box-shadow: 0 2px 12px rgba(26,58,42,0.07); border: 1px solid #e2ddd6; }
+    .card-title { font-family: 'Century Gothic', 'Gill Sans', 'Trebuchet MS', sans-serif; font-size: 1.15rem; color: #3d5a52; margin-bottom: 1.2rem; display: flex; align-items: center; gap: 0.5rem; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
+    .field { display: flex; flex-direction: column; gap: 0.35rem; }
+    .field label { font-size: 0.82rem; font-weight: 500; color: #6b8a82; text-transform: uppercase; letter-spacing: 0.05em; cursor: default; }
+    input[type="number"], select { width: 100%; padding: 0.65rem 0.85rem; border: 1.5px solid #d5cfc6; border-radius: 8px; font-family: 'Century Gothic', 'Gill Sans', 'Trebuchet MS', sans-serif; font-size: 0.95rem; color: #3d5a52; background: #faf9f7; outline: none; transition: border-color 0.2s; }
+    input[type="number"]:focus, select:focus { border-color: #A2B9AF; background: white; }
+    .radio-group { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .radio-btn { display: flex; align-items: center; gap: 0.4rem; padding: 0.5rem 0.9rem; border: 1.5px solid #d5cfc6; border-radius: 8px; cursor: pointer; font-size: 0.88rem; color: #6b8a82; background: #faf9f7; transition: all 0.2s; user-select: none; }
+    .radio-btn.active { border-color: #A2B9AF; background: #eaf2ef; color: #3d5a52; font-weight: 500; }
+    .radio-btn input[type="radio"] { display: none; }
+    .bmi-badge { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.35rem 0.8rem; border-radius: 20px; font-size: 0.82rem; font-weight: 500; }
+    .bmi-low { background: #fff3e0; color: #e65100; }
+    .bmi-normal { background: #eaf2ef; color: #4a7a70; }
+    .bmi-over { background: #fff8e1; color: #f57f17; }
+    .bmi-obese { background: #fce4ec; color: #c62828; }
+    .results { background: #A2B9AF; border-radius: 16px; padding: 2rem; color: white; margin-top: 1.5rem; }
+    .results h2 { font-family: 'Century Gothic', 'Gill Sans', 'Trebuchet MS', sans-serif; font-size: 1.4rem; margin-bottom: 1.5rem; opacity: 0.9; }
+    .result-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+    .result-box { background: rgba(255,255,255,0.1); border-radius: 12px; padding: 1.2rem; border: 1px solid rgba(255,255,255,0.15); }
+    .result-box .r-label { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em; opacity: 0.7; margin-bottom: 0.4rem; }
+    .result-box .r-value { font-size: 1.6rem; font-weight: 600; font-family: 'Century Gothic', 'Gill Sans', 'Trebuchet MS', sans-serif; }
+    .result-box .r-value span { font-size: 1rem; }
+    .result-box .r-sub { font-size: 0.82rem; opacity: 0.7; margin-top: 0.2rem; }
+    .result-box .r-range { font-size: 0.85rem; opacity: 0.85; margin-top: 0.3rem; }
+    .weight-info { background: rgba(255,255,255,0.08); border-radius: 10px; padding: 1rem 1.2rem; margin-bottom: 1.2rem; font-size: 0.88rem; opacity: 0.9; line-height: 1.6; }
+    .info-text { font-size: 0.82rem; color: #9ab0aa; font-style: italic; margin-top: 0.3rem; margin-bottom: 0.8rem; }
+    .refs { background: #f7f5f1; border-radius: 12px; padding: 1.2rem 1.5rem; margin-top: 1rem; }
+    .refs h4 { font-size: 0.82rem; font-weight: 600; color: #6b8a82; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.7rem; }
+    .refs p { font-size: 0.78rem; color: #8aA09a; line-height: 1.7; }
+    .tag { display: inline-block; background: #eaf2ef; color: #A2B9AF; font-size: 0.72rem; padding: 0.15rem 0.5rem; border-radius: 4px; font-weight: 600; margin-right: 0.3rem; }
+    .ij-box { margin-top: 0.8rem; padding: 1rem; background: #f7f5f1; border-radius: 10px; }
+    .ij-box p.ij-title { font-size: 0.82rem; color: #6b8a82; margin-bottom: 0.8rem; font-weight: 500; }
+    .ij-formula { font-size: 0.78rem; color: #aabfba; margin-top: 0.7rem; }
+    .bmi-row { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; margin-top: 0.5rem; }
+    .bmi-row .bmi-val { font-size: 0.82rem; color: #6b8a82; font-weight: 500; }
+    .bmi-row .bmi-val strong { color: #3d5a52; }
+    .bmi-row .bmi-sub { font-size: 0.82rem; color: #6b8a82; }
+    .bmi-row .bmi-sub strong { color: #3d5a52; }
+    .calc-weight-label { margin-top: 0.8rem; font-size: 0.88rem; color: #A2B9AF; font-weight: 500; }
+    .hidden { display: none; }
+    .gu-display { display: flex; gap: 1.5rem; margin-top: 0.6rem; flex-wrap: wrap; }
+    .gu-display span { font-size: 0.88rem; color: #6b8a82; }
+    .gu-display span strong { color: #3d5a52; }
+    .gu-display .gu-used { color: #A2B9AF; font-weight: 600; }
+    .indirect-field { margin-top: 0.8rem; max-width: 260px; }
+    @media (max-width: 600px) { .grid-2, .grid-3, .result-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+<div class="app">
+  <div class="container">
+    <div class="header">
+      <h1>Energiebedarfsrechner</h1>
+      <p>Energie · Flüssigkeit · Protein — Klinische Bedarfsberechnung</p>
+    </div>
+
+    <!-- Patientendaten -->
+    <div class="card">
+      <div class="card-title"><span>👤</span> Patientendaten</div>
+      <div class="grid-3" style="margin-bottom:1rem">
+        <div class="field">
+          <label>Gewicht (kg)</label>
+          <input type="number" id="weight" placeholder="z.B. 75" min="20" max="300" oninput="calculate()" />
+        </div>
+        <div class="field">
+          <label>Grösse (cm)</label>
+          <input type="number" id="height" placeholder="z.B. 170" min="100" max="220" oninput="calculate()" />
+        </div>
+        <div class="field">
+          <label>Alter (Jahre)</label>
+          <input type="number" id="age" placeholder="z.B. 65" min="1" max="120" oninput="calculate()" />
+        </div>
+      </div>
+      <div class="field" style="margin-bottom:1rem">
+        <label>Geschlecht</label>
+        <div class="radio-group">
+          <label class="radio-btn active" onclick="setSex('female', this)">
+            <input type="radio" name="sex" value="female" checked /> Weiblich
+          </label>
+          <label class="radio-btn" onclick="setSex('male', this)">
+            <input type="radio" name="sex" value="male" /> Männlich
+          </label>
+        </div>
+      </div>
+      <div class="bmi-row" id="bmi-row" style="display:none">
+        <div class="bmi-val">BMI: <strong id="bmi-val">—</strong></div>
+        <span class="bmi-badge" id="bmi-badge"></span>
+        <span class="bmi-sub">Idealgewicht: <strong id="ibw-val">—</strong> kg</span>
+        <span class="bmi-sub">Adj. Gewicht: <strong id="abw-val">—</strong> kg</span>
+      </div>
+    </div>
+
+    <!-- Gewichtsanpassung -->
+    <div class="card">
+      <div class="card-title"><span>⚖️</span> Gewicht für Berechnung</div>
+      <p class="info-text" id="weight-rec" style="display:none"></p>
+      <div class="radio-group" id="weight-mode-group">
+        <label class="radio-btn active" onclick="setWeightMode('actual', this)">
+          <input type="radio" name="weightMode" value="actual" checked /> Ist-Gewicht
+        </label>
+        <label class="radio-btn" onclick="setWeightMode('ibw', this)">
+          <input type="radio" name="weightMode" value="ibw" /> Idealgewicht (IBW)
+        </label>
+        <label class="radio-btn" onclick="setWeightMode('abw', this)">
+          <input type="radio" name="weightMode" value="abw" /> Adj. Körpergewicht (ABW)
+        </label>
+        <label class="radio-btn" onclick="setWeightMode('manual', this)">
+          <input type="radio" name="weightMode" value="manual" /> Manuelles Gewicht
+        </label>
+      </div>
+      <div class="field hidden" id="manual-weight-field" style="margin-top:0.8rem;max-width:200px">
+        <label>Gewicht eingeben (kg)</label>
+        <input type="number" id="manualWeight" placeholder="kg" oninput="calculate()" />
+      </div>
+      <p class="calc-weight-label hidden" id="calc-weight-label"></p>
+    </div>
+
+    <!-- Grundumsatz -->
+    <div class="card">
+      <div class="card-title"><span>🔥</span> Grundumsatz (GU)</div>
+      <div class="radio-group" style="margin-bottom:1rem">
+        <label class="radio-btn active" onclick="setGuMethod('hb', this)">
+          <input type="radio" name="guMethod" value="hb" checked /> Harris-Benedict
+        </label>
+        <label class="radio-btn" onclick="setGuMethod('mifflin', this)">
+          <input type="radio" name="guMethod" value="mifflin" /> Mifflin-St.Jeor
+        </label>
+        <label class="radio-btn" onclick="setGuMethod('avg', this)">
+          <input type="radio" name="guMethod" value="avg" /> Durchschnitt beider
+        </label>
+        <label class="radio-btn" onclick="setGuMethod('ij', this)">
+          <input type="radio" name="guMethod" value="ij" /> Ireton-Jones
+        </label>
+        <label class="radio-btn" onclick="setGuMethod('indirect', this)">
+          <input type="radio" name="guMethod" value="indirect" /> Indirekte Kalorimetrie
+        </label>
+      </div>
+
+      <!-- Ireton-Jones options -->
+      <div class="ij-box hidden" id="ij-options">
+        <p class="ij-title">Ireton-Jones (1992) — Parameter:</p>
+        <div class="field" style="margin-bottom:0.7rem">
+          <label>Beatmungsstatus</label>
+          <div class="radio-group">
+            <label class="radio-btn active" onclick="setIjMode('spontan', this)">
+              <input type="radio" name="ijMode" value="spontan" checked /> Spontan atmend
+            </label>
+            <label class="radio-btn" onclick="setIjMode('beatmet', this)">
+              <input type="radio" name="ijMode" value="beatmet" /> Beatmet (invasiv)
+            </label>
+          </div>
+        </div>
+        <div id="ij-spontan-opts">
+          <div class="field">
+            <label>Adipositas (BMI &gt; 27)?</label>
+            <div class="radio-group">
+              <label class="radio-btn active" onclick="setIjObese(false, this)"><input type="radio" name="ijObese" value="no" checked /> Nein</label>
+              <label class="radio-btn" onclick="setIjObese(true, this)"><input type="radio" name="ijObese" value="yes" /> Ja</label>
+            </div>
+          </div>
+        </div>
+        <div id="ij-beatmet-opts" class="hidden" style="display:flex;gap:1rem;flex-wrap:wrap">
+          <div class="field">
+            <label>Trauma?</label>
+            <div class="radio-group">
+              <label class="radio-btn active" onclick="setIjTrauma(false, this)"><input type="radio" name="ijTrauma" value="no" checked /> Nein</label>
+              <label class="radio-btn" onclick="setIjTrauma(true, this)"><input type="radio" name="ijTrauma" value="yes" /> Ja</label>
+            </div>
+          </div>
+          <div class="field">
+            <label>Verbrennung?</label>
+            <div class="radio-group">
+              <label class="radio-btn active" onclick="setIjBurn(false, this)"><input type="radio" name="ijBurn" value="no" checked /> Nein</label>
+              <label class="radio-btn" onclick="setIjBurn(true, this)"><input type="radio" name="ijBurn" value="yes" /> Ja</label>
+            </div>
+          </div>
+        </div>
+        <p class="ij-formula" id="ij-formula">Formel: 629 − 11(A) + 25(W) − 609(O)</p>
+      </div>
+
+      <!-- Indirect kcal input -->
+      <div class="field indirect-field hidden" id="indirect-field">
+        <label>Ermittelter GU nach indirekter Kalorimetrie (kcal)</label>
+        <input type="number" id="indirectKcal" placeholder="kcal/Tag" oninput="calculate()" />
+      </div>
+
+      <div class="gu-display" id="gu-display" style="display:none">
+        <span>Harris-Benedict: <strong id="hb-val">—</strong> kcal</span>
+        <span>Mifflin-St.Jeor: <strong id="mifflin-val">—</strong> kcal</span>
+        <span class="gu-used">Verwendeter GU: <span id="gu-used-val">—</span> kcal</span>
+      </div>
+    </div>
+
+    <!-- Faktoren -->
+    <div class="card">
+      <div class="card-title"><span>📊</span> Aktivitäts- & Stressfaktor</div>
+      <div class="grid-2">
+        <div class="field">
+          <label>Aktivitätsfaktor (PAL) — Schritte 0.1</label>
+          <select id="activityFactor" onchange="calculate()">
+            <option value="1.0">1.0 — immobil</option>
+            <option value="1.1">1.1 — immobil</option>
+            <option value="1.2">1.2 — immobil</option>
+            <option value="1.3">1.3 — immobil</option>
+            <option value="1.4" selected>1.4 — leicht aktiv</option>
+            <option value="1.5">1.5 — leicht aktiv</option>
+            <option value="1.6">1.6 — mäßig aktiv</option>
+            <option value="1.7">1.7 — mäßig aktiv</option>
+            <option value="1.8">1.8 — sehr aktiv</option>
+            <option value="1.9">1.9 — sehr aktiv</option>
+            <option value="2.0">2.0 — sehr aktiv</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Krankheitsfaktor (Stressfaktor)</label>
+          <select id="stressFactor" onchange="calculate()">
+            <option value="1.0">Keine Erkrankung (× 1.0)</option>
+            <option value="1.1">Leichte Erkrankung (× 1.1)</option>
+            <option value="1.2">Mäßige Erkrankung (× 1.2)</option>
+            <option value="1.3">Schwere Erkrankung (× 1.3)</option>
+            <option value="1.4">Sepsis/Trauma (× 1.4)</option>
+            <option value="1.5">Schwere Verbrennung (× 1.5)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pathophysiologie -->
+    <div class="card">
+      <div class="card-title"><span>🏥</span> Energiebedarf nach Pathophysiologie</div>
+      <p style="font-size:0.85rem;color:#8aA09a;margin-bottom:0.8rem">Laut ESPEN-Empfehlungen und klinischer Evidenz (kcal/kg/Tag):</p>
+      <div class="field">
+        <label>Klinischer Zustand</label>
+        <select id="pathophysio" onchange="calculate()">
+          <option value="0">Gesunde Erwachsene — 25–30 kcal/kg/Tag</option>
+          <option value="1">Kritische Erkrankung (ICU) — 20–25 kcal/kg/Tag</option>
+          <option value="2">Adipositas (nach Idealgewicht) — 20–25 kcal/kg/Tag</option>
+          <option value="3">Chronische Nierenerkrankung (Dialyse) — 30–35 kcal/kg/Tag</option>
+          <option value="4">Herzinsuffizienz — 22–25 kcal/kg/Tag</option>
+          <option value="5">Lebererkrankung — 25–30 kcal/kg/Tag</option>
+          <option value="6">Ältere Erwachsene (>65 Jahre) — 25 kcal/kg/Tag</option>
+          <option value="7">Dekubitus — 30–35 kcal/kg/Tag</option>
+          <option value="8">Atemwegserkrankung — 30–35 kcal/kg/Tag</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Protein -->
+    <div class="card">
+      <div class="card-title"><span>🥩</span> Proteinbedarf</div>
+      <div class="field">
+        <label>Proteinempfehlung</label>
+        <select id="proteinRange" onchange="calculate()">
+          <option value="0">Gesunde Erwachsene — 0.8 g/kg (RDA)</option>
+          <option value="1">Ältere Erwachsene (≥65 J.) / Sarkopenie — 1.0–1.2 g/kg</option>
+          <option value="2">Akut krank / postoperativ — 1.2–1.5 g/kg</option>
+          <option value="3">Kritisch krank (weniger schwer) — 1.2–1.5 g/kg</option>
+          <option value="4">Kritisch krank (schwer katabol / Sepsis) — 1.5–2.0 g/kg</option>
+          <option value="5">Verbrennung / Polytrauma — 1.5–2.0 g/kg</option>
+          <option value="6">Zirrhose / Leberinsuffizienz (IBW) — 1.2–1.5 g/kg</option>
+          <option value="7">Niereninsuffizienz (GFR &lt;30, nicht dialysepflichtig) — 0.6–0.8 g/kg</option>
+          <option value="8">Hämodialyse / Peritonealdialyse — 1.2–1.4 g/kg</option>
+          <option value="9">Sport / Training — 1.2–2.0 g/kg</option>
+          <option value="10">Schwangerschaft / Stillzeit — 1.2–1.5 g/kg</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Flüssigkeit -->
+    <div class="card">
+      <div class="card-title"><span>💧</span> Flüssigkeitsbedarf</div>
+      <div class="field" style="max-width:300px">
+        <label>ml pro kg Körpergewicht</label>
+        <select id="fluidFactor" onchange="calculate()">
+          <option value="25">25 ml/kg (restriktiv)</option>
+          <option value="30" selected>30 ml/kg (Standard)</option>
+          <option value="35">35 ml/kg (erhöhter Bedarf)</option>
+          <option value="40">40 ml/kg (hoch)</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Results -->
+    <div class="results hidden" id="results">
+      <h2>Berechnete Bedarfswerte</h2>
+      <div class="weight-info" id="weight-info"></div>
+      <div class="result-grid">
+        <div class="result-box">
+          <div class="r-label">⚡ Gesamtenergie (TDEE)</div>
+          <div class="r-value" id="r-tdee">— <span>kcal</span></div>
+          <div class="r-sub" id="r-tdee-sub"></div>
+        </div>
+        <div class="result-box">
+          <div class="r-label">🏥 Bedarf nach Pathophysiologie</div>
+          <div class="r-value" id="r-patho">— <span>kcal</span></div>
+          <div class="r-range" id="r-patho-sub"></div>
+        </div>
+        <div class="result-box">
+          <div class="r-label">🥩 Protein</div>
+          <div class="r-value" id="r-protein">— <span>g</span></div>
+          <div class="r-range" id="r-protein-sub"></div>
+        </div>
+        <div class="result-box">
+          <div class="r-label">💧 Flüssigkeit</div>
+          <div class="r-value" id="r-fluid">— <span>ml</span></div>
+          <div class="r-sub" id="r-fluid-sub"></div>
+        </div>
+        <div class="result-box">
+          <div class="r-label">🔥 Grundumsatz</div>
+          <div class="r-value" id="r-gu">— <span>kcal</span></div>
+          <div class="r-sub" id="r-gu-sub"></div>
+        </div>
+        <div class="result-box">
+          <div class="r-label">📐 BMI / Gewichte</div>
+          <div class="r-value" id="r-bmi">— <span>kg/m²</span></div>
+          <div class="r-sub" id="r-bmi-sub"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- References -->
+    <div class="refs" style="margin-top:1.5rem">
+      <h4>Quellen & Evidenzbasis</h4>
+      <p>
+        <span class="tag">[1]</span> Bendavid et al. The Centenary of the Harris-Benedict Equations. <em>Clinical Nutrition</em> 2021.<br>
+        <span class="tag">[2]</span> Lesser &amp; Lesser. Nutrition Support Therapy. <em>Am Fam Physician</em> 2021.<br>
+        <span class="tag">[3]</span> Ocké et al. Energy Intake in European Prospective Investigation (EPIC). <em>Eur J Clin Nutr</em> 2009.<br>
+        <span class="tag">[4]</span> New Reference Values for Energy Intake. <em>Ann Nutr Metab</em> 2015.<br>
+        <span class="tag">[5]</span> Moreiras et al. Intake of Energy and Nutrients, Euronut SENECA. <em>Eur J Clin Nutr</em> 1991.<br>
+        <span class="tag">[6]</span> Montani, Schutz, Dulloo. Swiss Scientists and Energy Metabolism. <em>Eur J Clin Nutr</em> 2018.<br>
+        <span class="tag">[7]</span> Mertens et al. Geographic Diversity of Food Intakes in Europe. <em>Eur J Nutr</em> 2019.<br>
+        <br>
+        <strong style="font-size:0.8rem;color:#6b8a82;letter-spacing:0.04em">PROTEIN</strong><br>
+        <span class="tag">[P1]</span> Heymsfield SB, Shapses SA. Body Weight: Health and Disease. <em>N Engl J Med</em> 2024.<br>
+        <span class="tag">[P2]</span> Traylor DA, Gorissen SHM, Phillips SM. Perspective: Protein Requirements and Optimal Intakes in Aging. <em>Advances in Nutrition</em> 2018.<br>
+        <span class="tag">[P3]</span> Cederholm T, Bosaeus I. Protein Nutrition in Clinical Practice. <em>N Engl J Med</em> 2024.<br>
+        <span class="tag">[P4]</span> Singer P et al. ESPEN guideline on clinical nutrition in the ICU. <em>Clin Nutr</em> 2019.<br>
+        <span class="tag">[P5]</span> Charlton M et al. AASLD Practice Guidance: Protein Intake in Cirrhosis. <em>Hepatology</em> 2022.<br>
+        <span class="tag">[P6]</span> Phillips SM, Van Loon LJC. Dietary protein for athletes. <em>J Sports Sci</em> 2011.<br>
+        <span class="tag">[P7]</span> Stephens TV et al. Protein requirements during pregnancy. <em>Nutrition</em> 2015.
+      </p>
+      <p style="margin-top:0.7rem;font-size:0.76rem;color:#aabfba">
+        ESPEN empfiehlt als Goldstandard die indirekte Kalorimetrie. Prädiktive Gleichungen (Harris-Benedict, Mifflin-St.Jeor) sind klinisch etablierte Alternativen mit bekannten Limitationen. Energiebedarf ist individuell und abhängig von Pathophysiologie, Ernährungsstatus und klinischem Kontext.
+      </p>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const PATHOPHYSIO = [
+  { label: "Gesunde Erwachsene", range: [25, 30], ref: "[1–4]" },
+  { label: "Kritische Erkrankung (ICU)", range: [20, 25], ref: "[1, 5]" },
+  { label: "Adipositas (nach Idealgewicht)", range: [20, 25], ref: "[5]" },
+  { label: "Chronische Nierenerkrankung (Dialyse)", range: [30, 35], ref: "[5]" },
+  { label: "Herzinsuffizienz", range: [22, 25], ref: "[5]" },
+  { label: "Lebererkrankung", range: [25, 30], ref: "[5]" },
+  { label: "Ältere Erwachsene (>65 Jahre)", range: [25, 25], ref: "[3, 5]" },
+  { label: "Dekubitus", range: [30, 35], ref: "[5]" },
+  { label: "Atemwegserkrankung", range: [30, 35], ref: "[5]" },
+];
+
+const PROTEIN_RANGES = [
+  { min: 0.8, max: 0.8, ref: "[P1]" },
+  { min: 1.0, max: 1.2, ref: "[P1,P2]" },
+  { min: 1.2, max: 1.5, ref: "[P1,P3]" },
+  { min: 1.2, max: 1.5, ref: "[P3,P4]" },
+  { min: 1.5, max: 2.0, ref: "[P3,P4]" },
+  { min: 1.5, max: 2.0, ref: "[P1,P3]" },
+  { min: 1.2, max: 1.5, ref: "[P5]" },
+  { min: 0.6, max: 0.8, ref: "[P1,P3]" },
+  { min: 1.2, max: 1.4, ref: "[P3]" },
+  { min: 1.2, max: 2.0, ref: "[P6]" },
+  { min: 1.2, max: 1.5, ref: "[P6,P7]" },
+];
+
+// State
+let state = {
+  sex: 'female',
+  weightMode: 'actual',
+  weightModeManuallySet: false,
+  guMethod: 'hb',
+  ijVentilated: false,
+  ijObese: false,
+  ijTrauma: false,
+  ijBurn: false,
+};
+
+function setSex(val, el) {
+  state.sex = val;
+  document.querySelectorAll('[name="sex"]').forEach(r => r.closest('.radio-btn').classList.remove('active'));
+  el.classList.add('active');
+  calculate();
+}
+
+function setWeightMode(val, el) {
+  state.weightMode = val;
+  state.weightModeManuallySet = true;
+  document.querySelectorAll('[name="weightMode"]').forEach(r => r.closest('.radio-btn').classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('manual-weight-field').classList.toggle('hidden', val !== 'manual');
+  calculate();
+}
+
+function setGuMethod(val, el) {
+  state.guMethod = val;
+  document.querySelectorAll('[name="guMethod"]').forEach(r => r.closest('.radio-btn').classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('ij-options').classList.toggle('hidden', val !== 'ij');
+  document.getElementById('indirect-field').classList.toggle('hidden', val !== 'indirect');
+  calculate();
+}
+
+function setIjMode(val, el) {
+  state.ijVentilated = (val === 'beatmet');
+  document.querySelectorAll('[name="ijMode"]').forEach(r => r.closest('.radio-btn').classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('ij-spontan-opts').classList.toggle('hidden', state.ijVentilated);
+  document.getElementById('ij-beatmet-opts').classList.toggle('hidden', !state.ijVentilated);
+  document.getElementById('ij-formula').textContent = state.ijVentilated
+    ? 'Formel: 1784 − 11(A) + 5(W) + 244(S) + 239(T) + 804(B)'
+    : 'Formel: 629 − 11(A) + 25(W) − 609(O)';
+  calculate();
+}
+
+function setIjObese(val, el) {
+  state.ijObese = val;
+  document.querySelectorAll('[name="ijObese"]').forEach(r => r.closest('.radio-btn').classList.remove('active'));
+  el.classList.add('active');
+  calculate();
+}
+
+function setIjTrauma(val, el) {
+  state.ijTrauma = val;
+  document.querySelectorAll('[name="ijTrauma"]').forEach(r => r.closest('.radio-btn').classList.remove('active'));
+  el.classList.add('active');
+  calculate();
+}
+
+function setIjBurn(val, el) {
+  state.ijBurn = val;
+  document.querySelectorAll('[name="ijBurn"]').forEach(r => r.closest('.radio-btn').classList.remove('active'));
+  el.classList.add('active');
+  calculate();
+}
+
+function calcBMI(w, h) { return w / ((h / 100) ** 2); }
+function ibwCalc(h, sex) { const base = h - 100; return sex === 'male' ? base * 0.9 : base * 0.85; }
+function abwCalc(w, ibw) { return ibw + 0.25 * (w - ibw); }
+function hbCalc(w, h, a, sex) {
+  return sex === 'male'
+    ? 88.362 + 13.397 * w + 4.799 * h - 5.677 * a
+    : 447.593 + 9.247 * w + 3.098 * h - 4.330 * a;
+}
+function mifflinCalc(w, h, a, sex) {
+  return sex === 'male'
+    ? 10 * w + 6.25 * h - 5 * a + 5
+    : 10 * w + 6.25 * h - 5 * a - 161;
+}
+
+function fmt(n) { return n !== null ? Math.round(n).toLocaleString('de-CH') : '—'; }
+
+function calculate() {
+  const weight = parseFloat(document.getElementById('weight').value);
+  const height = parseFloat(document.getElementById('height').value);
+  const age = parseFloat(document.getElementById('age').value);
+  const activityFactor = parseFloat(document.getElementById('activityFactor').value);
+  const stressFactor = parseFloat(document.getElementById('stressFactor').value);
+  const pathophysioIdx = parseInt(document.getElementById('pathophysio').value);
+  const proteinIdx = parseInt(document.getElementById('proteinRange').value);
+  const fluidFactor = parseInt(document.getElementById('fluidFactor').value);
+
+  const hasPatient = weight > 0 && height > 0;
+
+  // BMI & derived weights
+  let bmi = null, ibw = null, abw = null;
+  if (hasPatient) {
+    bmi = calcBMI(weight, height);
+    ibw = ibwCalc(height, state.sex);
+    abw = abwCalc(weight, ibw);
+  }
+
+  // Update BMI display
+  const bmiRow = document.getElementById('bmi-row');
+  if (bmi) {
+    bmiRow.style.display = 'flex';
+    document.getElementById('bmi-val').textContent = bmi.toFixed(1);
+    document.getElementById('ibw-val').textContent = ibw.toFixed(1);
+    document.getElementById('abw-val').textContent = abw.toFixed(1);
+    const badge = document.getElementById('bmi-badge');
+    if (bmi < 18.5) { badge.className = 'bmi-badge bmi-low'; badge.textContent = 'Untergewicht'; }
+    else if (bmi < 25) { badge.className = 'bmi-badge bmi-normal'; badge.textContent = 'Normalgewicht'; }
+    else if (bmi < 30) { badge.className = 'bmi-badge bmi-over'; badge.textContent = 'Übergewicht'; }
+    else { badge.className = 'bmi-badge bmi-obese'; badge.textContent = 'Adipositas'; }
+
+    // Auto-select recommended weight mode
+    const autoMode = bmi < 18.5 ? 'ibw' : bmi > 25 ? 'abw' : 'actual';
+    if (!state.weightModeManuallySet) {
+      state.weightMode = autoMode;
+      document.querySelectorAll('[name="weightMode"]').forEach(r => {
+        r.closest('.radio-btn').classList.toggle('active', r.value === autoMode);
+      });
+      document.getElementById('manual-weight-field').classList.add('hidden');
+    }
+
+    // Weight recommendation
+    const rec = document.getElementById('weight-rec');
+    if (bmi < 18.5) rec.textContent = `Empfehlung (BMI ${bmi.toFixed(1)}): BMI < 18.5 → Idealgewicht (IBW) — automatisch ausgewählt`;
+    else if (bmi > 25) rec.textContent = `Empfehlung (BMI ${bmi.toFixed(1)}): BMI > 25 → Adjusted Body Weight (ABW) — automatisch ausgewählt`;
+    else rec.textContent = `Empfehlung (BMI ${bmi.toFixed(1)}): Ist-Gewicht — automatisch ausgewählt`;
+    rec.style.display = 'block';
+  } else {
+    bmiRow.style.display = 'none';
+    document.getElementById('weight-rec').style.display = 'none';
+    if (!state.weightModeManuallySet) {
+      state.weightMode = 'actual';
+      document.querySelectorAll('[name="weightMode"]').forEach(r => {
+        r.closest('.radio-btn').classList.toggle('active', r.value === 'actual');
+      });
+    }
+  }
+
+  // Calc weight
+  let calcWeight = 0;
+  if (state.weightMode === 'manual') {
+    calcWeight = parseFloat(document.getElementById('manualWeight').value) || 0;
+  } else if (state.weightMode === 'ibw' && ibw) {
+    calcWeight = ibw;
+  } else if (state.weightMode === 'abw' && abw) {
+    calcWeight = abw;
+  } else {
+    calcWeight = weight || 0;
+  }
+
+  const cwLabel = document.getElementById('calc-weight-label');
+  if (calcWeight > 0) {
+    cwLabel.classList.remove('hidden');
+    cwLabel.textContent = `Rechengewicht: ${calcWeight.toFixed(1)} kg`;
+  } else {
+    cwLabel.classList.add('hidden');
+  }
+
+  // GU
+  let hb = null, mifflin = null, gu = null;
+  if (calcWeight > 0 && height > 0 && age > 0) {
+    hb = hbCalc(calcWeight, height, age, state.sex);
+    mifflin = mifflinCalc(calcWeight, height, age, state.sex);
+  }
+
+  if (state.guMethod === 'hb') gu = hb;
+  else if (state.guMethod === 'mifflin') gu = mifflin;
+  else if (state.guMethod === 'avg' && hb && mifflin) gu = (hb + mifflin) / 2;
+  else if (state.guMethod === 'ij' && calcWeight > 0 && age > 0) {
+    if (state.ijVentilated) {
+      const s = state.sex === 'male' ? 1 : 0;
+      const t = state.ijTrauma ? 1 : 0;
+      const b = state.ijBurn ? 1 : 0;
+      gu = 1784 - 11 * age + 5 * calcWeight + 244 * s + 239 * t + 804 * b;
+    } else {
+      const o = state.ijObese ? 1 : 0;
+      gu = 629 - 11 * age + 25 * calcWeight - 609 * o;
+    }
+  } else if (state.guMethod === 'indirect') {
+    gu = parseFloat(document.getElementById('indirectKcal').value) || null;
+  }
+
+  // GU display row
+  const guDisplay = document.getElementById('gu-display');
+  if (hb && mifflin) {
+    guDisplay.style.display = 'flex';
+    document.getElementById('hb-val').textContent = Math.round(hb);
+    document.getElementById('mifflin-val').textContent = Math.round(mifflin);
+    document.getElementById('gu-used-val').textContent = gu ? Math.round(gu) : '—';
+  } else {
+    guDisplay.style.display = 'none';
+  }
+
+  // Show results
+  if (calcWeight <= 0) {
+    document.getElementById('results').classList.add('hidden');
+    return;
+  }
+  document.getElementById('results').classList.remove('hidden');
+
+  const tdee = gu ? gu * activityFactor * stressFactor : null;
+  const pp = PATHOPHYSIO[pathophysioIdx];
+  const kcalMin = calcWeight * pp.range[0];
+  const kcalMax = calcWeight * pp.range[1];
+  const pr = PROTEIN_RANGES[proteinIdx];
+  const proteinMin = calcWeight * pr.min;
+  const proteinMax = calcWeight * pr.max;
+  const fluid = calcWeight * fluidFactor;
+
+  // Weight info
+  const modeName = state.weightMode === 'ibw' ? 'Idealgewicht (IBW)' :
+                   state.weightMode === 'abw' ? 'Adjusted Body Weight (ABW)' :
+                   state.weightMode === 'manual' ? 'Manuelles Gewicht' : 'Ist-Gewicht';
+  const bmiCat = bmi ? (bmi < 18.5 ? 'Untergewicht' : bmi < 25 ? 'Normalgewicht' : bmi < 30 ? 'Übergewicht' : 'Adipositas') : '';
+  document.getElementById('weight-info').innerHTML =
+    `Berechnung auf Basis: <strong>${modeName} = ${calcWeight.toFixed(1)} kg</strong>` +
+    (bmi ? ` · BMI ${bmi.toFixed(1)} (${bmiCat})` : '');
+
+  // TDEE
+  document.getElementById('r-tdee').innerHTML = `${tdee ? fmt(tdee) : '—'} <span>kcal</span>`;
+  document.getElementById('r-tdee-sub').textContent = gu
+    ? `GU ${Math.round(gu)} × PAL ${activityFactor} × KF ${stressFactor}`
+    : 'Grundumsatz fehlt';
+
+  // Patho
+  document.getElementById('r-patho').innerHTML = `${fmt(kcalMin)}${kcalMax !== kcalMin ? '–' + fmt(kcalMax) : ''} <span>kcal</span>`;
+  document.getElementById('r-patho-sub').textContent = `${pp.label}: ${pp.range[0]}${pp.range[1] !== pp.range[0] ? '–' + pp.range[1] : ''} kcal/kg · ${pp.ref}`;
+
+  // Protein
+  document.getElementById('r-protein').innerHTML = `${fmt(proteinMin)}${proteinMax !== proteinMin ? '–' + fmt(proteinMax) : ''} <span>g</span>`;
+  document.getElementById('r-protein-sub').textContent = `${pr.min}${pr.max !== pr.min ? '–' + pr.max : ''} g/kg · ${calcWeight.toFixed(1)} kg · ${pr.ref}`;
+
+  // Fluid
+  document.getElementById('r-fluid').innerHTML = `${fmt(fluid)} <span>ml</span>`;
+  document.getElementById('r-fluid-sub').textContent = `${fluidFactor} ml/kg · ${calcWeight.toFixed(1)} kg`;
+
+  // GU result box
+  document.getElementById('r-gu').innerHTML = `${gu ? fmt(gu) : '—'} <span>kcal</span>`;
+  const guLabel = state.guMethod === 'hb' ? 'Harris-Benedict' :
+                  state.guMethod === 'mifflin' ? 'Mifflin-St.Jeor' :
+                  state.guMethod === 'avg' ? 'Ø HB + MSJ' :
+                  state.guMethod === 'ij' ? `Ireton-Jones (${state.ijVentilated ? 'beatmet' : 'spontan'})` :
+                  'Indir. Kalorimetrie';
+  document.getElementById('r-gu-sub').textContent = guLabel;
+
+  // BMI box
+  document.getElementById('r-bmi').innerHTML = bmi ? `${bmi.toFixed(1)} <span>kg/m²</span>` : '— <span>kg/m²</span>';
+  document.getElementById('r-bmi-sub').textContent =
+    (ibw ? `IBW ${ibw.toFixed(1)} kg` : '') +
+    (abw ? ` · ABW ${abw.toFixed(1)} kg` : '');
+}
+</script>
+</body>
+</html>
