@@ -673,14 +673,14 @@ function exportPDF() {
     let totalDaily = 0;
     active.forEach(f => {
       if (y > 265) { doc.addPage(); y = 18; }
-      doc.setFillColor(rowEven ? 248 : 255, rowEven ? 248 : 255, rowEven ? 248 : 255);
-      doc.rect(margin, y, colW, rowH, 'F');
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(7.5);
       doc.setTextColor(...text);
       const nameLines = doc.splitTextToSize(f.name, c2 - c1 - 4);
       const cat = f.cat.replace(/^\S+ /, '').substring(0, 22);
       const rowH = Math.max(6.5, nameLines.length * 4.5);
+      doc.setFillColor(rowEven ? 248 : 255, rowEven ? 248 : 255, rowEven ? 248 : 255);
+      doc.rect(margin, y, colW, rowH, 'F');
       doc.text(nameLines, c1 + 2, y + 4.5);
       doc.text(cat, c2 + 2, y + 4.5);
       doc.text(f.protein + ' g (' + f.portion + ')', c3 + 2, y + 4.5);
