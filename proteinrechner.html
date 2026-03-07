@@ -56,7 +56,7 @@
   .food-card { background: var(--card); border: 1.5px solid var(--border); border-radius: 11px; padding: 12px 14px; display: flex; align-items: center; gap: 10px; transition: border-color 0.2s, box-shadow 0.2s; }
   .food-card.active { border-color: #A2B9AF; box-shadow: 0 0 0 3px rgba(162,185,175,0.18); }
   .food-info { flex: 1; min-width: 0; }
-  .food-name { font-size: 0.875rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .food-name { font-size: 0.875rem; font-weight: 500; white-space: normal; word-break: break-word; }
   .food-protein { font-size: 0.75rem; color: var(--muted); margin-top: 1px; }
   .food-protein span { font-weight: 600; color: var(--accent); }
   .portion-wrap { display: flex; align-items: center; gap: 5px; flex-shrink: 0; }
@@ -454,7 +454,7 @@ function buildUI() {
       card.id = 'card-' + f.idx;
       card.innerHTML =
         '<div class="food-info">' +
-          '<div class="food-name" title="' + f.name + '">' + f.name + '</div>' +
+          '<div class="food-name">' + f.name + '</div>' +
           '<div class="food-protein"><span>' + f.protein + ' g</span> Protein / Portion (' + f.portion + ')</div>' +
         '</div>' +
         '<div class="portion-wrap">' +
@@ -672,15 +672,16 @@ function exportPDF() {
     let rowEven = false;
     let totalDaily = 0;
     active.forEach(f => {
-      if (y > 270) { doc.addPage(); y = 18; }
+      if (y > 265) { doc.addPage(); y = 18; }
       doc.setFillColor(rowEven ? 248 : 255, rowEven ? 248 : 255, rowEven ? 248 : 255);
-      doc.rect(margin, y, colW, 6.5, 'F');
+      doc.rect(margin, y, colW, rowH, 'F');
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(7.5);
       doc.setTextColor(...text);
-      const name = f.name.length > 32 ? f.name.substring(0, 30) + '…' : f.name;
-      const cat = f.cat.replace(/^[^\s]+ /, '').substring(0, 20);
-      doc.text(name, c1 + 2, y + 4.5);
+      const nameLines = doc.splitTextToSize(f.name, c2 - c1 - 4);
+      const cat = f.cat.replace(/^\S+ /, '').substring(0, 22);
+      const rowH = Math.max(6.5, nameLines.length * 4.5);
+      doc.text(nameLines, c1 + 2, y + 4.5);
       doc.text(cat, c2 + 2, y + 4.5);
       doc.text(f.protein + ' g (' + f.portion + ')', c3 + 2, y + 4.5);
       doc.text(String(f.portions) + 'x', c4 + 2, y + 4.5);
@@ -688,7 +689,7 @@ function exportPDF() {
       doc.text(f.daily + ' g', c5 + 2, y + 4.5);
       doc.setFont('helvetica', 'normal');
       totalDaily += f.daily;
-      y += 6.5;
+      y += rowH;
       rowEven = !rowEven;
     });
 
