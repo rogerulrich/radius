@@ -768,6 +768,25 @@ function calculate() {
   document.getElementById('r-bmi-sub').textContent = '';
 }
 
+function makePdfRow(label, value, sub) {
+  return `<div style="display:flex;flex-direction:column;margin-bottom:6px;">
+    <span style="font-size:8pt;color:#8aaa9a;margin-bottom:1px;">${label}</span>
+    <span style="font-size:10.5pt;color:#2c3e35;font-weight:700;">${value}</span>
+    ${sub ? `<span style="font-size:8pt;color:#6b8a82;">${sub}</span>` : ''}
+  </div>`;
+}
+function makePdfResultBox(label, value, sub, highlight) {
+  const bg = highlight ? '#A2B9AF' : '#f0ede8';
+  const vc = highlight ? '#ffffff' : '#1a3a2a';
+  const lc = highlight ? '#d0e4dc' : '#6b8a82';
+  const sc = highlight ? '#d0e4dc' : '#8aaa9a';
+  return `<div style="background:${bg};border-radius:8px;padding:10px 12px;">
+    <div style="font-size:8pt;color:${lc};margin-bottom:3px;">${label}</div>
+    <div style="font-size:15pt;font-weight:700;color:${vc};">${value}</div>
+    ${sub ? `<div style="font-size:8pt;color:${sc};margin-top:2px;">${sub}</div>` : ''}
+  </div>`;
+}
+
 function generatePDF() {
   // Collect current values
   const name = (document.getElementById('pat-name').value || '').trim();
@@ -838,135 +857,103 @@ function generatePDF() {
   }
 
   const today = new Date().toLocaleDateString('de-CH');
+  const font = "'Century Gothic','Gill Sans','Trebuchet MS',Arial,sans-serif";
+  const S = (css) => css; // helper for readability
 
-  const html = `<!DOCTYPE html><html><head><meta charset="utf-8">
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Century Gothic', 'Gill Sans', 'Trebuchet MS', Arial, sans-serif; background: #f0ede8; color: #2c3e35; font-size: 11pt; }
-    .page { background: white; max-width: 800px; margin: 0 auto; padding: 28px 32px 24px; }
-    .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; padding-bottom: 14px; border-bottom: 2px solid #A2B9AF; }
-    .header-text h1 { font-size: 17pt; color: #1a3a2a; font-weight: 700; letter-spacing: 0.01em; }
-    .header-text p { font-size: 9pt; color: #6b8a82; margin-top: 2px; }
-    .header-date { font-size: 9pt; color: #6b8a82; text-align: right; }
-    .section { margin-bottom: 14px; }
-    .section-title { font-size: 9pt; font-weight: 700; color: #A2B9AF; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
-    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 18px; }
-    .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px 14px; }
-    .field { display: flex; flex-direction: column; }
-    .field label { font-size: 8pt; color: #8aaa9a; margin-bottom: 1px; }
-    .field span { font-size: 10.5pt; color: #2c3e35; font-weight: 600; }
-    .field .pdf-sub { font-size: 8.5pt; color: #6b8a82; font-weight: 400; margin-top: 1px; }
-    .divider { border: none; border-top: 1px solid #e2ddd6; margin: 10px 0; }
-    .results-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 6px; }
-    .r-box { background: #f0ede8; border-radius: 8px; padding: 10px 12px; }
-    .r-box.highlight { background: #A2B9AF; }
-    .r-label { font-size: 8pt; color: #6b8a82; margin-bottom: 3px; }
-    .r-box.highlight .r-label { color: #e8f0ec; }
-    .r-value { font-size: 15pt; font-weight: 700; color: #1a3a2a; }
-    .r-box.highlight .r-value { color: white; }
-    .r-sub { font-size: 8pt; color: #8aaa9a; margin-top: 2px; }
-    .r-box.highlight .r-sub { color: #d0e4dc; }
-    .weight-note { font-size: 9pt; color: #5a7a6a; background: #f0ede8; border-radius: 6px; padding: 6px 10px; margin-bottom: 8px; }
-    .footer { margin-top: 16px; padding-top: 10px; border-top: 1px solid #e2ddd6; font-size: 8pt; color: #aaa; text-align: center; }
-  </style></head><body><div class="page">
+  // Build sections as HTML strings with full inline styles
+  let sectionsHtml = '';
 
-  <div class="header">
-    <div class="header-text">
-      <h1>Energiebedarfsrechner</h1>
-      <p>Klinische Ernährungsberechnung</p>
+  // Patient section
+  if (name || firstname || dob) {
+    let rows = '';
+    if (name || firstname) rows += makePdfRow('Name', [firstname, name].filter(Boolean).join(' '));
+    if (dob) rows += makePdfRow('Geburtsdatum', dob);
+    sectionsHtml += `
+      <div style="margin-bottom:12px;">
+        <div style="font-size:8pt;font-weight:700;color:#A2B9AF;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;">Patientendaten</div>
+        <div style="display:flex;gap:24px;flex-wrap:wrap;">${rows}</div>
+      </div>
+      <div style="border-top:1px solid #e2ddd6;margin:10px 0;"></div>`;
+  }
+
+  // Anthropometrie
+  let anthro = '';
+  if (weight) anthro += makePdfRow('Körpergewicht', weight + ' kg');
+  if (height) anthro += makePdfRow('Körpergrösse', height + ' cm');
+  if (age) anthro += makePdfRow('Alter', age + ' Jahre');
+  anthro += makePdfRow('Geschlecht', sexLabel);
+  sectionsHtml += `
+    <div style="margin-bottom:12px;">
+      <div style="font-size:8pt;font-weight:700;color:#A2B9AF;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;">Anthropometrie</div>
+      <div style="display:flex;gap:24px;flex-wrap:wrap;">${anthro}</div>
     </div>
-    <div class="header-date">Erstellt: ${today}</div>
-  </div>
+    <div style="border-top:1px solid #e2ddd6;margin:10px 0;"></div>`;
 
-  ${(name || firstname || dob) ? `
-  <div class="section">
-    <div class="section-title">Patientendaten</div>
-    <div class="grid3">
-      ${(name || firstname) ? `<div class="field"><label>Name</label><span>${[name, firstname].filter(Boolean).join(', ') || '—'}</span></div>` : ''}
-      ${dob ? `<div class="field"><label>Geburtsdatum</label><span>${dob}</span></div>` : ''}
+  // Parameter
+  let params = '';
+  params += makePdfRow('Gewicht für Berechnung', weightModeLabel, manualWeight && state.weightMode==='manual' ? 'Manuell: '+manualWeight+' kg' : '');
+  params += makePdfRow('Grundumsatz-Methode', guLabel,
+    state.guMethod==='ij' ? `Modus: ${state.ijVentilated?'Beatmet':'Spontanatmend'}${state.ijObese?' · Adipositas':''}${state.ijTrauma?' · Trauma':''}${state.ijBurn?' · Verbrennung':''}` :
+    state.guMethod==='indirect' && document.getElementById('indirectKcal').value ? document.getElementById('indirectKcal').value+' kcal/Tag' : '');
+  params += makePdfRow('Aktivitätsfaktor', activityLabel);
+  params += makePdfRow('Stressfaktor', stressLabel);
+  params += makePdfRow('Pathophysiologie / Zielbedarf', pathLabel);
+  params += makePdfRow('Proteinbedarf', protLabel);
+  params += makePdfRow('Flüssigkeitsbedarf', fluidLabel);
+  sectionsHtml += `
+    <div style="margin-bottom:12px;">
+      <div style="font-size:8pt;font-weight:700;color:#A2B9AF;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;">Berechnungsparameter</div>
+      <div style="display:flex;gap:24px;flex-wrap:wrap;">${params}</div>
+    </div>`;
+
+  // Results
+  if (hasResults) {
+    sectionsHtml += `<div style="border-top:1px solid #e2ddd6;margin:10px 0;"></div>
+    <div style="margin-bottom:8px;">
+      <div style="font-size:8pt;font-weight:700;color:#A2B9AF;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;">Ergebnisse</div>
+      <div style="font-size:9pt;color:#5a7a6a;background:#f0ede8;border-radius:6px;padding:6px 10px;margin-bottom:8px;">${weightInfo}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        ${makePdfResultBox('🏥 Bedarf inkl. Krankheitsfaktoren', rPatho, rPathoSub, true)}
+        ${makePdfResultBox('⚡ Energiebedarf ohne Krankheitsfaktoren', rTdee, rTdeeSub, false)}
+        ${makePdfResultBox('🥩 Protein', rProtein, rProteinSub, false)}
+        ${makePdfResultBox('💧 Flüssigkeit', rFluid, rFluidSub, false)}
+        ${makePdfResultBox('🔥 Grundumsatz', rGu, rGuSub, false)}
+        ${makePdfResultBox('📐 BMI', rBmi, '', false)}
+      </div>
+    </div>`;
+  }
+
+  // Assemble full page div
+  const pageDiv = document.createElement('div');
+  pageDiv.style.cssText = `font-family:${font};background:white;width:750px;padding:28px 32px 20px;box-sizing:border-box;color:#2c3e35;font-size:11pt;`;
+  pageDiv.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:12px;border-bottom:2px solid #A2B9AF;">
+      <div>
+        <div style="font-size:17pt;color:#1a3a2a;font-weight:700;letter-spacing:0.01em;">Energiebedarfsrechner</div>
+        <div style="font-size:9pt;color:#6b8a82;margin-top:2px;">Klinische Ernährungsberechnung</div>
+      </div>
+      <div style="font-size:9pt;color:#6b8a82;">Erstellt: ${today}</div>
     </div>
-  </div><hr class="divider">` : ''}
+    ${sectionsHtml}
+    <div style="margin-top:14px;padding-top:10px;border-top:1px solid #e2ddd6;font-size:8pt;color:#aaa;text-align:center;">
+      Energiebedarfsrechner · Klinische Ernährung · Alle Angaben ohne Gewähr – immer klinisches Urteil anwenden.
+    </div>`;
 
-  <div class="section">
-    <div class="section-title">Anthropometrie</div>
-    <div class="grid3">
-      ${weight ? `<div class="field"><label>Körpergewicht</label><span>${weight} kg</span></div>` : ''}
-      ${height ? `<div class="field"><label>Körpergrösse</label><span>${height} cm</span></div>` : ''}
-      ${age ? `<div class="field"><label>Alter</label><span>${age} Jahre</span></div>` : ''}
-      <div class="field"><label>Geschlecht</label><span>${sexLabel}</span></div>
-    </div>
-  </div><hr class="divider">
-
-  <div class="section">
-    <div class="section-title">Berechnungsparameter</div>
-    <div class="grid">
-      <div class="field"><label>Gewicht für Berechnung</label><span>${weightModeLabel}</span>${manualWeightNote}</div>
-      <div class="field"><label>Grundumsatz-Methode</label><span>${guLabel}</span>${ijDetails}${indirectKcal}</div>
-      <div class="field"><label>Aktivitätsfaktor</label><span>${activityLabel}</span></div>
-      <div class="field"><label>Stressfaktor</label><span>${stressLabel}</span></div>
-      <div class="field"><label>Pathophysiologie / Zielbedarf</label><span>${pathLabel}</span></div>
-      <div class="field"><label>Proteinbedarf</label><span>${protLabel}</span></div>
-      <div class="field"><label>Flüssigkeitsbedarf</label><span>${fluidLabel}</span></div>
-    </div>
-  </div>
-
-  ${hasResults ? `<hr class="divider">
-  <div class="section">
-    <div class="section-title">Ergebnisse</div>
-    <div class="weight-note">${weightInfo}</div>
-    <div class="results-grid">
-      <div class="r-box highlight">
-        <div class="r-label">🏥 Bedarf inkl. Krankheitsfaktoren</div>
-        <div class="r-value">${rPatho}</div>
-        <div class="r-sub">${rPathoSub}</div>
-      </div>
-      <div class="r-box">
-        <div class="r-label">⚡ Energiebedarf ohne Krankheitsfaktoren</div>
-        <div class="r-value">${rTdee}</div>
-        <div class="r-sub">${rTdeeSub}</div>
-      </div>
-      <div class="r-box">
-        <div class="r-label">🥩 Protein</div>
-        <div class="r-value">${rProtein}</div>
-        <div class="r-sub">${rProteinSub}</div>
-      </div>
-      <div class="r-box">
-        <div class="r-label">💧 Flüssigkeit</div>
-        <div class="r-value">${rFluid}</div>
-        <div class="r-sub">${rFluidSub}</div>
-      </div>
-      <div class="r-box">
-        <div class="r-label">🔥 Grundumsatz</div>
-        <div class="r-value">${rGu}</div>
-        <div class="r-sub">${rGuSub}</div>
-      </div>
-      <div class="r-box">
-        <div class="r-label">📐 BMI</div>
-        <div class="r-value">${rBmi}</div>
-      </div>
-    </div>
-  </div>` : ''}
-
-  <div class="footer">Energiebedarfsrechner · Klinische Ernährung · Alle Angaben ohne Gewähr – immer klinisches Urteil anwenden.</div>
-  </div></body></html>`;
+  pageDiv.style.position = 'absolute';
+  pageDiv.style.left = '-9999px';
+  pageDiv.style.top = '0';
+  document.body.appendChild(pageDiv);
 
   const opt = {
     margin: [8, 8, 8, 8],
     filename: 'energiebedarfsrechner.pdf',
     image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
+    html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff', logging: false },
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-    pagebreak: { mode: ['avoid-all'] }
   };
 
-  const tempDiv = document.createElement('div');
-  tempDiv.innerHTML = html;
-  tempDiv.style.position = 'absolute';
-  tempDiv.style.left = '-9999px';
-  document.body.appendChild(tempDiv);
-
-  html2pdf().set(opt).from(tempDiv.querySelector('.page')).save().then(() => {
-    document.body.removeChild(tempDiv);
+  html2pdf().set(opt).from(pageDiv).save().then(() => {
+    document.body.removeChild(pageDiv);
   });
 }
 </script>
