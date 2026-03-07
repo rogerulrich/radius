@@ -19,8 +19,8 @@
     .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
     .field { display: flex; flex-direction: column; gap: 0.35rem; }
     .field label { font-size: 0.82rem; font-weight: 500; color: #6b8a82; text-transform: uppercase; letter-spacing: 0.05em; cursor: default; }
-    input[type="number"], select { width: 100%; padding: 0.65rem 0.85rem; border: 1.5px solid #d5cfc6; border-radius: 8px; font-family: 'Century Gothic', 'Gill Sans', 'Trebuchet MS', sans-serif; font-size: 0.95rem; color: #3d5a52; background: #faf9f7; outline: none; transition: border-color 0.2s; }
-    input[type="number"]:focus, select:focus { border-color: #A2B9AF; background: white; }
+    input[type="number"], input[type="text"], input[type="date"], select { width: 100%; padding: 0.65rem 0.85rem; border: 1.5px solid #d5cfc6; border-radius: 8px; font-family: 'Century Gothic', 'Gill Sans', 'Trebuchet MS', sans-serif; font-size: 0.95rem; color: #3d5a52; background: #faf9f7; outline: none; transition: border-color 0.2s; }
+    input[type="number"]:focus, input[type="text"]:focus, input[type="date"]:focus, select:focus { border-color: #A2B9AF; background: white; }
     .radio-group { display: flex; flex-wrap: wrap; gap: 0.5rem; }
     .radio-btn { display: flex; align-items: center; gap: 0.4rem; padding: 0.5rem 0.9rem; border: 1.5px solid #d5cfc6; border-radius: 8px; cursor: pointer; font-size: 0.88rem; color: #6b8a82; background: #faf9f7; transition: all 0.2s; user-select: none; }
     .radio-btn.active { border-color: #A2B9AF; background: #eaf2ef; color: #3d5a52; font-weight: 500; }
@@ -61,20 +61,14 @@
     .gu-display .gu-used { color: #A2B9AF; font-weight: 600; }
     .indirect-field { margin-top: 0.8rem; max-width: 260px; }
 
-    @media print {
-      .no-print { display: none !important; }
-      body { background: white; }
-      .app { padding: 0; }
-      .card { box-shadow: none; border: 1px solid #ccc; break-inside: avoid; }
-      .results { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-      input, select { border: 1px solid #ccc !important; }
-    }
     @media (max-width: 600px) { .grid-2, .grid-3, .result-grid { grid-template-columns: 1fr; } }
   </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
 <div class="app">
-  <div class="container">
+  <div class="container" id="pdf-content">
+
     <div class="header">
       <h1>Energiebedarfsrechner</h1>
       <p>Energie · Flüssigkeit · Protein — Klinische Bedarfsberechnung</p>
@@ -83,6 +77,20 @@
     <!-- Patientendaten -->
     <div class="card">
       <div class="card-title"><span>👤</span> Patientendaten</div>
+      <div class="grid-3" style="margin-bottom:1rem">
+        <div class="field">
+          <label>Name</label>
+          <input type="text" id="pat-name" placeholder="Nachname" />
+        </div>
+        <div class="field">
+          <label>Vorname</label>
+          <input type="text" id="pat-firstname" placeholder="Vorname" />
+        </div>
+        <div class="field">
+          <label>Geburtsdatum</label>
+          <input type="date" id="pat-dob" />
+        </div>
+      </div>
       <div class="grid-3" style="margin-bottom:1rem">
         <div class="field">
           <label>Gewicht (kg)</label>
@@ -257,7 +265,7 @@
       <p style="font-size:0.85rem;color:#8aA09a;margin-bottom:0.8rem">Laut ESPEN-Empfehlungen, klinischer Evidenz und bevölkerungsspezifischen Daten (kcal/kg/Tag):</p>
       <div class="field">
         <label>Klinischer Zustand</label>
-        <select id="pathophysio" onchange="calculate()">
+        <select id="pathophysio" onchange="state.pathophysioManuallySet=true; document.getElementById('custom-kcal-field').style.display=(this.value==='13'?'block':'none'); calculate()">
           <optgroup label="── Altersgruppen ──">
             <option value="0">Gesunde Erwachsene (18–65 J.) — 30 kcal/kg/Tag</option>
             <option value="1">Ältere Erwachsene (&gt;65 J.) — 25–30 kcal/kg/Tag</option>
@@ -271,11 +279,20 @@
             <option value="7">Adipositas (nach Idealgewicht) — 20–25 kcal/kg/Tag</option>
             <option value="8">Chronische Nierenerkrankung (Dialyse) — 30–35 kcal/kg/Tag</option>
             <option value="9">Herzinsuffizienz — 22–25 kcal/kg/Tag</option>
-            <option value="10">Lebererkrankung — 25–30 kcal/kg/Tag</option>
+            <option value="10">Lebererkrankung / Zirrhose — 30–40 kcal/kg/Tag</option>
             <option value="11">Dekubitus — 30–35 kcal/kg/Tag</option>
             <option value="12">Atemwegserkrankung — 30–35 kcal/kg/Tag</option>
           </optgroup>
+          <optgroup label="── Individuell ──">
+            <option value="13">Individuelle Angabe</option>
+          </optgroup>
         </select>
+        <div id="custom-kcal-field" style="display:none;margin-top:0.8rem;max-width:260px">
+          <div class="field">
+            <label>Individueller Energiebedarf (kcal/kg/Tag)</label>
+            <input type="number" id="custom-kcal-per-kg" placeholder="z.B. 28" min="5" max="60" oninput="calculate()" />
+          </div>
+        </div>
       </div>
     </div>
 
@@ -352,6 +369,18 @@
       </div>
     </div>
 
+
+    <!-- PDF Button -->
+    <div style="text-align:center;margin:1.5rem 0 1rem;" id="pdf-btn-wrapper">
+      <button id="pdf-btn" onclick="generatePDF()" style="background:#A2B9AF;color:white;border:none;padding:0.85rem 2.5rem;border-radius:10px;font-family:'Century Gothic','Gill Sans','Trebuchet MS',sans-serif;font-size:1rem;font-weight:600;cursor:pointer;letter-spacing:0.03em;box-shadow:0 2px 10px rgba(162,185,175,0.4);transition:background 0.2s,transform 0.1s;"
+        onmouseover="this.style.background='#8eaaa0'"
+        onmouseout="this.style.background='#A2B9AF'"
+        onmousedown="this.style.transform='scale(0.97)'"
+        onmouseup="this.style.transform='scale(1)'">
+        🖨 Als PDF exportieren
+      </button>
+    </div>
+
     <!-- References -->
     <div class="refs" style="margin-top:1.5rem">
       <h4>Quellen & Evidenzbasis</h4>
@@ -383,24 +412,17 @@
         <span class="tag">[P4]</span> Singer P et al. ESPEN guideline on clinical nutrition in the ICU. <em>Clin Nutr</em> 2019.<br>
         <span class="tag">[P5]</span> Charlton M et al. AASLD Practice Guidance: Protein Intake in Cirrhosis. <em>Hepatology</em> 2022.<br>
         <span class="tag">[P6]</span> Phillips SM, Van Loon LJC. Dietary protein for athletes. <em>J Sports Sci</em> 2011.<br>
-        <span class="tag">[P7]</span> Stephens TV et al. Protein requirements during pregnancy. <em>Nutrition</em> 2015.
+        <span class="tag">[P7]</span> Stephens TV et al. Protein requirements during pregnancy. <em>Nutrition</em> 2015.<br>
+        <br>
+        <strong style="font-size:0.8rem;color:#6b8a82;letter-spacing:0.04em">LEBERERKRANKUNG</strong><br>
+        <span class="tag">[ESPEN-L1]</span> ESPEN practical guideline: Clinical nutrition in liver disease. <em>Clin Nutr</em> 2019 · 35–40 kcal/kg/Tag; bei Adipositas BMI 30–40: 25–35 kcal/kg/Tag, BMI ≥40: 20–25 kcal/kg/Tag.<br>
+        <span class="tag">[ESPEN-L2]</span> Plauth M et al. EASL Clinical Practice Guidelines on nutrition in chronic liver disease. <em>J Hepatol</em> 2019 · Indirekte Kalorimetrie bevorzugt; Proteinzufuhr 1.2–1.5 g/kg/Tag, nicht restriktiv.
       </p>
       <p style="margin-top:0.7rem;font-size:0.76rem;color:#aabfba">
         ESPEN empfiehlt als Goldstandard die indirekte Kalorimetrie. Prädiktive Gleichungen (Harris-Benedict, Mifflin-St.Jeor) sind klinisch etablierte Alternativen mit bekannten Limitationen. Energiebedarf ist individuell und abhängig von Pathophysiologie, Ernährungsstatus und klinischem Kontext.
       </p>
     </div>
 
-
-    <!-- PDF Button -->
-    <div style="text-align:center;margin-top:2rem;margin-bottom:2rem;" class="no-print">
-      <button onclick="window.print()" style="background:#A2B9AF;color:white;border:none;padding:0.85rem 2.5rem;border-radius:10px;font-family:'Century Gothic','Gill Sans','Trebuchet MS',sans-serif;font-size:1rem;font-weight:600;cursor:pointer;letter-spacing:0.03em;box-shadow:0 2px 10px rgba(162,185,175,0.4);transition:background 0.2s,transform 0.1s;"
-        onmouseover="this.style.background='#8eaaa0'"
-        onmouseout="this.style.background='#A2B9AF'"
-        onmousedown="this.style.transform='scale(0.97)'"
-        onmouseup="this.style.transform='scale(1)'">
-        🖨&#xFE0E; Als PDF speichern
-      </button>
-    </div>
 
   </div>
 </div>
@@ -419,9 +441,10 @@ const PATHOPHYSIO = [
   { label: "Adipositas (nach Idealgewicht)", range: [20, 25], ref: "[ESPEN]", group: "Patho" },
   { label: "Chronische Nierenerkrankung (Dialyse)", range: [30, 35], ref: "[ESPEN]", group: "Patho" },
   { label: "Herzinsuffizienz", range: [22, 25], ref: "[ESPEN]", group: "Patho" },
-  { label: "Lebererkrankung", range: [25, 30], ref: "[ESPEN]", group: "Patho" },
+  { label: "Lebererkrankung", range: [30, 40], ref: "[ESPEN-L]", group: "Patho" },
   { label: "Dekubitus", range: [30, 35], ref: "[ESPEN]", group: "Patho" },
   { label: "Atemwegserkrankung", range: [30, 35], ref: "[ESPEN]", group: "Patho" },
+  { label: "Individuelle Angabe", range: [0, 0], note: "custom", ref: "—", group: "Custom" },
 ];
 
 const PROTEIN_RANGES = [
@@ -444,6 +467,8 @@ let state = {
   weightMode: 'actual',
   weightModeManuallySet: false,
   guMethod: 'hb',
+  guMethodManuallySet: false,
+  pathophysioManuallySet: false,
   ijVentilated: false,
   ijObese: false,
   ijTrauma: false,
@@ -468,6 +493,7 @@ function setWeightMode(val, el) {
 
 function setGuMethod(val, el) {
   state.guMethod = val;
+  state.guMethodManuallySet = true;
   document.querySelectorAll('[name="guMethod"]').forEach(r => r.closest('.radio-btn').classList.remove('active'));
   el.classList.add('active');
   document.getElementById('ij-options').classList.toggle('hidden', val !== 'ij');
@@ -559,6 +585,28 @@ function calculate() {
 
     // Auto-select recommended weight mode
     const autoMode = bmi < 18.5 ? 'ibw' : bmi > 25 ? 'abw' : 'actual';
+
+    // Auto-select Mifflin-St.Jeor for obesity (BMI >= 30)
+    if (!state.guMethodManuallySet) {
+      const autoGu = bmi >= 30 ? 'mifflin' : 'hb';
+      if (state.guMethod !== autoGu) {
+        state.guMethod = autoGu;
+        document.querySelectorAll('[name="guMethod"]').forEach(r => {
+          r.closest('.radio-btn').classList.toggle('active', r.value === autoGu);
+        });
+        document.getElementById('ij-options').classList.add('hidden');
+        document.getElementById('indirect-field').classList.add('hidden');
+      }
+    }
+
+    // Auto-select pathophysio based on age
+    if (!state.pathophysioManuallySet && age > 0) {
+      const autoPatho = age > 65 ? '1' : '0'; // 0=Gesunde Erwachsene, 1=Ältere >65
+      const pathoSelect = document.getElementById('pathophysio');
+      if (pathoSelect.value !== autoPatho) {
+        pathoSelect.value = autoPatho;
+      }
+    }
     if (!state.weightModeManuallySet) {
       state.weightMode = autoMode;
       document.querySelectorAll('[name="weightMode"]').forEach(r => {
@@ -581,6 +629,14 @@ function calculate() {
       document.querySelectorAll('[name="weightMode"]').forEach(r => {
         r.closest('.radio-btn').classList.toggle('active', r.value === 'actual');
       });
+    }
+    // Still auto-select pathophysio by age even without BMI
+    if (!state.pathophysioManuallySet && age > 0) {
+      const autoPatho = age > 65 ? '1' : '0';
+      const pathoSelect = document.getElementById('pathophysio');
+      if (pathoSelect.value !== autoPatho) {
+        pathoSelect.value = autoPatho;
+      }
     }
   }
 
@@ -648,9 +704,11 @@ function calculate() {
 
   const tdee = gu ? gu * activityFactor * stressFactor : null;
   const pp = PATHOPHYSIO[pathophysioIdx];
-  const isFixedKcal = pp.note !== undefined;
-  const kcalMin = isFixedKcal ? null : calcWeight * pp.range[0];
-  const kcalMax = isFixedKcal ? null : calcWeight * pp.range[1];
+  const isCustom = pp.note === 'custom';
+  const customVal = isCustom ? parseFloat(document.getElementById('custom-kcal-per-kg').value) : null;
+  const isFixedKcal = pp.note !== undefined && !isCustom;
+  const kcalMin = isFixedKcal ? null : isCustom ? (customVal && calcWeight ? calcWeight * customVal : null) : calcWeight * pp.range[0];
+  const kcalMax = isFixedKcal ? null : isCustom ? (customVal && calcWeight ? calcWeight * customVal : null) : calcWeight * pp.range[1];
   const pr = PROTEIN_RANGES[proteinIdx];
   const proteinMin = calcWeight * pr.min;
   const proteinMax = calcWeight * pr.max;
@@ -675,6 +733,9 @@ function calculate() {
   if (isFixedKcal) {
     document.getElementById('r-patho').innerHTML = `${pp.note} <span></span>`;
     document.getElementById('r-patho-sub').textContent = `${pp.label} · ${pp.ref}`;
+  } else if (isCustom) {
+    document.getElementById('r-patho').innerHTML = `${kcalMin ? fmt(kcalMin) : '—'} <span>kcal</span>`;
+    document.getElementById('r-patho-sub').textContent = customVal ? `${customVal} kcal/kg/Tag · ${calcWeight.toFixed(1)} kg` : 'Bitte Wert eingeben';
   } else {
     document.getElementById('r-patho').innerHTML = `${calcWeight > 0 ? fmt(kcalMin) : '—'}${kcalMax !== kcalMin && calcWeight > 0 ? '–' + fmt(kcalMax) : ''} <span>kcal</span>`;
     document.getElementById('r-patho-sub').textContent = `${pp.label}: ${pp.range[0]}${pp.range[1] !== pp.range[0] ? '–' + pp.range[1] : ''} kcal/kg · ${pp.ref}`;
@@ -702,6 +763,23 @@ function calculate() {
   document.getElementById('r-bmi-sub').textContent =
     (ibw ? `IBW ${ibw.toFixed(1)} kg` : '') +
     (abw ? ` · ABW ${abw.toFixed(1)} kg` : '');
+}
+
+function generatePDF() {
+  const btn = document.getElementById('pdf-btn-wrapper');
+  btn.style.display = 'none';
+  const element = document.getElementById('pdf-content');
+  const opt = {
+    margin: [10, 10, 10, 10],
+    filename: 'energiebedarfsrechner.pdf',
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true, backgroundColor: '#f0ede8' },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+  };
+  html2pdf().set(opt).from(element).save().then(() => {
+    btn.style.display = 'block';
+  });
 }
 </script>
 </body>
