@@ -30,16 +30,16 @@
     .bmi-normal { background: #eaf2ef; color: #4a7a70; }
     .bmi-over { background: #fff8e1; color: #f57f17; }
     .bmi-obese { background: #fce4ec; color: #c62828; }
-    .results { background: #A2B9AF; border-radius: 16px; padding: 2rem; color: white; margin-top: 1.5rem; }
+    .results { background: #A2B9AF; border-radius: 16px; padding: 2rem; color: #1a1a1a; margin-top: 1.5rem; }
     .results h2 { font-family: 'Century Gothic', 'Gill Sans', 'Trebuchet MS', sans-serif; font-size: 1.4rem; margin-bottom: 1.5rem; opacity: 0.9; }
     .result-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
-    .result-box { background: rgba(255,255,255,0.1); border-radius: 12px; padding: 1.2rem; border: 1px solid rgba(255,255,255,0.15); }
+    .result-box { background: #DCD7D2; border-radius: 12px; padding: 1.2rem; border: 1px solid rgba(255,255,255,0.3); }
     .result-box .r-label { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em; opacity: 0.7; margin-bottom: 0.4rem; }
     .result-box .r-value { font-size: 1.6rem; font-weight: 600; font-family: 'Century Gothic', 'Gill Sans', 'Trebuchet MS', sans-serif; }
     .result-box .r-value span { font-size: 1rem; }
     .result-box .r-sub { font-size: 0.82rem; opacity: 0.7; margin-top: 0.2rem; }
     .result-box .r-range { font-size: 0.85rem; opacity: 0.85; margin-top: 0.3rem; }
-    .weight-info { background: rgba(255,255,255,0.08); border-radius: 10px; padding: 1rem 1.2rem; margin-bottom: 1.2rem; font-size: 0.88rem; opacity: 0.9; line-height: 1.6; }
+    .weight-info { background: #DCD7D2; border-radius: 10px; padding: 1rem 1.2rem; margin-bottom: 1.2rem; font-size: 0.88rem; line-height: 1.6; }
     .info-text { font-size: 0.82rem; color: #9ab0aa; font-style: italic; margin-top: 0.3rem; margin-bottom: 0.8rem; }
     .refs { background: #f7f5f1; border-radius: 12px; padding: 1.2rem 1.5rem; margin-top: 1rem; }
     .refs h4 { font-size: 0.82rem; font-weight: 600; color: #6b8a82; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.7rem; }
@@ -75,7 +75,7 @@
     </div>
 
     <!-- Patientendaten -->
-    <div class="card">
+    <div class="card" style="background:#A2B9AF;">
       <div class="card-title"><span>👤</span> Patientendaten</div>
       <div class="grid-3" style="margin-bottom:1rem">
         <div class="field">
@@ -337,14 +337,14 @@
       <div class="weight-info" id="weight-info"></div>
       <div class="result-grid">
         <div class="result-box">
-          <div class="r-label">⚡ Gesamtenergie (TDEE)</div>
-          <div class="r-value" id="r-tdee">— <span>kcal</span></div>
-          <div class="r-sub" id="r-tdee-sub"></div>
-        </div>
-        <div class="result-box">
-          <div class="r-label">🏥 Bedarf nach Pathophysiologie</div>
+          <div class="r-label">🏥 Aktueller Bedarf inkl. Krankheitsfaktoren</div>
           <div class="r-value" id="r-patho">— <span>kcal</span></div>
           <div class="r-range" id="r-patho-sub"></div>
+        </div>
+        <div class="result-box">
+          <div class="r-label">⚡ Energiebedarf ohne Krankheitsfaktoren</div>
+          <div class="r-value" id="r-tdee">— <span>kcal</span></div>
+          <div class="r-sub" id="r-tdee-sub"></div>
         </div>
         <div class="result-box">
           <div class="r-label">🥩 Protein</div>
@@ -760,9 +760,7 @@ function calculate() {
 
   // BMI box
   document.getElementById('r-bmi').innerHTML = bmi ? `${bmi.toFixed(1)} <span>kg/m²</span>` : '— <span>kg/m²</span>';
-  document.getElementById('r-bmi-sub').textContent =
-    (ibw ? `IBW ${ibw.toFixed(1)} kg` : '') +
-    (abw ? ` · ABW ${abw.toFixed(1)} kg` : '');
+  document.getElementById('r-bmi-sub').textContent = '';
 }
 
 function generatePDF() {
