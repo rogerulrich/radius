@@ -65,7 +65,7 @@
 
     @media (max-width: 600px) { .grid-2, .grid-3, .result-grid { grid-template-columns: 1fr; } }
   </style>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
 <div class="app">
@@ -768,27 +768,116 @@ function calculate() {
   document.getElementById('r-bmi-sub').textContent = '';
 }
 
-function makePdfRow(label, value, sub) {
-  return `<div style="display:flex;flex-direction:column;margin-bottom:6px;">
-    <span style="font-size:8pt;color:#8aaa9a;margin-bottom:1px;">${label}</span>
-    <span style="font-size:10.5pt;color:#2c3e35;font-weight:700;">${value}</span>
-    ${sub ? `<span style="font-size:8pt;color:#6b8a82;">${sub}</span>` : ''}
-  </div>`;
-}
-function makePdfResultBox(label, value, sub, highlight) {
-  const bg = highlight ? '#A2B9AF' : '#f0ede8';
-  const vc = highlight ? '#ffffff' : '#1a3a2a';
-  const lc = highlight ? '#d0e4dc' : '#6b8a82';
-  const sc = highlight ? '#d0e4dc' : '#8aaa9a';
-  return `<div style="background:${bg};border-radius:8px;padding:10px 12px;">
-    <div style="font-size:8pt;color:${lc};margin-bottom:3px;">${label}</div>
-    <div style="font-size:15pt;font-weight:700;color:${vc};">${value}</div>
-    ${sub ? `<div style="font-size:8pt;color:${sc};margin-top:2px;">${sub}</div>` : ''}
-  </div>`;
-}
+
 
 function generatePDF() {
-  // Collect current values
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+
+  // Helpers
+  const W = 210, ML = 14, MR = 14, TW = W - ML - MR;
+  const green = [162, 185, 175];
+  const darkGreen = [26, 58, 42];
+  const midGreen = [90, 122, 106];
+  const lightGray = [180, 180, 180];
+  const bodyColor = [44, 62, 53];
+  let y = 14;
+
+  function hex(r,g,b) { return [r,g,b]; }
+  function setColor(rgb) { doc.setTextColor(rgb[0], rgb[1], rgb[2]); }
+  function setFill(rgb) { doc.setFillColor(rgb[0], rgb[1], rgb[2]); }
+  function setDraw(rgb) { doc.setDrawColor(rgb[0], rgb[1], rgb[2]); }
+
+  function line() {
+    setDraw([220,220,214]);
+    doc.setLineWidth(0.3);
+    doc.line(ML, y, W - MR, y);
+    y += 5;
+  }
+
+  function sectionTitle(text) {
+    setColor(green);
+    doc.setFontSize(7.5);
+    doc.setFont('helvetica', 'bold');
+    doc.text(text.toUpperCase(), ML, y);
+    y += 5;
+  }
+
+  function field(label, value, sub) {
+    setColor(lightGray);
+    doc.setFontSize(7);
+    doc.setFont('helvetica', 'normal');
+    doc.text(label, ML, y);
+    y += 3.5;
+    setColor(bodyColor);
+    doc.setFontSize(9.5);
+    doc.setFont('helvetica', 'bold');
+    doc.text(value || '—', ML, y);
+    y += 4;
+    if (sub) {
+      setColor([150, 170, 160]);
+      doc.setFontSize(7);
+      doc.setFont('helvetica', 'normal');
+      doc.text(sub, ML, y);
+      y += 3.5;
+    }
+    y += 1;
+  }
+
+  function fieldRow(items) {
+    // items = [{label, value, sub}, ...]
+    const colW = TW / items.length;
+    const startY = y;
+    let maxY = y;
+    items.forEach((item, i) => {
+      const x = ML + i * colW;
+      let ly = startY;
+      setColor(lightGray);
+      doc.setFontSize(7);
+      doc.setFont('helvetica', 'normal');
+      doc.text(item.label, x, ly); ly += 3.5;
+      setColor(bodyColor);
+      doc.setFontSize(9.5);
+      doc.setFont('helvetica', 'bold');
+      const lines = doc.splitTextToSize(item.value || '—', colW - 3);
+      doc.text(lines, x, ly); ly += lines.length * 4;
+      if (item.sub) {
+        setColor([150, 170, 160]);
+        doc.setFontSize(7);
+        doc.setFont('helvetica', 'normal');
+        const slines = doc.splitTextToSize(item.sub, colW - 3);
+        doc.text(slines, x, ly); ly += slines.length * 3.2;
+      }
+      ly += 1;
+      if (ly > maxY) maxY = ly;
+    });
+    y = maxY;
+  }
+
+  function resultBox(x, bx, by, bw, bh, label, value, sub, highlight) {
+    if (highlight) {
+      setFill(green); doc.setDrawColor(0,0,0); doc.setLineWidth(0);
+      doc.roundedRect(bx, by, bw, bh, 2, 2, 'F');
+      setColor([255,255,255]);
+    } else {
+      setFill([240, 237, 232]); doc.setLineWidth(0);
+      doc.roundedRect(bx, by, bw, bh, 2, 2, 'F');
+      setColor(highlight ? [255,255,255] : [107,138,130]);
+    }
+    doc.setFontSize(7); doc.setFont('helvetica', 'normal');
+    doc.text(label, bx + 3, by + 5);
+    setColor(highlight ? [255,255,255] : darkGreen);
+    doc.setFontSize(13); doc.setFont('helvetica', 'bold');
+    doc.text(value || '—', bx + 3, by + 12);
+    if (sub) {
+      setColor(highlight ? [208, 228, 220] : [138, 170, 154]);
+      doc.setFontSize(6.5); doc.setFont('helvetica', 'normal');
+      const slines = doc.splitTextToSize(sub, bw - 6);
+      doc.text(slines, bx + 3, by + 16);
+    }
+  }
+
+  // ---- Collect data ----
   const name = (document.getElementById('pat-name').value || '').trim();
   const firstname = (document.getElementById('pat-firstname').value || '').trim();
   const dob = document.getElementById('pat-dob').value;
@@ -796,166 +885,133 @@ function generatePDF() {
   const height = document.getElementById('height').value;
   const age = document.getElementById('age').value;
   const sexLabel = state.sex === 'male' ? 'Männlich' : 'Weiblich';
-
   const weightModeLabel = state.weightMode === 'ibw' ? 'Idealgewicht (IBW)' :
     state.weightMode === 'abw' ? 'Adjusted Body Weight (ABW)' :
     state.weightMode === 'manual' ? 'Manuelles Gewicht' : 'Ist-Gewicht';
   const manualWeight = document.getElementById('manualWeight').value;
-
   const guLabel = state.guMethod === 'hb' ? 'Harris-Benedict' :
     state.guMethod === 'mifflin' ? 'Mifflin-St.Jeor' :
     state.guMethod === 'avg' ? 'Durchschnitt HB + MSJ' :
-    state.guMethod === 'ij' ? 'Ireton-Jones' :
-    state.guMethod === 'indirect' ? 'Indirekte Kalorimetrie' : '';
-
+    state.guMethod === 'ij' ? 'Ireton-Jones' : 'Indir. Kalorimetrie';
+  const guSub = state.guMethod === 'ij'
+    ? `${state.ijVentilated ? 'Beatmet' : 'Spontanatmend'}${state.ijObese ? ' · Adipositas' : ''}${state.ijTrauma ? ' · Trauma' : ''}${state.ijBurn ? ' · Verbrennung' : ''}`
+    : (state.guMethod === 'indirect' && document.getElementById('indirectKcal').value ? document.getElementById('indirectKcal').value + ' kcal/Tag' : '');
   const activityEl = document.getElementById('activityFactor');
   const activityLabel = activityEl.options[activityEl.selectedIndex].text;
   const stressEl = document.getElementById('stressFactor');
   const stressLabel = stressEl.options[stressEl.selectedIndex].text;
-
   const pathEl = document.getElementById('pathophysio');
   const pathLabel = pathEl.options[pathEl.selectedIndex].text;
-
   const protEl = document.getElementById('proteinRange');
   const protLabel = protEl.options[protEl.selectedIndex].text;
-
   const fluidEl = document.getElementById('fluidFactor');
   const fluidLabel = fluidEl.options[fluidEl.selectedIndex].text;
-
-  // Results
-  const rPatho = document.getElementById('r-patho').textContent;
-  const rPathoSub = document.getElementById('r-patho-sub').textContent;
-  const rTdee = document.getElementById('r-tdee').textContent;
-  const rTdeeSub = document.getElementById('r-tdee-sub').textContent;
-  const rProtein = document.getElementById('r-protein').textContent;
-  const rProteinSub = document.getElementById('r-protein-sub').textContent;
-  const rFluid = document.getElementById('r-fluid').textContent;
-  const rFluidSub = document.getElementById('r-fluid-sub').textContent;
-  const rGu = document.getElementById('r-gu').textContent;
-  const rGuSub = document.getElementById('r-gu-sub').textContent;
-  const rBmi = document.getElementById('r-bmi').textContent;
-  const weightInfo = document.getElementById('weight-info').innerHTML;
-
   const hasResults = !document.getElementById('results').classList.contains('hidden');
-
-  // IJ details
-  let ijDetails = '';
-  if (state.guMethod === 'ij') {
-    ijDetails = `<span class="pdf-sub">Modus: ${state.ijVentilated ? 'Beatmet' : 'Spontanatmend'}` +
-      (state.ijObese ? ' · Adipositas' : '') +
-      (state.ijTrauma ? ' · Trauma' : '') +
-      (state.ijBurn ? ' · Verbrennung' : '') + `</span>`;
-  }
-  let indirectKcal = '';
-  if (state.guMethod === 'indirect') {
-    const val = document.getElementById('indirectKcal').value;
-    if (val) indirectKcal = `<span class="pdf-sub">Gemessener Wert: ${val} kcal/Tag</span>`;
-  }
-  let manualWeightNote = '';
-  if (state.weightMode === 'manual' && manualWeight) {
-    manualWeightNote = `<span class="pdf-sub">Manuell: ${manualWeight} kg</span>`;
-  }
-
+  const rPatho = document.getElementById('r-patho').textContent.trim();
+  const rPathoSub = document.getElementById('r-patho-sub').textContent.trim();
+  const rTdee = document.getElementById('r-tdee').textContent.trim();
+  const rTdeeSub = document.getElementById('r-tdee-sub').textContent.trim();
+  const rProtein = document.getElementById('r-protein').textContent.trim();
+  const rProteinSub = document.getElementById('r-protein-sub').textContent.trim();
+  const rFluid = document.getElementById('r-fluid').textContent.trim();
+  const rFluidSub = document.getElementById('r-fluid-sub').textContent.trim();
+  const rGu = document.getElementById('r-gu').textContent.trim();
+  const rGuSub = document.getElementById('r-gu-sub').textContent.trim();
+  const rBmi = document.getElementById('r-bmi').textContent.trim();
+  const weightInfoText = document.getElementById('weight-info').textContent.trim();
   const today = new Date().toLocaleDateString('de-CH');
-  const font = "'Century Gothic','Gill Sans','Trebuchet MS',Arial,sans-serif";
-  const S = (css) => css; // helper for readability
 
-  // Build sections as HTML strings with full inline styles
-  let sectionsHtml = '';
+  // ---- Header ----
+  setFill(green);
+  doc.rect(0, 0, W, 18, 'F');
+  setColor([255,255,255]);
+  doc.setFontSize(14); doc.setFont('helvetica', 'bold');
+  doc.text('Energiebedarfsrechner', ML, 10);
+  doc.setFontSize(8); doc.setFont('helvetica', 'normal');
+  doc.text('Klinische Ernaehrungsberechnung', ML, 15);
+  doc.setFontSize(8);
+  doc.text('Erstellt: ' + today, W - MR, 10, { align: 'right' });
+  y = 25;
 
-  // Patient section
+  // ---- Patientendaten ----
   if (name || firstname || dob) {
-    let rows = '';
-    if (name || firstname) rows += makePdfRow('Name', [firstname, name].filter(Boolean).join(' '));
-    if (dob) rows += makePdfRow('Geburtsdatum', dob);
-    sectionsHtml += `
-      <div style="margin-bottom:12px;">
-        <div style="font-size:8pt;font-weight:700;color:#A2B9AF;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;">Patientendaten</div>
-        <div style="display:flex;gap:24px;flex-wrap:wrap;">${rows}</div>
-      </div>
-      <div style="border-top:1px solid #e2ddd6;margin:10px 0;"></div>`;
+    sectionTitle('Patientendaten');
+    const patItems = [];
+    if (name || firstname) patItems.push({ label: 'Name', value: [firstname, name].filter(Boolean).join(' ') });
+    if (dob) patItems.push({ label: 'Geburtsdatum', value: dob });
+    if (patItems.length) fieldRow(patItems);
+    line();
   }
 
-  // Anthropometrie
-  let anthro = '';
-  if (weight) anthro += makePdfRow('Körpergewicht', weight + ' kg');
-  if (height) anthro += makePdfRow('Körpergrösse', height + ' cm');
-  if (age) anthro += makePdfRow('Alter', age + ' Jahre');
-  anthro += makePdfRow('Geschlecht', sexLabel);
-  sectionsHtml += `
-    <div style="margin-bottom:12px;">
-      <div style="font-size:8pt;font-weight:700;color:#A2B9AF;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;">Anthropometrie</div>
-      <div style="display:flex;gap:24px;flex-wrap:wrap;">${anthro}</div>
-    </div>
-    <div style="border-top:1px solid #e2ddd6;margin:10px 0;"></div>`;
+  // ---- Anthropometrie ----
+  sectionTitle('Anthropometrie');
+  const anthroItems = [];
+  if (weight) anthroItems.push({ label: 'Koerpergewicht', value: weight + ' kg' });
+  if (height) anthroItems.push({ label: 'Koerpergroesse', value: height + ' cm' });
+  if (age) anthroItems.push({ label: 'Alter', value: age + ' Jahre' });
+  anthroItems.push({ label: 'Geschlecht', value: sexLabel });
+  fieldRow(anthroItems);
+  line();
 
-  // Parameter
-  let params = '';
-  params += makePdfRow('Gewicht für Berechnung', weightModeLabel, manualWeight && state.weightMode==='manual' ? 'Manuell: '+manualWeight+' kg' : '');
-  params += makePdfRow('Grundumsatz-Methode', guLabel,
-    state.guMethod==='ij' ? `Modus: ${state.ijVentilated?'Beatmet':'Spontanatmend'}${state.ijObese?' · Adipositas':''}${state.ijTrauma?' · Trauma':''}${state.ijBurn?' · Verbrennung':''}` :
-    state.guMethod==='indirect' && document.getElementById('indirectKcal').value ? document.getElementById('indirectKcal').value+' kcal/Tag' : '');
-  params += makePdfRow('Aktivitätsfaktor', activityLabel);
-  params += makePdfRow('Stressfaktor', stressLabel);
-  params += makePdfRow('Pathophysiologie / Zielbedarf', pathLabel);
-  params += makePdfRow('Proteinbedarf', protLabel);
-  params += makePdfRow('Flüssigkeitsbedarf', fluidLabel);
-  sectionsHtml += `
-    <div style="margin-bottom:12px;">
-      <div style="font-size:8pt;font-weight:700;color:#A2B9AF;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;">Berechnungsparameter</div>
-      <div style="display:flex;gap:24px;flex-wrap:wrap;">${params}</div>
-    </div>`;
+  // ---- Parameter ----
+  sectionTitle('Berechnungsparameter');
+  fieldRow([
+    { label: 'Gewicht fuer Berechnung', value: weightModeLabel, sub: manualWeight && state.weightMode==='manual' ? 'Manuell: '+manualWeight+' kg' : '' },
+    { label: 'Grundumsatz-Methode', value: guLabel, sub: guSub }
+  ]);
+  fieldRow([
+    { label: 'Aktivitaetsfaktor', value: activityLabel },
+    { label: 'Stressfaktor', value: stressLabel }
+  ]);
+  fieldRow([
+    { label: 'Pathophysiologie / Zielbedarf', value: pathLabel },
+    { label: 'Proteinbedarf', value: protLabel },
+    { label: 'Fluessigkeitsbedarf', value: fluidLabel }
+  ]);
 
-  // Results
+  // ---- Ergebnisse ----
   if (hasResults) {
-    sectionsHtml += `<div style="border-top:1px solid #e2ddd6;margin:10px 0;"></div>
-    <div style="margin-bottom:8px;">
-      <div style="font-size:8pt;font-weight:700;color:#A2B9AF;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;">Ergebnisse</div>
-      <div style="font-size:9pt;color:#5a7a6a;background:#f0ede8;border-radius:6px;padding:6px 10px;margin-bottom:8px;">${weightInfo}</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-        ${makePdfResultBox('🏥 Bedarf inkl. Krankheitsfaktoren', rPatho, rPathoSub, true)}
-        ${makePdfResultBox('⚡ Energiebedarf ohne Krankheitsfaktoren', rTdee, rTdeeSub, false)}
-        ${makePdfResultBox('🥩 Protein', rProtein, rProteinSub, false)}
-        ${makePdfResultBox('💧 Flüssigkeit', rFluid, rFluidSub, false)}
-        ${makePdfResultBox('🔥 Grundumsatz', rGu, rGuSub, false)}
-        ${makePdfResultBox('📐 BMI', rBmi, '', false)}
-      </div>
-    </div>`;
+    line();
+    sectionTitle('Ergebnisse');
+    // Weight info bar
+    setFill([240, 237, 232]);
+    doc.roundedRect(ML, y, TW, 7, 1, 1, 'F');
+    setColor(midGreen);
+    doc.setFontSize(7.5); doc.setFont('helvetica', 'normal');
+    doc.text(weightInfoText, ML + 3, y + 4.5);
+    y += 10;
+
+    // 2x3 result boxes
+    const bw = (TW - 4) / 2;
+    const bh = 22;
+    const gap = 4;
+    const boxes = [
+      { label: 'Bedarf inkl. Krankheitsfaktoren', value: rPatho, sub: rPathoSub, hl: true },
+      { label: 'Energiebedarf ohne Krankheitsfaktoren', value: rTdee, sub: rTdeeSub, hl: false },
+      { label: 'Protein', value: rProtein, sub: rProteinSub, hl: false },
+      { label: 'Fluessigkeit', value: rFluid, sub: rFluidSub, hl: false },
+      { label: 'Grundumsatz', value: rGu, sub: rGuSub, hl: false },
+      { label: 'BMI', value: rBmi, sub: '', hl: false },
+    ];
+    for (let i = 0; i < boxes.length; i += 2) {
+      const b = boxes[i], b2 = boxes[i+1];
+      resultBox(0, ML, y, bw, bh, b.label, b.value, b.sub, b.hl);
+      if (b2) resultBox(0, ML + bw + gap, y, bw, bh, b2.label, b2.value, b2.sub, b2.hl);
+      y += bh + 3;
+    }
   }
 
-  // Assemble full page div
-  const pageDiv = document.createElement('div');
-  pageDiv.style.cssText = `font-family:${font};background:white;width:750px;padding:28px 32px 20px;box-sizing:border-box;color:#2c3e35;font-size:11pt;`;
-  pageDiv.innerHTML = `
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:12px;border-bottom:2px solid #A2B9AF;">
-      <div>
-        <div style="font-size:17pt;color:#1a3a2a;font-weight:700;letter-spacing:0.01em;">Energiebedarfsrechner</div>
-        <div style="font-size:9pt;color:#6b8a82;margin-top:2px;">Klinische Ernährungsberechnung</div>
-      </div>
-      <div style="font-size:9pt;color:#6b8a82;">Erstellt: ${today}</div>
-    </div>
-    ${sectionsHtml}
-    <div style="margin-top:14px;padding-top:10px;border-top:1px solid #e2ddd6;font-size:8pt;color:#aaa;text-align:center;">
-      Energiebedarfsrechner · Klinische Ernährung · Alle Angaben ohne Gewähr – immer klinisches Urteil anwenden.
-    </div>`;
+  // ---- Footer ----
+  y += 4;
+  setDraw([220,220,214]); doc.setLineWidth(0.3);
+  doc.line(ML, y, W - MR, y); y += 4;
+  setColor(lightGray);
+  doc.setFontSize(6.5); doc.setFont('helvetica', 'normal');
+  doc.text('Energiebedarfsrechner · Klinische Ernaehrung · Alle Angaben ohne Gewaehr – immer klinisches Urteil anwenden.', W/2, y, { align: 'center' });
 
-  pageDiv.style.position = 'absolute';
-  pageDiv.style.left = '-9999px';
-  pageDiv.style.top = '0';
-  document.body.appendChild(pageDiv);
-
-  const opt = {
-    margin: [8, 8, 8, 8],
-    filename: 'energiebedarfsrechner.pdf',
-    image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff', logging: false },
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-  };
-
-  html2pdf().set(opt).from(pageDiv).save().then(() => {
-    document.body.removeChild(pageDiv);
-  });
+  doc.save('energiebedarfsrechner.pdf');
 }
+
 </script>
 </body>
 </html>
