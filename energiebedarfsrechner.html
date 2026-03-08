@@ -93,7 +93,7 @@
         </div>
         <div class="field">
           <label>Geburtsdatum</label>
-          <input type="date" id="pat-dob" />
+          <input type="date" id="pat-dob" oninput="onDobChange()" />
         </div>
       </div>
       <div class="grid-3" style="margin-bottom:1rem">
@@ -529,6 +529,27 @@ function setWeightMode(val, el) {
   document.querySelectorAll('[name="weightMode"]').forEach(r => r.closest('.radio-btn').classList.remove('active'));
   el.classList.add('active');
   document.getElementById('manual-weight-field').classList.toggle('hidden', val !== 'manual');
+  calculate();
+}
+
+function onDobChange() {
+  const dob = document.getElementById('pat-dob').value;
+  const ageInput = document.getElementById('age');
+  if (dob) {
+    const today = new Date();
+    const birth = new Date(dob);
+    let age = today.getFullYear() - birth.getFullYear();
+    const m = today.getMonth() - birth.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+    ageInput.value = age;
+    ageInput.readOnly = true;
+    ageInput.style.background = '#f0ede8';
+    ageInput.style.color = '#9ab0aa';
+  } else {
+    ageInput.readOnly = false;
+    ageInput.style.background = '';
+    ageInput.style.color = '';
+  }
   calculate();
 }
 
