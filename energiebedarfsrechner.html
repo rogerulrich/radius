@@ -285,7 +285,7 @@
             <option value="8">Chronische Nierenerkrankung (Dialyse) — 30–35 kcal/kg/Tag</option>
             <option value="9">Herzinsuffizienz — 22–25 kcal/kg/Tag</option>
             <option value="10">Lebererkrankung / Zirrhose — 30–40 kcal/kg/Tag</option>
-            <option value="11">Dekubitus — 30–35 kcal/kg/Tag</option>
+            <option value="11">Wunden / Dekubitus — 30–35 kcal/kg/Tag</option>
             <option value="12">Atemwegserkrankung — 30–35 kcal/kg/Tag</option>
           </optgroup>
           <optgroup label="── Individuell ──">
@@ -312,13 +312,13 @@
           <option value="2">Akut krank / postoperativ — 1.2–1.5 g/kg</option>
           <option value="3">Kritisch krank (weniger schwer) — 1.2–1.5 g/kg</option>
           <option value="4">Kritisch krank (schwer katabol / Sepsis) — 1.5–2.0 g/kg</option>
-          <option value="5">Verbrennung / Polytrauma — 1.5–2.0 g/kg</option>
-          <option value="6">Zirrhose / Leberinsuffizienz (IBW) — 1.2–1.5 g/kg</option>
-          <option value="7">Niereninsuffizienz (GFR &lt;30, nicht dialysepflichtig) — 0.6–0.8 g/kg</option>
-          <option value="8">Hämodialyse / Peritonealdialyse — 1.2–1.4 g/kg</option>
-          <option value="9">Sport / Training — 1.2–2.0 g/kg</option>
-          <option value="10">Schwangerschaft / Stillzeit — 1.2–1.5 g/kg</option>
-          <option value="11">Wunden / Dekubitus — 1.25–1.5 g/kg</option>
+          <option value="5">Wunden / Dekubitus — 1.25–1.5 g/kg</option>
+          <option value="6">Verbrennung / Polytrauma — 1.5–2.0 g/kg</option>
+          <option value="7">Zirrhose / Leberinsuffizienz (IBW) — 1.2–1.5 g/kg</option>
+          <option value="8">Niereninsuffizienz (GFR &lt;30, nicht dialysepflichtig) — 0.6–0.8 g/kg</option>
+          <option value="9">Hämodialyse / Peritonealdialyse — 1.2–1.4 g/kg</option>
+          <option value="10">Sport / Training — 1.2–2.0 g/kg</option>
+          <option value="11">Schwangerschaft / Stillzeit — 1.2–1.5 g/kg</option>
         </select>
       </div>
     </div>
@@ -455,7 +455,7 @@ const PATHOPHYSIO = [
   { label: "Chronische Nierenerkrankung (Dialyse)", range: [30, 35], ref: "[ESPEN]", group: "Patho" },
   { label: "Herzinsuffizienz", range: [22, 25], ref: "[ESPEN]", group: "Patho" },
   { label: "Lebererkrankung", range: [30, 40], ref: "[ESPEN-L]", group: "Patho" },
-  { label: "Dekubitus", range: [30, 35], ref: "[ESPEN]", group: "Patho" },
+  { label: "Wunden / Dekubitus", range: [30, 35], ref: "[ESPEN]", group: "Patho" },
   { label: "Atemwegserkrankung", range: [30, 35], ref: "[ESPEN]", group: "Patho" },
   { label: "Individuelle Angabe", range: [0, 0], note: "custom", ref: "—", group: "Custom" },
 ];
@@ -466,13 +466,13 @@ const PROTEIN_RANGES = [
   { min: 1.2, max: 1.5, ref: "[P1,P3]" },
   { min: 1.2, max: 1.5, ref: "[P3,P4]" },
   { min: 1.5, max: 2.0, ref: "[P3,P4]" },
+  { min: 1.25, max: 1.5, ref: "[W1,W2,W4,W5]" },
   { min: 1.5, max: 2.0, ref: "[P1,P3]" },
   { min: 1.2, max: 1.5, ref: "[P5]" },
   { min: 0.6, max: 0.8, ref: "[P1,P3]" },
   { min: 1.2, max: 1.4, ref: "[P3]" },
   { min: 1.2, max: 2.0, ref: "[P6]" },
   { min: 1.2, max: 1.5, ref: "[P6,P7]" },
-  { min: 1.25, max: 1.5, ref: "[W1,W2,W4,W5]" },
 ];
 
 const REFS = {
