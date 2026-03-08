@@ -918,6 +918,9 @@ function generatePDF() {
   const rGu = document.getElementById('r-gu').textContent.trim();
   const rGuSub = document.getElementById('r-gu-sub').textContent.trim();
   const rBmi = document.getElementById('r-bmi').textContent.trim();
+  const bmiVal = document.getElementById('bmi-val').textContent.trim();
+  const ibwVal = document.getElementById('ibw-val').textContent.trim();
+  const abwVal = document.getElementById('abw-val').textContent.trim();
   const weightInfoText = document.getElementById('weight-info').textContent.trim();
   const today = new Date().toLocaleDateString('de-CH');
 
@@ -926,12 +929,28 @@ function generatePDF() {
   doc.rect(0, 0, W, 18, 'F');
   setColor([255,255,255]);
   doc.setFontSize(14); doc.setFont('helvetica', 'bold');
-  doc.text('Energiebedarfsrechner', ML, 10);
+  doc.text('Energiebedarfsrechner', ML, 9);
   doc.setFontSize(8); doc.setFont('helvetica', 'normal');
   doc.text('Klinische Ernaehrungsberechnung', ML, 15);
-  doc.setFontSize(8);
-  doc.text('Erstellt: ' + today, W - MR, 10, { align: 'right' });
-  y = 25;
+  // Logo oben rechts im Header
+  const logoEl = document.querySelector('.header-logo img');
+  if (logoEl && logoEl.naturalWidth > 0) {
+    const logoH = 14;
+    const logoW = logoH * (logoEl.naturalWidth / logoEl.naturalHeight);
+    try {
+      const c = document.createElement('canvas');
+      c.width = logoEl.naturalWidth; c.height = logoEl.naturalHeight;
+      c.getContext('2d').drawImage(logoEl, 0, 0);
+      doc.addImage(c.toDataURL('image/png'), 'PNG', W - MR - logoW, 2, logoW, logoH);
+    } catch(e) {
+      doc.addImage(logoEl, 'PNG', W - MR - logoW, 2, logoW, logoH);
+    }
+  }
+  // Datum unterhalb des Headers
+  setColor(midGreen);
+  doc.setFontSize(7.5); doc.setFont('helvetica', 'normal');
+  doc.text('Erstellt: ' + today, W - MR, 23, { align: 'right' });
+  y = 27;
 
   // ---- Patientendaten ----
   if (name || firstname || dob) {
@@ -951,6 +970,12 @@ function generatePDF() {
   if (age) anthroItems.push({ label: 'Alter', value: age + ' Jahre' });
   anthroItems.push({ label: 'Geschlecht', value: sexLabel });
   fieldRow(anthroItems);
+  if (bmiVal && bmiVal !== '\u2014') {
+    const bmiItems = [{ label: 'BMI', value: bmiVal + ' kg/m\xB2' }];
+    if (ibwVal && ibwVal !== '\u2014') bmiItems.push({ label: 'Idealgewicht (IBW)', value: ibwVal + ' kg' });
+    if (abwVal && abwVal !== '\u2014') bmiItems.push({ label: 'Adj. Gewicht (ABW)', value: abwVal + ' kg' });
+    fieldRow(bmiItems);
+  }
   line();
 
   // ---- Parameter ----
