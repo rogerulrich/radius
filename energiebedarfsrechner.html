@@ -272,7 +272,7 @@
         <label>Klinischer Zustand</label>
         <select id="pathophysio" onchange="state.pathophysioManuallySet=true; document.getElementById('custom-kcal-field').style.display=(this.value==='13'?'block':'none'); calculate()">
           <optgroup label="── Altersgruppen ──">
-            <option value="0">Gesunde Erwachsene (18–65 J.) — 30 kcal/kg/Tag</option>
+            <option value="0">Gesunde Erwachsene (18–65 J.) — Grundumsatz</option>
             <option value="1">Ältere Erwachsene (&gt;65 J.) — 25–30 kcal/kg/Tag</option>
             <option value="2">Schwangere (2. Trimester) — 30 kcal/kg + 250 kcal</option>
             <option value="3">Schwangere (3. Trimester) — 30 kcal/kg + 500 kcal</option>
@@ -435,7 +435,7 @@
 <script>
 const PATHOPHYSIO = [
   // Altersgruppen
-  { label: "Gesunde Erwachsene (18–65 Jahre)", range: [30, 30], ref: "[1–3]", group: "Alter" },
+  { label: "Gesunde Erwachsene (18–65 Jahre)", range: [30, 30], useGU: true, ref: "[1–3]", group: "Alter" },
   { label: "Ältere Erwachsene (>65 Jahre)", range: [25, 30], ref: "[4–5]", group: "Alter" },
   { label: "Schwangere (+2. Trimester)", range: [30, 30], add: 250, ref: "[1–2, 6–7]", group: "Alter" },
   { label: "Schwangere (+3. Trimester)", range: [30, 30], add: 500, ref: "[1–2, 6–7]", group: "Alter" },
@@ -767,12 +767,13 @@ function calculate() {
   const pp = PATHOPHYSIO[pathophysioIdx];
   const isCustom = pp.note === 'custom';
   const isAdditive = pp.add !== undefined;
+  const isUseGU = pp.useGU === true;
   const tdeeBase = gu ? gu * activityFactor * stressFactor : null;
   const tdee = tdeeBase !== null ? tdeeBase + (isAdditive ? pp.add : 0) : null;
   const customVal = isCustom ? parseFloat(document.getElementById('custom-kcal-per-kg').value) : null;
   const isFixedKcal = pp.note !== undefined && !isCustom && !isAdditive;
-  const kcalMin = isFixedKcal ? null : isCustom ? (customVal && calcWeight ? calcWeight * customVal : null) : isAdditive ? calcWeight * pp.range[0] + pp.add : calcWeight * pp.range[0];
-  const kcalMax = isFixedKcal ? null : isCustom ? (customVal && calcWeight ? calcWeight * customVal : null) : isAdditive ? calcWeight * pp.range[1] + pp.add : calcWeight * pp.range[1];
+  const kcalMin = isUseGU ? (tdeeBase || null) : isFixedKcal ? null : isCustom ? (customVal && calcWeight ? calcWeight * customVal : null) : isAdditive ? calcWeight * pp.range[0] + pp.add : calcWeight * pp.range[0];
+  const kcalMax = isUseGU ? (tdeeBase || null) : isFixedKcal ? null : isCustom ? (customVal && calcWeight ? calcWeight * customVal : null) : isAdditive ? calcWeight * pp.range[1] + pp.add : calcWeight * pp.range[1];
   const pr = PROTEIN_RANGES[proteinIdx];
   const proteinMin = calcWeight * pr.min;
   const proteinMax = calcWeight * pr.max;
@@ -794,7 +795,10 @@ function calculate() {
     : 'Grundumsatz fehlt';
 
   // Patho
-  if (isFixedKcal) {
+  if (isUseGU) {
+    document.getElementById('r-patho').innerHTML = `${tdeeBase ? fmt(tdeeBase) : '—'} <span>kcal</span>`;
+    document.getElementById('r-patho-sub').textContent = tdeeBase ? `GU ${Math.round(gu)} × PAL ${activityFactor} × KF ${stressFactor} · ${pp.ref}` : 'Grundumsatz fehlt';
+  } else if (isFixedKcal) {
     document.getElementById('r-patho').innerHTML = `${pp.note} <span></span>`;
     document.getElementById('r-patho-sub').textContent = `${pp.label} · ${pp.ref}`;
   } else if (isCustom) {
