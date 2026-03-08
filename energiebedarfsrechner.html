@@ -274,9 +274,9 @@
           <optgroup label="── Altersgruppen ──">
             <option value="0">Gesunde Erwachsene (18–65 J.) — 30 kcal/kg/Tag</option>
             <option value="1">Ältere Erwachsene (&gt;65 J.) — 25–30 kcal/kg/Tag</option>
-            <option value="2">Schwangere (2. Trimester) — +250 kcal/Tag</option>
-            <option value="3">Schwangere (3. Trimester) — +500 kcal/Tag</option>
-            <option value="4">Stillende (erste 4–6 Monate) — +500 kcal/Tag</option>
+            <option value="2">Schwangere (2. Trimester) — 30 kcal/kg + 250 kcal</option>
+            <option value="3">Schwangere (3. Trimester) — 30 kcal/kg + 500 kcal</option>
+            <option value="4">Stillende (erste 4–6 Monate) — 30 kcal/kg + 500 kcal</option>
             <option value="5">Post-bariatrische OP (Langzeit) — 1200–1500 kcal/Tag</option>
           </optgroup>
           <optgroup label="── Pathophysiologie ──">
@@ -307,7 +307,7 @@
       <div class="field">
         <label>Proteinempfehlung</label>
         <select id="proteinRange" onchange="calculate()">
-          <option value="0">Gesunde Erwachsene — 0.8 g/kg (RDA)</option>
+          <option value="0">Gesunde Erwachsene — 0.8–2.0 g/kg</option>
           <option value="1">Ältere Erwachsene (≥65 J.) / Sarkopenie — 1.0–1.2 g/kg</option>
           <option value="2">Akut krank / postoperativ — 1.2–1.5 g/kg</option>
           <option value="3">Kritisch krank (weniger schwer) — 1.2–1.5 g/kg</option>
@@ -437,9 +437,9 @@ const PATHOPHYSIO = [
   // Altersgruppen
   { label: "Gesunde Erwachsene (18–65 Jahre)", range: [30, 30], ref: "[1–3]", group: "Alter" },
   { label: "Ältere Erwachsene (>65 Jahre)", range: [25, 30], ref: "[4–5]", group: "Alter" },
-  { label: "Schwangere (+2. Trimester)", range: [0, 0], note: "+250 kcal/Tag", ref: "[1–2, 6–7]", group: "Alter" },
-  { label: "Schwangere (+3. Trimester)", range: [0, 0], note: "+500 kcal/Tag", ref: "[1–2, 6–7]", group: "Alter" },
-  { label: "Stillende (erste 4–6 Monate)", range: [0, 0], note: "+500 kcal/Tag", ref: "[1–2, 7–8]", group: "Alter" },
+  { label: "Schwangere (+2. Trimester)", range: [30, 30], add: 250, ref: "[1–2, 6–7]", group: "Alter" },
+  { label: "Schwangere (+3. Trimester)", range: [30, 30], add: 500, ref: "[1–2, 6–7]", group: "Alter" },
+  { label: "Stillende (erste 4–6 Monate)", range: [30, 30], add: 500, ref: "[1–2, 7–8]", group: "Alter" },
   { label: "Post-bariatrische Operation (Langzeit)", range: [0, 0], note: "1200–1500 kcal/Tag fix", ref: "[9–10]", group: "Alter" },
   // Pathophysiologie
   { label: "Kritische Erkrankung (ICU)", range: [20, 25], ref: "[ESPEN]", group: "Patho" },
@@ -453,7 +453,7 @@ const PATHOPHYSIO = [
 ];
 
 const PROTEIN_RANGES = [
-  { min: 0.8, max: 0.8, ref: "[P1]" },
+  { min: 0.8, max: 2.0, ref: "[P1]" },
   { min: 1.0, max: 1.2, ref: "[P1,P2]" },
   { min: 1.2, max: 1.5, ref: "[P1,P3]" },
   { min: 1.2, max: 1.5, ref: "[P3,P4]" },
@@ -465,6 +465,42 @@ const PROTEIN_RANGES = [
   { min: 1.2, max: 2.0, ref: "[P6]" },
   { min: 1.2, max: 1.5, ref: "[P6,P7]" },
 ];
+
+const REFS = {
+  '1':  '[1] Bendavid I et al. The Centenary of the Harris-Benedict Equations. Clin Nutr 2021.',
+  '2':  '[2] Lesser JG & Lesser GR. Nutrition Support Therapy. Am Fam Physician 2021.',
+  '3':  '[3] Ocke MC et al. Energy Intake in European Prospective Investigation (EPIC). Eur J Clin Nutr 2009.',
+  '4':  '[4] New Reference Values for Energy Intake. Ann Nutr Metab 2015.',
+  '5':  '[5] Moreiras O et al. Intake of Energy and Nutrients, Euronut SENECA. Eur J Clin Nutr 1991.',
+  '6':  '[6] Montani JP, Schutz Y, Dulloo AG. Swiss Scientists and Energy Metabolism. Eur J Clin Nutr 2018.',
+  '7':  '[7] Mertens E et al. Geographic Diversity of Food Intakes in Europe. Eur J Nutr 2019.',
+  '8':  '[8] Lovelady CA. Balancing exercise and food intake with lactation. Proc Nutr Soc 2011.',
+  '9':  '[9] Mechanick JI et al. Clinical practice guidelines for bariatric surgery. Endocr Pract 2013.',
+  '10': '[10] Mechanick JI et al. Post-bariatric surgery nutritional management. Obesity 2020.',
+  'ESPEN':   '[ESPEN] ESPEN practical guidelines on clinical nutrition in ICU and critical illness. Clin Nutr (various).',
+  'ESPEN-L': '[ESPEN-L] Bischoff SC et al. ESPEN practical guideline: Clinical nutrition in liver disease. Clin Nutr 2020 / Plauth M et al. EASL Clinical Practice Guidelines on nutrition in chronic liver disease. J Hepatol 2019.',
+  'P1': '[P1] Heymsfield SB, Shapses SA. Body Weight: Health and Disease. N Engl J Med 2024.',
+  'P2': '[P2] Traylor DA, Gorissen SHM, Phillips SM. Protein Requirements and Optimal Intakes in Aging. Adv Nutr 2018.',
+  'P3': '[P3] Cederholm T, Bosaeus I. Protein Nutrition in Clinical Practice. N Engl J Med 2024.',
+  'P4': '[P4] Singer P et al. ESPEN guideline on clinical nutrition in the ICU. Clin Nutr 2019.',
+  'P5': '[P5] Charlton M et al. AASLD Practice Guidance: Protein Intake in Cirrhosis. Hepatology 2022.',
+  'P6': '[P6] Phillips SM, Van Loon LJC. Dietary protein for athletes. J Sports Sci 2011.',
+  'P7': '[P7] Stephens TV et al. Protein requirements during pregnancy. Nutrition 2015.',
+};
+
+function parseRefKeys(refStr) {
+  const keys = [];
+  const inner = refStr.replace(/^\[/, '').replace(/\]$/, '');
+  inner.split(',').map(s => s.trim()).forEach(part => {
+    const m = part.match(/^(\d+)[–\-](\d+)$/);
+    if (m) {
+      for (let i = parseInt(m[1]); i <= parseInt(m[2]); i++) keys.push(String(i));
+    } else if (part && part !== '\u2014') {
+      keys.push(part);
+    }
+  });
+  return keys;
+}
 
 // State
 let state = {
@@ -710,10 +746,11 @@ function calculate() {
   const tdee = gu ? gu * activityFactor * stressFactor : null;
   const pp = PATHOPHYSIO[pathophysioIdx];
   const isCustom = pp.note === 'custom';
+  const isAdditive = pp.add !== undefined;
   const customVal = isCustom ? parseFloat(document.getElementById('custom-kcal-per-kg').value) : null;
-  const isFixedKcal = pp.note !== undefined && !isCustom;
-  const kcalMin = isFixedKcal ? null : isCustom ? (customVal && calcWeight ? calcWeight * customVal : null) : calcWeight * pp.range[0];
-  const kcalMax = isFixedKcal ? null : isCustom ? (customVal && calcWeight ? calcWeight * customVal : null) : calcWeight * pp.range[1];
+  const isFixedKcal = pp.note !== undefined && !isCustom && !isAdditive;
+  const kcalMin = isFixedKcal ? null : isCustom ? (customVal && calcWeight ? calcWeight * customVal : null) : isAdditive ? calcWeight * pp.range[0] + pp.add : calcWeight * pp.range[0];
+  const kcalMax = isFixedKcal ? null : isCustom ? (customVal && calcWeight ? calcWeight * customVal : null) : isAdditive ? calcWeight * pp.range[1] + pp.add : calcWeight * pp.range[1];
   const pr = PROTEIN_RANGES[proteinIdx];
   const proteinMin = calcWeight * pr.min;
   const proteinMax = calcWeight * pr.max;
@@ -741,6 +778,9 @@ function calculate() {
   } else if (isCustom) {
     document.getElementById('r-patho').innerHTML = `${kcalMin ? fmt(kcalMin) : '—'} <span>kcal</span>`;
     document.getElementById('r-patho-sub').textContent = customVal ? `${customVal} kcal/kg/Tag · ${calcWeight.toFixed(1)} kg` : 'Bitte Wert eingeben';
+  } else if (isAdditive) {
+    document.getElementById('r-patho').innerHTML = `${calcWeight > 0 ? fmt(kcalMin) : '—'} <span>kcal</span>`;
+    document.getElementById('r-patho-sub').textContent = `30 kcal/kg × ${calcWeight.toFixed(1)} kg + ${pp.add} kcal · ${pp.ref}`;
   } else {
     document.getElementById('r-patho').innerHTML = `${calcWeight > 0 ? fmt(kcalMin) : '—'}${kcalMax !== kcalMin && calcWeight > 0 ? '–' + fmt(kcalMax) : ''} <span>kcal</span>`;
     document.getElementById('r-patho-sub').textContent = `${pp.label}: ${pp.range[0]}${pp.range[1] !== pp.range[0] ? '–' + pp.range[1] : ''} kcal/kg · ${pp.ref}`;
@@ -926,31 +966,31 @@ function generatePDF() {
 
   // ---- Header ----
   setFill(green);
-  doc.rect(0, 0, W, 18, 'F');
+  doc.rect(0, 0, W, 26, 'F');
   setColor([255,255,255]);
   doc.setFontSize(14); doc.setFont('helvetica', 'bold');
-  doc.text('Energiebedarfsrechner', ML, 9);
+  doc.text('Energiebedarfsrechner', ML, 12);
   doc.setFontSize(8); doc.setFont('helvetica', 'normal');
-  doc.text('Klinische Ernaehrungsberechnung', ML, 15);
+  doc.text('Klinische Ernaehrungsberechnung', ML, 20);
   // Logo oben rechts im Header
   const logoEl = document.querySelector('.header-logo img');
   if (logoEl && logoEl.naturalWidth > 0) {
-    const logoH = 14;
+    const logoH = 20;
     const logoW = logoH * (logoEl.naturalWidth / logoEl.naturalHeight);
     try {
       const c = document.createElement('canvas');
       c.width = logoEl.naturalWidth; c.height = logoEl.naturalHeight;
       c.getContext('2d').drawImage(logoEl, 0, 0);
-      doc.addImage(c.toDataURL('image/png'), 'PNG', W - MR - logoW, 2, logoW, logoH);
+      doc.addImage(c.toDataURL('image/png'), 'PNG', W - MR - logoW, 3, logoW, logoH);
     } catch(e) {
-      doc.addImage(logoEl, 'PNG', W - MR - logoW, 2, logoW, logoH);
+      doc.addImage(logoEl, 'PNG', W - MR - logoW, 3, logoW, logoH);
     }
   }
   // Datum unterhalb des Headers
   setColor(midGreen);
   doc.setFontSize(7.5); doc.setFont('helvetica', 'normal');
-  doc.text('Erstellt: ' + today, W - MR, 23, { align: 'right' });
-  y = 27;
+  doc.text('Erstellt: ' + today, W - MR, 31, { align: 'right' });
+  y = 35;
 
   // ---- Patientendaten ----
   if (name || firstname || dob) {
@@ -1024,6 +1064,31 @@ function generatePDF() {
       if (b2) resultBox(0, ML + bw + gap, y, bw, bh, b2.label, b2.value, b2.sub, b2.hl);
       y += bh + 3;
     }
+  }
+
+  // ---- Quellen ----
+  y += 6;
+  const usedKeys = [];
+  const seenKeys = new Set();
+  const addKeys = refStr => parseRefKeys(refStr).forEach(k => { if (!seenKeys.has(k)) { seenKeys.add(k); usedKeys.push(k); } });
+  addKeys(PATHOPHYSIO[parseInt(document.getElementById('pathophysio').value)].ref);
+  addKeys(PROTEIN_RANGES[parseInt(document.getElementById('proteinRange').value)].ref);
+  const refEntries = usedKeys.map(k => REFS[k]).filter(Boolean);
+  if (refEntries.length) {
+    setDraw([220,220,214]); doc.setLineWidth(0.3);
+    doc.line(ML, y, W - MR, y); y += 5;
+    setColor(midGreen);
+    doc.setFontSize(7.5); doc.setFont('helvetica', 'bold');
+    doc.text('VERWENDETE QUELLEN', ML, y); y += 4;
+    setColor(bodyColor);
+    doc.setFontSize(6.5); doc.setFont('helvetica', 'normal');
+    refEntries.forEach(entry => {
+      if (y > 268) { doc.addPage(); y = 20; }
+      const lines = doc.splitTextToSize(entry, TW);
+      doc.text(lines, ML, y);
+      y += lines.length * 3.5 + 1.5;
+    });
+    y += 2;
   }
 
   // ---- Footer ----
