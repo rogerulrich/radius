@@ -342,12 +342,12 @@
       <div class="weight-info" id="weight-info"></div>
       <div class="result-grid">
         <div class="result-box">
-          <div class="r-label">🏥 Aktueller Bedarf inkl. Krankheitsfaktoren</div>
+          <div class="r-label">🏥 Aktueller Energiebedarf</div>
           <div class="r-value" id="r-patho">— <span>kcal</span></div>
           <div class="r-range" id="r-patho-sub"></div>
         </div>
         <div class="result-box">
-          <div class="r-label">⚡ Energiebedarf ohne Krankheitsfaktoren</div>
+          <div class="r-label">⚡ Energiebedarf mit Aktivitäts- &amp; Stressfaktor</div>
           <div class="r-value" id="r-tdee">— <span>kcal</span></div>
           <div class="r-sub" id="r-tdee-sub"></div>
         </div>
@@ -764,10 +764,11 @@ function calculate() {
   }
   document.getElementById('results').classList.remove('hidden');
 
-  const tdee = gu ? gu * activityFactor * stressFactor : null;
   const pp = PATHOPHYSIO[pathophysioIdx];
   const isCustom = pp.note === 'custom';
   const isAdditive = pp.add !== undefined;
+  const tdeeBase = gu ? gu * activityFactor * stressFactor : null;
+  const tdee = tdeeBase !== null ? tdeeBase + (isAdditive ? pp.add : 0) : null;
   const customVal = isCustom ? parseFloat(document.getElementById('custom-kcal-per-kg').value) : null;
   const isFixedKcal = pp.note !== undefined && !isCustom && !isAdditive;
   const kcalMin = isFixedKcal ? null : isCustom ? (customVal && calcWeight ? calcWeight * customVal : null) : isAdditive ? calcWeight * pp.range[0] + pp.add : calcWeight * pp.range[0];
@@ -789,7 +790,7 @@ function calculate() {
   // TDEE
   document.getElementById('r-tdee').innerHTML = `${tdee ? fmt(tdee) : '—'} <span>kcal</span>`;
   document.getElementById('r-tdee-sub').textContent = gu
-    ? `GU ${Math.round(gu)} × PAL ${activityFactor} × KF ${stressFactor}`
+    ? `GU ${Math.round(gu)} × PAL ${activityFactor} × KF ${stressFactor}${isAdditive ? ' + ' + pp.add + ' kcal' : ''}`
     : 'Grundumsatz fehlt';
 
   // Patho
@@ -1072,8 +1073,8 @@ function generatePDF() {
     const bh = 22;
     const gap = 4;
     const boxes = [
-      { label: 'Bedarf inkl. Krankheitsfaktoren', value: rPatho, sub: rPathoSub, hl: true },
-      { label: 'Energiebedarf ohne Krankheitsfaktoren', value: rTdee, sub: rTdeeSub, hl: false },
+      { label: 'Aktueller Energiebedarf', value: rPatho, sub: rPathoSub, hl: true },
+      { label: 'Energiebedarf mit Aktivitaets- & Stressfaktor', value: rTdee, sub: rTdeeSub, hl: false },
       { label: 'Protein', value: rProtein, sub: rProteinSub, hl: false },
       { label: 'Fluessigkeit', value: rFluid, sub: rFluidSub, hl: false },
       { label: 'Grundumsatz', value: rGu, sub: rGuSub, hl: false },
