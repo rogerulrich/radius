@@ -306,7 +306,7 @@
       <div class="card-title"><span>🥩</span> Proteinbedarf</div>
       <div class="field">
         <label>Proteinempfehlung</label>
-        <select id="proteinRange" onchange="calculate()">
+        <select id="proteinRange" onchange="state.proteinManuallySet=true; calculate()">
           <option value="0">Gesunde Erwachsene — 0.8–2.0 g/kg</option>
           <option value="1">Ältere Erwachsene (≥65 J.) / Sarkopenie — 1.0–1.2 g/kg</option>
           <option value="2">Akut krank / postoperativ — 1.2–1.5 g/kg</option>
@@ -318,6 +318,7 @@
           <option value="8">Hämodialyse / Peritonealdialyse — 1.2–1.4 g/kg</option>
           <option value="9">Sport / Training — 1.2–2.0 g/kg</option>
           <option value="10">Schwangerschaft / Stillzeit — 1.2–1.5 g/kg</option>
+          <option value="11">Wunden / Dekubitus — 1.25–1.5 g/kg</option>
         </select>
       </div>
     </div>
@@ -421,7 +422,14 @@
         <br>
         <strong style="font-size:0.8rem;color:#6b8a82;letter-spacing:0.04em">LEBERERKRANKUNG</strong><br>
         <span class="tag">[ESPEN-L1]</span> ESPEN practical guideline: Clinical nutrition in liver disease. <em>Clin Nutr</em> 2019 · 35–40 kcal/kg/Tag; bei Adipositas BMI 30–40: 25–35 kcal/kg/Tag, BMI ≥40: 20–25 kcal/kg/Tag.<br>
-        <span class="tag">[ESPEN-L2]</span> Plauth M et al. EASL Clinical Practice Guidelines on nutrition in chronic liver disease. <em>J Hepatol</em> 2019 · Indirekte Kalorimetrie bevorzugt; Proteinzufuhr 1.2–1.5 g/kg/Tag, nicht restriktiv.
+        <span class="tag">[ESPEN-L2]</span> Plauth M et al. EASL Clinical Practice Guidelines on nutrition in chronic liver disease. <em>J Hepatol</em> 2019 · Indirekte Kalorimetrie bevorzugt; Proteinzufuhr 1.2–1.5 g/kg/Tag, nicht restriktiv.<br>
+        <br>
+        <strong style="font-size:0.8rem;color:#6b8a82;letter-spacing:0.04em">WUNDEN / DEKUBITUS</strong><br>
+        <span class="tag">[W1]</span> Visconti AJ, Sola OI, Raghavan PV. Pressure Injuries: Prevention, Evaluation, and Management. <em>Am Fam Physician</em> 2023 · Proteinbedarf 1.25–1.5 g/kg/Tag bei Druckgeschwüren oder Malnutritionsrisiko (EPUAP/NPIAP/PPPIA-Leitlinien).<br>
+        <span class="tag">[W2]</span> Iizaka S et al. Estimation of Protein Requirements According to Nitrogen Balance for Older Hospitalized Adults With Pressure Ulcers According to Wound Severity. <em>J Am Geriatr Soc</em> 2012 · Stickstoffbilanzstudien: 0.95 g/kg/Tag Erhalt, bei schweren Wunden mit starker Exsudation bis 1.3 g/kg/Tag und höher.<br>
+        <span class="tag">[W3]</span> Porter C et al. The Metabolic Stress Response to Burn Trauma: Current Understanding and Therapies. <em>Lancet</em> 2016 · Bei Verbrennungen (ESPEN): 1.5–2.0 g/kg/Tag aufgrund von Hyperkatabolismus und erhöhtem Proteinumsatz.<br>
+        <span class="tag">[W4]</span> Santo ACSDE et al. Impact of Oral Nutritional Supplement Composition on Healing of Different Chronic Wounds: A Systematic Review. <em>Nutrition</em> 2024 · Hochwertige Proteinzufuhr fördert Granulationsgewebebildung; Mikronährstoffsupplementierung bei Mangelernährten sinnvoll.<br>
+        <span class="tag">[W5]</span> Chu AS, Delmore B, Chiu ES. High-Quality Dietary Protein: The Key to Healthy Granulation Tissue. <em>Adv Skin Wound Care</em> 2024 · Qualität und Quantität der Proteinzufuhr entscheidend für optimale Wundheilung.
       </p>
       <p style="margin-top:0.7rem;font-size:0.76rem;color:#aabfba">
         ESPEN empfiehlt als Goldstandard die indirekte Kalorimetrie. Prädiktive Gleichungen (Harris-Benedict, Mifflin-St.Jeor) sind klinisch etablierte Alternativen mit bekannten Limitationen. Energiebedarf ist individuell und abhängig von Pathophysiologie, Ernährungsstatus und klinischem Kontext.
@@ -464,6 +472,7 @@ const PROTEIN_RANGES = [
   { min: 1.2, max: 1.4, ref: "[P3]" },
   { min: 1.2, max: 2.0, ref: "[P6]" },
   { min: 1.2, max: 1.5, ref: "[P6,P7]" },
+  { min: 1.25, max: 1.5, ref: "[W1,W2,W4,W5]" },
 ];
 
 const REFS = {
@@ -486,6 +495,11 @@ const REFS = {
   'P5': '[P5] Charlton M et al. AASLD Practice Guidance: Protein Intake in Cirrhosis. Hepatology 2022.',
   'P6': '[P6] Phillips SM, Van Loon LJC. Dietary protein for athletes. J Sports Sci 2011.',
   'P7': '[P7] Stephens TV et al. Protein requirements during pregnancy. Nutrition 2015.',
+  'W1': '[W1] Visconti AJ, Sola OI, Raghavan PV. Pressure Injuries: Prevention, Evaluation, and Management. Am Fam Physician 2023.',
+  'W2': '[W2] Iizaka S et al. Estimation of Protein Requirements According to Nitrogen Balance for Older Hospitalized Adults With Pressure Ulcers According to Wound Severity. J Am Geriatr Soc 2012.',
+  'W3': '[W3] Porter C et al. The Metabolic Stress Response to Burn Trauma: Current Understanding and Therapies. Lancet 2016.',
+  'W4': '[W4] Santo ACSDE et al. Impact of Oral Nutritional Supplement Composition on Healing of Different Chronic Wounds: A Systematic Review. Nutrition 2024.',
+  'W5': '[W5] Chu AS, Delmore B, Chiu ES. High-Quality Dietary Protein: The Key to Healthy Granulation Tissue. Adv Skin Wound Care 2024.',
 };
 
 function parseRefKeys(refStr) {
@@ -510,6 +524,7 @@ let state = {
   guMethod: 'hb',
   guMethodManuallySet: false,
   pathophysioManuallySet: false,
+  proteinManuallySet: false,
   ijVentilated: false,
   ijObese: false,
   ijTrauma: false,
@@ -667,6 +682,15 @@ function calculate() {
       const pathoSelect = document.getElementById('pathophysio');
       if (pathoSelect.value !== autoPatho) {
         pathoSelect.value = autoPatho;
+      }
+    }
+
+    // Auto-select protein range based on age
+    if (!state.proteinManuallySet && age > 0) {
+      const autoProtein = age > 65 ? '1' : '0'; // 1=Ältere Erwachsene ≥65J.
+      const proteinSelect = document.getElementById('proteinRange');
+      if (proteinSelect.value !== autoProtein) {
+        proteinSelect.value = autoProtein;
       }
     }
     if (!state.weightModeManuallySet) {
