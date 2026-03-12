@@ -238,16 +238,16 @@
           <label>Aktivitätsfaktor (PAL) — Schritte 0.1</label>
           <select id="activityFactor" onchange="calculate()">
             <option value="1.0">1.0 — immobil</option>
-            <option value="1.1">1.1 — immobil</option>
-            <option value="1.2">1.2 — immobil</option>
-            <option value="1.3">1.3 — immobil</option>
+            <option value="1.1">1.1</option>
+            <option value="1.2">1.2</option>
+            <option value="1.3">1.3</option>
             <option value="1.4" selected>1.4 — leicht aktiv</option>
-            <option value="1.5">1.5 — leicht aktiv</option>
+            <option value="1.5">1.5</option>
             <option value="1.6">1.6 — mäßig aktiv</option>
-            <option value="1.7">1.7 — mäßig aktiv</option>
+            <option value="1.7">1.7</option>
             <option value="1.8">1.8 — sehr aktiv</option>
-            <option value="1.9">1.9 — sehr aktiv</option>
-            <option value="2.0">2.0 — sehr aktiv</option>
+            <option value="1.9">1.9</option>
+            <option value="2.0">2.0</option>
           </select>
         </div>
         <div class="field">
@@ -306,7 +306,7 @@
       <div class="card-title"><span>🥩</span> Proteinbedarf</div>
       <div class="field">
         <label>Proteinempfehlung</label>
-        <select id="proteinRange" onchange="state.proteinManuallySet=true; calculate()">
+        <select id="proteinRange" onchange="state.proteinManuallySet=true; document.getElementById('custom-protein-field').style.display=(this.value==='12'?'block':'none'); calculate()">
           <option value="0">Gesunde Erwachsene — 0.8–2.0 g/kg</option>
           <option value="1">Ältere Erwachsene (≥65 J.) / Sarkopenie — 1.0–1.2 g/kg</option>
           <option value="2">Akut krank / postoperativ — 1.2–1.5 g/kg</option>
@@ -319,7 +319,20 @@
           <option value="9">Hämodialyse / Peritonealdialyse — 1.2–1.4 g/kg</option>
           <option value="10">Sport / Training — 1.2–2.0 g/kg</option>
           <option value="11">Schwangerschaft / Stillzeit — 1.2–1.5 g/kg</option>
+          <option value="12">Individuelle Angabe</option>
         </select>
+        <div id="custom-protein-field" style="display:none;margin-top:0.8rem">
+          <div style="display:flex;gap:0.75rem;align-items:flex-end">
+            <div class="field" style="flex:1">
+              <label>Von (g/kg/Tag)</label>
+              <input type="number" id="custom-protein-min" placeholder="z.B. 1.2" min="0.1" max="4" step="0.05" oninput="calculate()" />
+            </div>
+            <div class="field" style="flex:1">
+              <label>Bis (g/kg/Tag)</label>
+              <input type="number" id="custom-protein-max" placeholder="z.B. 1.5" min="0.1" max="4" step="0.05" oninput="calculate()" />
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -473,6 +486,7 @@ const PROTEIN_RANGES = [
   { min: 1.2, max: 1.4, ref: "[P3]" },
   { min: 1.2, max: 2.0, ref: "[P6]" },
   { min: 1.2, max: 1.5, ref: "[P6,P7]" },
+  { min: 0, max: 0, custom: true, ref: "—" },
 ];
 
 const REFS = {
@@ -799,8 +813,10 @@ function calculate() {
   const kcalMin = isUseGU ? (tdeeBase || null) : isFixedKcal ? null : isCustom ? (customVal && calcWeight ? calcWeight * customVal : null) : isAdditive ? calcWeight * pp.range[0] + pp.add : calcWeight * pp.range[0];
   const kcalMax = isUseGU ? (tdeeBase || null) : isFixedKcal ? null : isCustom ? (customVal && calcWeight ? calcWeight * customVal : null) : isAdditive ? calcWeight * pp.range[1] + pp.add : calcWeight * pp.range[1];
   const pr = PROTEIN_RANGES[proteinIdx];
-  const proteinMin = calcWeight * pr.min;
-  const proteinMax = calcWeight * pr.max;
+  const customProteinMin = pr.custom ? parseFloat(document.getElementById('custom-protein-min').value) : null;
+  const customProteinMax = pr.custom ? parseFloat(document.getElementById('custom-protein-max').value) : null;
+  const proteinMin = pr.custom ? (customProteinMin && calcWeight ? calcWeight * customProteinMin : 0) : calcWeight * pr.min;
+  const proteinMax = pr.custom ? (customProteinMax && calcWeight ? calcWeight * customProteinMax : proteinMin) : calcWeight * pr.max;
   const fluid = calcWeight * fluidFactor;
 
   // Weight info
@@ -837,8 +853,12 @@ function calculate() {
   }
 
   // Protein
-  document.getElementById('r-protein').innerHTML = `${fmt(proteinMin)}${proteinMax !== proteinMin ? '–' + fmt(proteinMax) : ''} <span>g</span>`;
-  document.getElementById('r-protein-sub').textContent = `${pr.min}${pr.max !== pr.min ? '–' + pr.max : ''} g/kg · ${calcWeight.toFixed(1)} kg · ${pr.ref}`;
+  document.getElementById('r-protein').innerHTML = pr.custom
+    ? `${customProteinMin && calcWeight ? fmt(proteinMin) + (customProteinMax && proteinMax !== proteinMin ? '–' + fmt(proteinMax) : '') : '—'} <span>g</span>`
+    : `${fmt(proteinMin)}${proteinMax !== proteinMin ? '–' + fmt(proteinMax) : ''} <span>g</span>`;
+  document.getElementById('r-protein-sub').textContent = pr.custom
+    ? (customProteinMin ? `${customProteinMin}${customProteinMax ? '–' + customProteinMax : ''} g/kg/Tag · ${calcWeight.toFixed(1)} kg` : 'Bitte Wert eingeben')
+    : `${pr.min}${pr.max !== pr.min ? '–' + pr.max : ''} g/kg · ${calcWeight.toFixed(1)} kg · ${pr.ref}`;
 
   // Fluid
   document.getElementById('r-fluid').innerHTML = `${fmt(fluid)} <span>ml</span>`;
@@ -940,8 +960,9 @@ function generatePDF() {
       setColor(bodyColor);
       doc.setFontSize(9.5);
       doc.setFont('helvetica', 'bold');
-      const lines = doc.splitTextToSize(item.value || '—', colW - 3);
-      doc.text(lines, x, ly); ly += lines.length * 4;
+      const lines = doc.splitTextToSize(item.value || (item.label ? '—' : ''), colW - 3);
+      if (lines.some(l => l)) { doc.text(lines, x, ly); }
+      ly += lines.length * 4;
       if (item.sub) {
         setColor([150, 170, 160]);
         doc.setFontSize(7);
@@ -949,13 +970,34 @@ function generatePDF() {
         const slines = doc.splitTextToSize(item.sub, colW - 3);
         doc.text(slines, x, ly); ly += slines.length * 3.2;
       }
+      if (item.extra) {
+        ly += 2;
+        setColor(lightGray);
+        doc.setFontSize(7);
+        doc.setFont('helvetica', 'normal');
+        doc.text(item.extra.label, x, ly); ly += 3.5;
+        setColor(bodyColor);
+        doc.setFontSize(9.5);
+        doc.setFont('helvetica', 'bold');
+        doc.text(item.extra.value || '—', x, ly); ly += 4;
+      }
       ly += 1;
       if (ly > maxY) maxY = ly;
     });
     y = maxY;
   }
 
-  function resultBox(x, bx, by, bw, bh, label, value, sub, highlight) {
+  function emojiToPng(emoji, sizePx) {
+    const c = document.createElement('canvas');
+    c.width = sizePx; c.height = sizePx;
+    const ctx = c.getContext('2d');
+    ctx.font = `${sizePx * 0.8}px serif`;
+    ctx.textBaseline = 'middle';
+    ctx.fillText(emoji, sizePx * 0.05, sizePx * 0.55);
+    return c.toDataURL('image/png');
+  }
+
+  function resultBox(x, bx, by, bw, bh, label, value, sub, highlight, emoji) {
     if (highlight) {
       setFill(green); doc.setDrawColor(0,0,0); doc.setLineWidth(0);
       doc.roundedRect(bx, by, bw, bh, 2, 2, 'F');
@@ -965,8 +1007,16 @@ function generatePDF() {
       doc.roundedRect(bx, by, bw, bh, 2, 2, 'F');
       setColor(highlight ? [255,255,255] : [107,138,130]);
     }
+    let labelX = bx + 3;
+    if (emoji) {
+      try {
+        const emojiMM = 3.5;
+        doc.addImage(emojiToPng(emoji, 64), 'PNG', labelX, by + 1.5, emojiMM, emojiMM);
+        labelX += emojiMM + 0.8;
+      } catch(e) {}
+    }
     doc.setFontSize(7); doc.setFont('helvetica', 'normal');
-    doc.text(label, bx + 3, by + 5);
+    doc.text(label, labelX, by + 5);
     setColor(highlight ? [255,255,255] : darkGreen);
     doc.setFontSize(13); doc.setFont('helvetica', 'bold');
     doc.text(value || '—', bx + 3, by + 12);
@@ -1004,7 +1054,11 @@ function generatePDF() {
   const pathEl = document.getElementById('pathophysio');
   const pathLabel = sanitize(pathEl.options[pathEl.selectedIndex].text);
   const protEl = document.getElementById('proteinRange');
-  const protLabel = sanitize(protEl.options[protEl.selectedIndex].text);
+  const protCustomMin = document.getElementById('custom-protein-min').value;
+  const protCustomMax = document.getElementById('custom-protein-max').value;
+  const protLabel = protEl.value === '12' && protCustomMin
+    ? sanitize('Individuelle Angabe: ' + protCustomMin + (protCustomMax ? '-' + protCustomMax : '') + ' g/kg/Tag')
+    : sanitize(protEl.options[protEl.selectedIndex].text);
   const fluidEl = document.getElementById('fluidFactor');
   const fluidLabel = sanitize(fluidEl.options[fluidEl.selectedIndex].text);
   const hasResults = !document.getElementById('results').classList.contains('hidden');
@@ -1065,17 +1119,19 @@ function generatePDF() {
 
   // ---- Anthropometrie ----
   sectionTitle('Anthropometrie');
-  const anthroItems = [];
-  if (weight) anthroItems.push({ label: 'Koerpergewicht', value: weight + ' kg' });
-  if (height) anthroItems.push({ label: 'Koerpergroesse', value: height + ' cm' });
-  if (age) anthroItems.push({ label: 'Alter', value: age + ' Jahre' });
-  anthroItems.push({ label: 'Geschlecht', value: sexLabel });
-  fieldRow(anthroItems);
+  fieldRow([
+    { label: 'Koerpergewicht', value: weight ? weight + ' kg' : '' },
+    { label: 'Koerpergroesse', value: height ? height + ' cm' : '' },
+    { label: 'Alter', value: age ? age + ' Jahre' : '' },
+    { label: 'Geschlecht', value: sexLabel }
+  ]);
   if (bmiVal && bmiVal !== '\u2014') {
-    const bmiItems = [{ label: 'BMI', value: bmiVal + ' kg/m\xB2' }];
-    if (ibwVal && ibwVal !== '\u2014') bmiItems.push({ label: 'Idealgewicht (IBW)', value: ibwVal + ' kg' });
-    if (abwVal && abwVal !== '\u2014') bmiItems.push({ label: 'Adj. Gewicht (ABW)', value: abwVal + ' kg' });
-    fieldRow(bmiItems);
+    fieldRow([
+      { label: 'BMI', value: bmiVal + ' kg/m\xB2' },
+      { label: (ibwVal && ibwVal !== '\u2014') ? 'Idealgewicht (IBW)' : '', value: (ibwVal && ibwVal !== '\u2014') ? ibwVal + ' kg' : '' },
+      { label: (abwVal && abwVal !== '\u2014') ? 'Adj. Gewicht (ABW)' : '', value: (abwVal && abwVal !== '\u2014') ? abwVal + ' kg' : '' },
+      { label: '', value: '' }
+    ]);
   }
   line();
 
@@ -1112,17 +1168,17 @@ function generatePDF() {
     const bh = 22;
     const gap = 4;
     const boxes = [
-      { label: 'Aktueller Energiebedarf', value: rPatho, sub: rPathoSub, hl: true },
-      { label: 'Energiebedarf mit Aktivitaets- & Stressfaktor', value: rTdee, sub: rTdeeSub, hl: false },
-      { label: 'Protein', value: rProtein, sub: rProteinSub, hl: false },
-      { label: 'Fluessigkeit', value: rFluid, sub: rFluidSub, hl: false },
-      { label: 'Grundumsatz', value: rGu, sub: rGuSub, hl: false },
-      { label: 'BMI', value: rBmi, sub: '', hl: false },
+      { label: 'Aktueller Energiebedarf', emoji: '🏥', value: rPatho, sub: rPathoSub, hl: true },
+      { label: 'Energiebedarf mit Aktivitaets- & Stressfaktor', emoji: '⚡', value: rTdee, sub: rTdeeSub, hl: false },
+      { label: 'Protein', emoji: '🥩', value: rProtein, sub: rProteinSub, hl: false },
+      { label: 'Fluessigkeit', emoji: '💧', value: rFluid, sub: rFluidSub, hl: false },
+      { label: 'Grundumsatz', emoji: '🔥', value: rGu, sub: rGuSub, hl: false },
+      { label: 'BMI', emoji: '📐', value: rBmi, sub: '', hl: false },
     ];
     for (let i = 0; i < boxes.length; i += 2) {
       const b = boxes[i], b2 = boxes[i+1];
-      resultBox(0, ML, y, bw, bh, b.label, b.value, b.sub, b.hl);
-      if (b2) resultBox(0, ML + bw + gap, y, bw, bh, b2.label, b2.value, b2.sub, b2.hl);
+      resultBox(0, ML, y, bw, bh, b.label, b.value, b.sub, b.hl, b.emoji);
+      if (b2) resultBox(0, ML + bw + gap, y, bw, bh, b2.label, b2.value, b2.sub, b2.hl, b2.emoji);
       y += bh + 3;
     }
   }
