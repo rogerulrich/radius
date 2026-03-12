@@ -875,6 +875,17 @@ function generatePDF() {
 
   function hex(r,g,b) { return [r,g,b]; }
   function setColor(rgb) { doc.setTextColor(rgb[0], rgb[1], rgb[2]); }
+  // jsPDF standard fonts only support Latin-1; replace common Unicode chars that cause spacing artefacts
+  function sanitize(str) {
+    return (str || '')
+      .replace(/\u2014/g, '-')   // em dash —
+      .replace(/\u2013/g, '-')   // en dash –
+      .replace(/\u2212/g, '-')   // minus sign
+      .replace(/\u2265/g, '>=')  // ≥
+      .replace(/\u2264/g, '<=')  // ≤
+      .replace(/\u00B7/g, '.')   // middle dot ·
+      .replace(/\u00D7/g, 'x');  // multiplication sign ×
+  }
   function setFill(rgb) { doc.setFillColor(rgb[0], rgb[1], rgb[2]); }
   function setDraw(rgb) { doc.setDrawColor(rgb[0], rgb[1], rgb[2]); }
 
@@ -991,11 +1002,11 @@ function generatePDF() {
   const stressEl = document.getElementById('stressFactor');
   const stressLabel = stressEl.options[stressEl.selectedIndex].text;
   const pathEl = document.getElementById('pathophysio');
-  const pathLabel = pathEl.options[pathEl.selectedIndex].text;
+  const pathLabel = sanitize(pathEl.options[pathEl.selectedIndex].text);
   const protEl = document.getElementById('proteinRange');
-  const protLabel = protEl.options[protEl.selectedIndex].text;
+  const protLabel = sanitize(protEl.options[protEl.selectedIndex].text);
   const fluidEl = document.getElementById('fluidFactor');
-  const fluidLabel = fluidEl.options[fluidEl.selectedIndex].text;
+  const fluidLabel = sanitize(fluidEl.options[fluidEl.selectedIndex].text);
   const hasResults = !document.getElementById('results').classList.contains('hidden');
   const rPatho = document.getElementById('r-patho').textContent.trim();
   const rPathoSub = document.getElementById('r-patho-sub').textContent.trim();
