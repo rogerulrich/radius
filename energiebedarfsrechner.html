@@ -1214,7 +1214,7 @@ function generatePDF() {
   doc.line(ML, y, W - MR, y); y += 4;
   setColor(lightGray);
   doc.setFontSize(6.5); doc.setFont('helvetica', 'normal');
-  doc.text('Energiebedarfsrechner · Klinische Ernaehrung · Alle Angaben ohne Gewaehr – immer klinisches Urteil anwenden.', W/2, y, { align: 'center' });
+  doc.text('Energiebedarfsrechner · Klinische Ernaehrung · Alle Angaben ohne Gewaehr \u2013 immer klinisches Urteil anwenden.', W/2, y, { align: 'center' });
 
   doc.save('energiebedarfsrechner.pdf');
 }
