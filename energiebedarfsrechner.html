@@ -1093,9 +1093,13 @@ function generatePDF() {
     const logoH = 20;
     const logoW = logoH * (logoEl.naturalWidth / logoEl.naturalHeight);
     try {
+      // Canvas auf 3× Anzeigegrösse begrenzen (statt volle Quellauflösung) → kleine Dateigrösse
+      const scale = 3;
+      const pxPerMm = 3.7795;
       const c = document.createElement('canvas');
-      c.width = logoEl.naturalWidth; c.height = logoEl.naturalHeight;
-      c.getContext('2d').drawImage(logoEl, 0, 0);
+      c.width = Math.round(logoW * pxPerMm * scale);
+      c.height = Math.round(logoH * pxPerMm * scale);
+      c.getContext('2d').drawImage(logoEl, 0, 0, c.width, c.height);
       doc.addImage(c.toDataURL('image/png'), 'PNG', W - MR - logoW, 3, logoW, logoH);
     } catch(e) {
       doc.addImage(logoEl, 'PNG', W - MR - logoW, 3, logoW, logoH);
