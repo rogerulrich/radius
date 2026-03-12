@@ -1031,7 +1031,8 @@ function generatePDF() {
   // ---- Collect data ----
   const name = (document.getElementById('pat-name').value || '').trim();
   const firstname = (document.getElementById('pat-firstname').value || '').trim();
-  const dob = document.getElementById('pat-dob').value;
+  const dobRaw = document.getElementById('pat-dob').value;
+  const dob = dobRaw ? dobRaw.split('-').reverse().join('.') : '';
   const weight = document.getElementById('weight').value;
   const height = document.getElementById('height').value;
   const age = document.getElementById('age').value;
