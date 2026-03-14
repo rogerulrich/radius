@@ -436,13 +436,13 @@ function exportPDF() {
   } else {
     doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(...green);
     doc.text('Erfasste Portionen', margin, y); y += 7;
-    const c1=margin, c2=margin+78, c3=margin+110, c4=margin+142, c5=margin+163;
+    const c1=margin, c2=margin+68, c3=margin+98, c4=margin+138, c5=margin+158;
     doc.setFillColor(...green); doc.rect(margin,y,colW,7,'F');
     doc.setFont('helvetica','bold'); doc.setFontSize(7.5); doc.setTextColor(255,255,255);
     doc.text('Lebensmittel / Getr\u00e4nk', c1+2, y+5);
     doc.text('Kategorie', c2+2, y+5);
     doc.text('mg Ca/Portion', c3+2, y+5);
-    doc.text('Portionen/Wo', c4+2, y+5);
+    doc.text('Portionen', c4+2, y+5);
     doc.text('\u00d8 mg/Tag', c5+2, y+5);
     y += 7;
     let rowEven = false, totalDaily = 0;
@@ -452,12 +452,13 @@ function exportPDF() {
       const nameLines = doc.splitTextToSize(f.name, c2-c1-4);
       const cat = f.cat.replace(/^\S+ /,'');
       const catLines = doc.splitTextToSize(cat, c3-c2-3);
-      const rowH = Math.max(6.5, Math.max(nameLines.length, catLines.length)*4.5);
+      const portionLines = doc.splitTextToSize(f.ca+' mg ('+f.portion+')', c4-c3-3);
+      const rowH = Math.max(6.5, Math.max(nameLines.length, catLines.length, portionLines.length)*4.5);
       doc.setFillColor(rowEven?248:255, rowEven?248:255, rowEven?248:255);
       doc.rect(margin,y,colW,rowH,'F');
       doc.text(nameLines, c1+2, y+4.5);
       doc.text(catLines, c2+2, y+4.5);
-      doc.text(f.ca+' mg ('+f.portion+')', c3+2, y+4.5);
+      doc.text(portionLines, c3+2, y+4.5);
       doc.text(f.freqLabel, c4+2, y+4.5);
       doc.setFont('helvetica','bold');
       doc.text(f.dailyCa+' mg', c5+2, y+4.5);
@@ -476,7 +477,7 @@ function exportPDF() {
   const srcLine = doc.splitTextToSize(
     'Quellen: Bundeslebensmittelverordnung 2022 / DVO-Leitlinie 2023 | BLV N\u00e4hrwertdatenbank V 7.0 (2025) | ' +
     'EMAS Maturitas 2018 | Ye C et al. Lancet 2025 | SMOB / EASO / AACE postbariatrisch | ' +
-    'Verband Schweiz. Mineralquellen (2017) | SGE naehrwertdaten.ch', colW);
+    'Verband Schweiz. Mineralquellen (Jan. 2026) | SGE naehrwertdaten.ch', colW);
   doc.text(srcLine, margin, y);
   doc.save('Kalziumrechner_' + new Date().toISOString().slice(0,10) + '.pdf');
 }
