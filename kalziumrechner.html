@@ -190,8 +190,6 @@ const FOODS = [
   {name:'Grüne Bohnen', cat:'🥦 Gemüse', portion:'150 g', ca:87},
   {name:'Kohlgemüse (Weiß-, Rotkohl etc.)', cat:'🥦 Gemüse', portion:'150 g', ca:78},
   {name:'Rhabarber', cat:'🥦 Gemüse', portion:'1 Stange (50 g)', ca:43},
-  {name:'Feigen, getrocknet', cat:'🍎 Früchte', portion:'1 Stück (25 g)', ca:40},
-  {name:'Feigen, frisch', cat:'🍎 Früchte', portion:'1 Stück (60 g)', ca:36},
   {name:'Sesamsamen, ungeschält', cat:'🌰 Nüsse & Samen', portion:'25 g', ca:233},
   {name:'Mandeln', cat:'🌰 Nüsse & Samen', portion:'25 g', ca:68},
   {name:'Paranüsse', cat:'🌰 Nüsse & Samen', portion:'25 g', ca:40},
@@ -504,6 +502,7 @@ function exportPDF() {
     }
   });
 
+  active.sort((a, b) => b.dailyCa - a.dailyCa);
   if (active.length === 0) {
     doc.setFont('helvetica','italic'); doc.setFontSize(9); doc.setTextColor(...muted);
     doc.text('Keine Portionen erfasst.', margin, y+8); y += 20;
