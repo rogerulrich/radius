@@ -66,6 +66,10 @@
   .sources-table td:first-child { font-weight: 600; color: var(--accent); padding-right: 20px; min-width: 200px; }
   .sources-table td em { color: var(--muted); font-style: normal; font-size: 0.78rem; display: block; margin-top: 2px; }
   .db-note { margin-top: 14px; font-size: 0.78rem; color: var(--muted); line-height: 1.5; }
+  .suppl-name-input { flex: 1; min-width: 120px; padding: 5px 8px; border: 1.5px solid var(--border); border-radius: 6px; font-family: 'Century Gothic', CenturyGothic, AppleGothic, sans-serif; font-size: 0.88rem; background: var(--bg); color: var(--text); outline: none; transition: border-color 0.2s; }
+  .suppl-name-input:focus { border-color: #A2B9AF; }
+  .add-suppl-btn { display: inline-flex; align-items: center; gap: 6px; margin-top: 10px; padding: 7px 16px; background: none; border: 1.5px dashed var(--border); border-radius: 8px; font-family: 'Century Gothic', CenturyGothic, AppleGothic, sans-serif; font-size: 0.85rem; color: var(--accent); cursor: pointer; transition: all 0.2s; }
+  .add-suppl-btn:hover { border-color: var(--accent2); background: var(--accent2); color: white; }
   .header-inner { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
   .header-logo { height: 160px; width: auto; object-fit: contain; flex-shrink: 0; margin-right: 24px; }
   @media (max-width: 620px) {
@@ -117,11 +121,9 @@
           <option value="">– bitte wählen –</option>
           <option value="800">Kinder 7–10 Jahre (800 mg/Tag)</option>
           <option value="1150">Kinder/Jugendliche 11–17 Jahre (1150 mg/Tag)</option>
-          <option value="1000">Erwachsene 18–24 Jahre (1000 mg/Tag)</option>
-          <option value="950">Erwachsene 25–65 Jahre (950 mg/Tag)</option>
+          <option value="1000">Erwachsene 18–65 Jahre (1000 mg/Tag)</option>
           <option value="1200">Senioren ≥…66 Jahre (1000–1200 mg/Tag)</option>
-          <option value="1000">Schwangerschaft 18–24 Jahre (1000 mg/Tag)</option>
-          <option value="950">Schwangerschaft / Stillzeit ≥25 Jahre (950 mg/Tag)</option>
+          <option value="1000">Schwangerschaft / Stillzeit (1000 mg/Tag)</option>
           <option value="1200">Osteoporose im Frakturstadium (1200 mg/Tag)</option>
           <option value="1500">Nach bariatrischer OP – SMOB (1000–2000 mg/Tag)</option>
           <option value="1500">Nach bariatrischer OP – EU/US (1200–2000 mg/Tag)</option>
@@ -255,6 +257,7 @@ const FOODS = [
 
 let portionen = new Array(FOODS.length).fill(0);
 let bedarfMg = null;
+let supplements = [];
 
 function buildUI() {
   const container = document.getElementById('food-sections');
@@ -276,24 +279,87 @@ function buildUI() {
       card.className = 'food-card';
       card.id = 'card-' + i;
       const waterInfo = f.water ? '<div class="water-note">' + f.mgL + ' mg/l</div>' : '';
-      const portionLabel = f.daily ? '\u00d7/Tag' : '\u00d7/Wo';
-      card.innerHTML =
-        '<div class="food-info">' +
-          '<div class="food-name">' + f.name + '</div>' +
-          '<div class="food-ca"><span>' + f.ca + ' mg</span> / ' + f.portion + '</div>' +
-          waterInfo +
-        '</div>' +
-        '<div class="portion-wrap">' +
-          '<button class="portion-btn" onclick="adj(' + i + ',-1)">\u2212</button>' +
-          '<input class="portion-input" type="number" id="inp-' + i + '" value="0" min="0" max="99" onchange="setP(' + i + ',this.value)">' +
-          '<button class="portion-btn" onclick="adj(' + i + ',1)">+</button>' +
-          '<span class="portion-label">' + portionLabel + '</span>' +
-        '</div>';
+      if (f.custom) {
+        card.innerHTML =
+          '<div class="food-info" style="flex:1">' +
+            '<div class="food-name">' + f.name + '</div>' +
+            '<div class="food-ca" style="color:var(--muted)">Tageswert direkt eingeben</div>' +
+          '</div>' +
+          '<div class="portion-wrap">' +
+            '<input class="portion-input" type="number" id="inp-' + i + '" value="0" min="0" max="9999" style="width:62px;text-align:right" onchange="setP(' + i + ',this.value)">' +
+            '<span class="portion-label" style="width:auto;margin-left:4px">mg/Tag</span>' +
+          '</div>';
+      } else {
+        const portionLabel = f.daily ? '\u00d7/Tag' : '\u00d7/Wo';
+        card.innerHTML =
+          '<div class="food-info">' +
+            '<div class="food-name">' + f.name + '</div>' +
+            '<div class="food-ca"><span>' + f.ca + ' mg</span> / ' + f.portion + '</div>' +
+            waterInfo +
+          '</div>' +
+          '<div class="portion-wrap">' +
+            '<button class="portion-btn" onclick="adj(' + i + ',-1)">\u2212</button>' +
+            '<input class="portion-input" type="number" id="inp-' + i + '" value="0" min="0" max="99" onchange="setP(' + i + ',this.value)">' +
+            '<button class="portion-btn" onclick="adj(' + i + ',1)">+</button>' +
+            '<span class="portion-label">' + portionLabel + '</span>' +
+          '</div>';
+      }
       grid.appendChild(card);
     });
     catDiv.appendChild(grid);
     container.appendChild(catDiv);
   });
+
+  const supplSection = document.createElement('div');
+  supplSection.className = 'category';
+  supplSection.innerHTML =
+    '<div class="category-title">&#x1F48A; Supplemente</div>' +
+    '<div id="suppl-container"></div>' +
+    '<button class="add-suppl-btn" onclick="addSupplement()">+ Supplement hinzuf\u00fcgen</button>';
+  container.appendChild(supplSection);
+  renderSupplements();
+}
+
+function renderSupplements() {
+  const container = document.getElementById('suppl-container');
+  if (!container) return;
+  container.innerHTML = '';
+  supplements.forEach((s, i) => {
+    const card = document.createElement('div');
+    card.className = 'food-card' + (s.mg > 0 ? ' active' : '');
+    card.id = 'suppl-card-' + i;
+    card.style.cssText = 'display:flex;align-items:center;gap:10px;margin-bottom:6px';
+    card.innerHTML =
+      '<input class="suppl-name-input" type="text" placeholder="Name des Supplements" value="' + s.name.replace(/"/g,'&quot;') + '" oninput="setSupplName(' + i + ',this.value)">' +
+      '<div style="display:flex;align-items:center;gap:6px;flex-shrink:0;white-space:nowrap">' +
+        '<input class="portion-input" type="number" value="' + s.mg + '" min="0" max="9999" style="width:62px;text-align:right" onchange="setSupplMg(' + i + ',this.value)">' +
+        '<span style="font-size:0.75rem;color:var(--muted)">mg/Tag</span>' +
+        '<button class="portion-btn" style="color:#c0392b;border-color:#c0392b" onclick="removeSupplement(' + i + ')" title="Entfernen">\u00d7</button>' +
+      '</div>';
+    container.appendChild(card);
+  });
+}
+
+function addSupplement() {
+  supplements.push({name: '', mg: 0});
+  renderSupplements();
+}
+
+function removeSupplement(i) {
+  supplements.splice(i, 1);
+  renderSupplements();
+  updateResult();
+}
+
+function setSupplName(i, val) {
+  supplements[i].name = val;
+  document.getElementById('suppl-card-' + i)?.classList.toggle('active', supplements[i].mg > 0);
+}
+
+function setSupplMg(i, val) {
+  supplements[i].mg = Math.max(0, parseInt(val) || 0);
+  document.getElementById('suppl-card-' + i)?.classList.toggle('active', supplements[i].mg > 0);
+  updateResult();
 }
 
 function adj(i, d) {
@@ -338,6 +404,7 @@ function updateResult() {
     const amt = (portionen[i] || 0) * f.ca;
     dailyTotal += f.daily ? amt : amt / 7;
   });
+  supplements.forEach(s => { dailyTotal += s.mg || 0; });
   const daily = Math.round(dailyTotal);
   const zufuhrEl = document.getElementById('rb-zufuhr');
   const diffEl = document.getElementById('rb-diff');
@@ -373,6 +440,8 @@ function resetAll() {
     if (inp) inp.value = 0;
     document.getElementById('card-' + i)?.classList.remove('active');
   });
+  supplements = [];
+  renderSupplements();
   updateResult();
 }
 
@@ -429,6 +498,11 @@ function exportPDF() {
       active.push({...f, portions:portionen[i], dailyCa, freqLabel});
     }
   });
+  supplements.forEach(s => {
+    if (s.mg > 0) {
+      active.push({name: s.name || 'Supplement', cat: 'Supplemente', portion: 'mg/Tag', ca: s.mg, custom:true, portions:1, dailyCa: s.mg, freqLabel:'\u2013'});
+    }
+  });
 
   if (active.length === 0) {
     doc.setFont('helvetica','italic'); doc.setFontSize(9); doc.setTextColor(...muted);
@@ -452,7 +526,8 @@ function exportPDF() {
       const nameLines = doc.splitTextToSize(f.name, c2-c1-4);
       const cat = f.cat.replace(/^\S+ /,'');
       const catLines = doc.splitTextToSize(cat, c3-c2-3);
-      const portionLines = doc.splitTextToSize(f.ca+' mg ('+f.portion+')', c4-c3-3);
+      const portionText = f.custom ? 'individuell' : f.ca+' mg ('+f.portion+')';
+      const portionLines = doc.splitTextToSize(portionText, c4-c3-3);
       const rowH = Math.max(6.5, Math.max(nameLines.length, catLines.length, portionLines.length)*4.5);
       doc.setFillColor(rowEven?248:255, rowEven?248:255, rowEven?248:255);
       doc.rect(margin,y,colW,rowH,'F');
