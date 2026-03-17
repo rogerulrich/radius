@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zufuhrberechner Stationär – ASM</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<style>
+:root {
+  --blue-dark: #3a5262;   /* Pantone 7699 U dunkel */
+  --blue-mid:  #5e7688;   /* Pantone 7699 U */
+  --blue-light:#dce5ea;   /* Pantone 7699 U hell */
+  --teal:      #6b8a80;   /* Pantone 5585 U dunkel */
+  --sand:      #9a7860;   /* Pantone 4675 U dunkel */
+  --yellow:    #efda8f;   /* Pantone 4001 U */
+  --rose:      #e6c6c7;   /* Pantone 5035 U */
+  --warmgrey:  #dcd7d2;   /* Pantone 7527 U */
+  --orange:    #8a6a50;
+  --indigo:    #3a5262;
+  --violet:    #5e7688;
+  --green:     #4a7060;
+  --red:       #8a3a3a;
+}
+body { background:#f0f4f8; font-size:0.875rem; }
+
+/* ── SUMMARY BAR ── */
+.summary-bar {
+  position:sticky; top:0; z-index:200;
+  background:var(--blue-dark); color:#fff;
+  padding:8px 16px; box-shadow:0 2px 8px rgba(0,0,0,.2);
+}
+.meal-block .lbl { font-size:0.7rem; opacity:.8; text-transform:uppercase; letter-spacing:.04em; }
+.meal-block { text-align:center; }
+.meal-block .lbl { font-size:0.7rem; opacity:.75; text-transform:uppercase; letter-spacing:.04em; }
+.meal-block .val { font-size:1.05rem; font-weight:700; line-height:1.2; }
+.meal-block .sub { font-size:0.7rem; opacity:.8; }
+.divider { width:1px; background:rgba(255,255,255,.2); }
+
+/* ── TABS ── */
+.meal-tabs { position:sticky; top:58px; z-index:190; background:#fff;
+  border-bottom:2px solid var(--blue-light); }
+.meal-tabs .nav-link {
+  color:var(--blue-dark); font-weight:600; padding:9px 18px;
+  border:none; border-radius:0; position:relative;
+}
+.meal-tabs .nav-link.active {
+  color:#fff; background:var(--blue-dark);
+}
+.meal-tabs .nav-link .badge-cnt {
+  font-size:0.65rem; background:#fde68a; color:#92400e;
+  border-radius:10px; padding:1px 6px; margin-left:5px;
+}
+.meal-tabs .nav-link.active .badge-cnt { background:rgba(255,255,255,.25); color:#fff; }
+
+/* ── OVERVIEW ── */
+.overview-col { background:#fff; border-radius:8px;
+  box-shadow:0 1px 4px rgba(0,0,0,.08); }
+.overview-header {
+  background:var(--blue-mid); color:#fff;
+  padding:8px 14px; border-radius:8px 8px 0 0;
+  font-weight:700; font-size:0.9rem;
+}
+.ov-item { padding:4px 12px; border-bottom:1px solid #f0f4f8;
+  display:flex; justify-content:space-between; align-items:center; }
+.ov-item:last-child { border-bottom:none; }
+.ov-item .ov-name { color:#374151; }
+.ov-item .ov-kcal { font-size:0.75rem; color:var(--orange); white-space:nowrap; margin-left:8px; }
+.ov-item .ov-qty  { font-size:0.75rem; color:#6b7280; margin-left:4px; }
+.overview-total {
+  background:var(--blue-light); padding:7px 12px;
+  border-radius:0 0 8px 8px; display:flex; gap:12px;
+  font-size:0.8rem; font-weight:600; color:var(--blue-dark);
+}
+.empty-meal { padding:18px 12px; color:#9ca3af; font-size:0.82rem; text-align:center; }
+
+/* ── FOOD LIST ── */
+.category-header {
+  background:var(--blue-mid); color:#fff;
+  padding:6px 13px; cursor:pointer; border-radius:6px;
+  margin-bottom:2px; display:flex; justify-content:space-between;
+  align-items:center; font-weight:600; font-size:0.87rem;
+  user-select:none; letter-spacing:.01em;
+}
+.category-header:hover { background:var(--blue-dark); }
+.item-table { width:100%; border-collapse:collapse; }
+.item-table thead th {
+  background:var(--warmgrey); color:var(--blue-dark);
+  padding:5px 7px; font-size:0.77rem;
+  position:sticky; top:102px; z-index:5;
+}
+.item-table tbody tr:hover { background:#f0f7ff; }
+.item-table td { padding:3px 7px; border-bottom:1px solid #e9ecef; vertical-align:middle; }
+.item-table tr.sel-row { background:#dce5ea !important; }
+.item-table tr.neu-item td:first-child { border-left:3px solid #c8a870; }
+.neu-badge { background:var(--yellow); color:#5a4010; font-size:0.62rem;
+  padding:1px 4px; border-radius:3px; margin-left:4px; font-weight:700; }
+.qty-ctrl { display:flex; align-items:center; gap:3px; }
+.qty-btn { width:20px; height:20px; border:1px solid var(--blue-mid);
+  background:var(--blue-light); border-radius:3px; cursor:pointer;
+  font-weight:700; color:var(--blue-dark); font-size:0.8rem; line-height:1; }
+.qty-btn:hover { background:#dbeafe; }
+.qty-val { width:42px; text-align:center; font-weight:600; font-size:0.85rem;
+  border:1px solid var(--blue-mid); border-radius:4px; padding:1px 3px; background:#f8fafa; }
+.kcal-col { color:var(--sand); font-weight:600; }
+.prot-col { color:var(--blue-dark); font-weight:600; }
+.kh-col   { color:var(--teal); }
+
+/* ── BUTTONS ── */
+.btn-export { background:var(--teal); color:#fff; border:none; font-weight:600; }
+.btn-export:hover { background:#4a6a60; color:#fff; }
+.btn-clear { background:var(--sand); color:#fff; border:none; }
+.btn-clear:hover { background:#7a5840; color:#fff; }
+.btn-clear-meal { font-size:0.72rem; padding:2px 8px; border:1px solid var(--sand);
+  color:var(--sand); background:#fff; border-radius:4px; }
+.btn-clear-meal:hover { background:var(--warmgrey); }
+
+/* ── PATIENT BAR ── */
+.patient-bar {
+  background:#fff; border-bottom:1px solid #dce6f5;
+  padding:8px 16px; display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end;
+}
+.patient-bar label { font-size:0.7rem; color:#6b7280; display:block; margin-bottom:2px; font-weight:600; }
+.patient-bar input, .patient-bar select {
+  font-size:0.82rem; padding:3px 7px; border:1px solid #d1d5db;
+  border-radius:5px; background:#f9fafb; color:#111827;
+}
+.patient-bar input:focus, .patient-bar select:focus {
+  outline:none; border-color:#2563a8; background:#fff;
+}
+.target-group { display:flex; align-items:center; gap:5px; }
+.target-group input { width:72px; }
+.target-group .unit { font-size:0.78rem; color:#6b7280; }
+
+/* ── PROGRESS ── */
+.prog-wrap { display:flex; align-items:center; gap:4px; }
+.prog-bar-outer { height:5px; border-radius:3px; background:rgba(255,255,255,.25); width:70px; overflow:hidden; }
+.prog-bar-inner { height:100%; border-radius:3px; transition:width .3s; }
+.prog-pct { font-size:0.68rem; opacity:.85; min-width:32px; }
+
+/* ── MISC ── */
+#searchInput { max-width:300px; }
+.accordion-body { padding:0; }
+.tab-pane { padding:12px 0 0; }
+</style>
+</head>
+<body>
+
+<!-- ════════════ SUMMARY BAR ════════════ -->
+<div class="summary-bar">
+  <div class="container-fluid px-2">
+    <div class="row align-items-center g-1">
+      <div class="col-auto me-2">
+        <div style="font-size:0.75rem;opacity:.7">Zufuhrberechner</div>
+        <div style="font-weight:700;font-size:0.95rem;line-height:1.2">Stationär – ASM</div>
+      </div>
+      <div class="col">
+        <div class="row g-0 justify-content-start">
+          <div class="col-auto px-3 meal-block">
+            <div class="lbl" style="color:#efda8f">Frühstück</div>
+            <div class="val" id="s0_kcal">0 kcal</div>
+            <div class="sub"><span id="s0_p">0g</span> P &nbsp;·&nbsp; <span id="s0_kh">0g</span> KH</div>
+          </div>
+          <div class="divider mx-1"></div>
+          <div class="col-auto px-3 meal-block">
+            <div class="lbl" style="color:#a2b9af">Mittagessen</div>
+            <div class="val" id="s1_kcal">0 kcal</div>
+            <div class="sub"><span id="s1_p">0g</span> P &nbsp;·&nbsp; <span id="s1_kh">0g</span> KH</div>
+          </div>
+          <div class="divider mx-1"></div>
+          <div class="col-auto px-3 meal-block">
+            <div class="lbl" style="color:#dab9a1">Abendessen</div>
+            <div class="val" id="s2_kcal">0 kcal</div>
+            <div class="sub"><span id="s2_p">0g</span> P &nbsp;·&nbsp; <span id="s2_kh">0g</span> KH</div>
+          </div>
+          <div class="divider mx-1"></div>
+          <div class="col-auto px-3 meal-block">
+            <div class="lbl">Gesamt</div>
+            <div class="val" id="sg_kcal">0 kcal</div>
+            <div class="sub"><span id="sg_p">0g</span> P &nbsp;·&nbsp; <span id="sg_kh">0g</span> KH</div>
+          </div>
+          <div class="divider mx-1"></div>
+          <div class="col-auto px-3">
+            <div class="lbl">Ziel Energie</div>
+            <div class="prog-wrap">
+              <div class="prog-bar-outer"><div class="prog-bar-inner" id="pb_kcal" style="width:0%;background:#fde68a"></div></div>
+              <span class="prog-pct" id="pct_kcal">—</span>
+            </div>
+            <div class="lbl mt-1">Ziel Protein</div>
+            <div class="prog-wrap">
+              <div class="prog-bar-outer"><div class="prog-bar-inner" id="pb_p" style="width:0%;background:#93c5fd"></div></div>
+              <span class="prog-pct" id="pct_p">—</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-auto d-flex gap-2 flex-wrap">
+        <button class="btn btn-sm btn-export" onclick="exportPDF()">📄 PDF Export</button>
+        <button class="btn btn-sm btn-clear" onclick="clearAllMeals()">✕ Alles leeren</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ PATIENT BAR ════════════ -->
+<div class="patient-bar">
+  <div>
+    <label>Vorname</label>
+    <input type="text" id="pat_vorname" placeholder="Vorname" style="width:110px">
+  </div>
+  <div>
+    <label>Nachname</label>
+    <input type="text" id="pat_nachname" placeholder="Nachname" style="width:120px">
+  </div>
+  <div>
+    <label>Geburtsdatum</label>
+    <input type="date" id="pat_geburt" style="width:135px">
+  </div>
+  <div>
+    <label>Kostform</label>
+    <select id="pat_kostform" style="width:180px">
+      <option value="">— bitte wählen —</option>
+      <option>Vollkost</option>
+      <option>Leichte Vollkost</option>
+      <option>Weiche Kost</option>
+      <option>Pürierte Kost</option>
+      <option>Breiige Kost</option>
+      <option>Flüssige Kost</option>
+      <option>Hochkalorische Kost</option>
+      <option>Energiereduzierte Kost</option>
+      <option>Eiweissreiche Kost</option>
+      <option>Diabeteskost</option>
+      <option>Glutenfreie Kost</option>
+      <option>Laktosefreie Kost</option>
+      <option>Natriumarme Kost</option>
+      <option>Vegetarisch</option>
+      <option>Vegan</option>
+      <option>Halal</option>
+    </select>
+  </div>
+  <div class="target-group">
+    <div>
+      <label>Ziel Energie</label>
+      <input type="number" id="ziel_kcal" placeholder="kcal" min="0" max="5000"
+        oninput="updateAll()" style="width:72px">
+    </div>
+    <span class="unit" style="padding-bottom:2px">kcal</span>
+  </div>
+  <div class="target-group">
+    <div>
+      <label>Ziel Protein</label>
+      <input type="number" id="ziel_prot" placeholder="g" min="0" max="300"
+        oninput="updateAll()" style="width:64px">
+    </div>
+    <span class="unit" style="padding-bottom:2px">g</span>
+  </div>
+</div>
+
+<!-- ════════════ MAIN ════════════ -->
+<div class="container-fluid px-3 py-2">
+
+  <!-- TABS -->
+  <div class="meal-tabs">
+    <ul class="nav" id="mealTabs">
+      <li class="nav-item">
+        <a class="nav-link active" href="#" onclick="switchTab(0,this);return false">
+          Frühstück <span class="badge-cnt" id="cnt0">0</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#" onclick="switchTab(1,this);return false">
+          Mittagessen <span class="badge-cnt" id="cnt1">0</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#" onclick="switchTab(2,this);return false">
+          Abendessen <span class="badge-cnt" id="cnt2">0</span>
+        </a>
+      </li>
+      <li class="nav-item ms-auto">
+        <a class="nav-link" href="#" onclick="switchTab(3,this);return false">
+          📋 Übersicht
+        </a>
+      </li>
+    </ul>
+  </div>
+
+  <!-- TAB CONTENT -->
+  <div class="tab-content mt-0">
+
+    <!-- MEAL TABS 0,1,2 (shared template, reused) -->
+    <div id="mealPane">
+      <div class="d-flex align-items-center gap-2 mb-2 mt-2 flex-wrap">
+        <input type="text" id="searchInput" class="form-control form-control-sm"
+          placeholder="🔍 Suchen..." oninput="filterItems()">
+        <span class="text-muted" style="font-size:0.77rem" id="searchInfo"></span>
+        <button class="btn-clear-meal btn" id="clearMealBtn" onclick="clearCurrentMeal()">
+          Mahlzeit leeren
+        </button>
+      </div>
+      <div id="accordionWrap"></div>
+    </div>
+
+    <!-- ÜBERSICHT -->
+    <div id="overviewPane" style="display:none">
+      <div class="row g-3 mt-1">
+        <div class="col-12 col-md-4">
+          <div class="overview-col">
+            <div class="overview-header" style="background:#3a5262">Frühstück</div>
+            <div id="ov0"></div>
+          </div>
+        </div>
+        <div class="col-12 col-md-4">
+          <div class="overview-col">
+            <div class="overview-header" style="background:#6b8a80">Mittagessen</div>
+            <div id="ov1"></div>
+          </div>
+        </div>
+        <div class="col-12 col-md-4">
+          <div class="overview-col">
+            <div class="overview-header" style="background:#9a7860">Abendessen</div>
+            <div id="ov2"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════
+const FOOD_DATA = [
+  // Getränke
+  {cat:"Getränke", name:"Cantina Portionenbeutel", port:"15 g", kcal:58, p:11.3, kh:12},
+  {cat:"Getränke", name:"Frappé Angereichert (Malto & Protein)", port:"200 ml", kcal:406, p:11.3, kh:35.7},
+  {cat:"Getränke", name:"Frappé Aroma (Vanille)", port:"200 ml", kcal:312, p:6.7, kh:16.7},
+  {cat:"Getränke", name:"Frappé Diät", port:"200 ml", kcal:173, p:7.8, kh:15.8},
+  {cat:"Getränke", name:"Frappé Frucht", port:"200 ml", kcal:242, p:7.5, kh:11.7},
+  {cat:"Getränke", name:"Frappé laktosefrei", port:"200 ml", kcal:247, p:7.8, kh:19.3},
+  {cat:"Getränke", name:"Frappé Proteinreich", port:"200 ml", kcal:330, p:11.3, kh:16.7},
+  {cat:"Getränke", name:"Frappé Schokolade", port:"200 ml", kcal:310, p:6.3, kh:17.6},
+  {cat:"Getränke", name:"Gemüsesaft (Biotta)", port:"200 ml", kcal:56, p:1.6, kh:10},
+  {cat:"Getränke", name:"Kaffee", port:"200 ml", kcal:4, p:0.2, kh:0.6},
+  {cat:"Getränke", name:"Kaffee Hag", port:"1.8 g", kcal:0, p:0, kh:0},
+  {cat:"Getränke", name:"Kaffeerahm Portion", port:"12 g", kcal:19, p:0.3, kh:1.4},
+  {cat:"Getränke", name:"Milch kalt", port:"200 ml", kcal:118, p:6.4, kh:9.6},
+  {cat:"Getränke", name:"Milch kalt ohne Laktose", port:"200 ml", kcal:78, p:6.5, kh:6},
+  {cat:"Getränke", name:"Milch kalt Proteinreich", port:"200 ml", kcal:78, p:4, kh:5},
+  {cat:"Getränke", name:"Milch warm", port:"200 ml", kcal:118, p:6.4, kh:9.6},
+  {cat:"Getränke", name:"Milch warm ohne Laktose", port:"200 ml", kcal:78, p:6.6, kh:5},
+  {cat:"Getränke", name:"Milch warm Proteinreich", port:"200 ml", kcal:78, p:17.9, kh:5.5},
+  {cat:"Getränke", name:"Ovomaltine Portionenbeutel", port:"15 g", kcal:56, p:2, kh:11},
+  {cat:"Getränke", name:"Randensaft (Biotta)", port:"200 ml", kcal:88, p:2.4, kh:20},
+  {cat:"Getränke", name:"Rüeblisaft (Biotta)", port:"200 ml", kcal:56, p:0.3, kh:14},
+  {cat:"Getränke", name:"Sojadrink kalt", port:"200 ml", kcal:80, p:7.2, kh:4.2},
+  {cat:"Getränke", name:"Sojadrink warm", port:"200 ml", kcal:80, p:7.2, kh:4.2},
+  {cat:"Getränke", name:"Tomatensaft (Biotta)", port:"200 ml", kcal:31, p:1.5, kh:5.9},
+  // Fruchtsäfte
+  {cat:"Fruchtsäfte", name:"Apfelsaft/Süssmost (Ramseier)", port:"200 ml", kcal:90, p:1, kh:22.6},
+  {cat:"Fruchtsäfte", name:"Apfelschorle (Ramseier)", port:"200 ml", kcal:54, p:1, kh:13.4},
+  {cat:"Fruchtsäfte", name:"Multivitaminsaft (Lufrutta)", port:"200 ml", kcal:96, p:1, kh:24},
+  {cat:"Fruchtsäfte", name:"Orangensaft (Pistor)", port:"200 ml", kcal:88, p:1.4, kh:20},
+  {cat:"Fruchtsäfte", name:"Tomatensaft rot (Ramseier)", port:"200 ml", kcal:59, p:1, kh:34.8},
+  // Suppe
+  {cat:"Suppe", name:"Bouillon +++", port:"200 ml", kcal:114, p:9, kh:12},
+  {cat:"Suppe", name:"Bouillon natur", port:"200 ml", kcal:7, p:0, kh:2},
+  {cat:"Suppe", name:"Cremesuppe", port:"200 ml", kcal:56, p:1, kh:8},
+  {cat:"Suppe", name:"Cremesuppe +++", port:"200 ml", kcal:161, p:10, kh:18},
+  {cat:"Suppe", name:"Haferschleimsuppe", port:"200 ml", kcal:65, p:1, kh:13},
+  {cat:"Suppe", name:"Haferschleimsuppe +++", port:"200 ml", kcal:142, p:10, kh:16, neu:true},
+  // Saucen
+  {cat:"Saucen", name:"Bratensauce", port:"80 g", kcal:42, p:1.3, kh:3.7},
+  {cat:"Saucen", name:"Ketchup Portion (Thomy)", port:"20 g", kcal:20, p:0.2, kh:4.6},
+  {cat:"Saucen", name:"Mayo Portion (Thomy)", port:"20 g", kcal:148, p:0.2, kh:0.1},
+  {cat:"Saucen", name:"Rahmsauce", port:"80 g", kcal:134, p:2.4, kh:2.1},
+  {cat:"Saucen", name:"Senf Portion (Thomy)", port:"20 g", kcal:20, p:1.3, kh:0.8},
+  {cat:"Saucen", name:"Tomatensauce", port:"80 g", kcal:55, p:1.1, kh:7.8},
+  // Beilagen
+  {cat:"Beilagen", name:"Griess", port:"200 g", kcal:186, p:9.4, kh:22.6},
+  {cat:"Beilagen", name:"Gschwelli Kartoffeln", port:"100 g", kcal:66, p:1.8, kh:13.6},
+  {cat:"Beilagen", name:"Kartoffelstock", port:"180 g", kcal:146, p:4, kh:21},
+  {cat:"Beilagen", name:"Kartoffelstock +++", port:"180 g", kcal:253, p:13, kh:31, neu:true},
+  {cat:"Beilagen", name:"Polenta fein", port:"150 g", kcal:119, p:3, kh:24.8},
+  {cat:"Beilagen", name:"Pommes frites", port:"150 g", kcal:429, p:4.8, kh:48.6},
+  {cat:"Beilagen", name:"Reis", port:"130 g", kcal:150, p:3, kh:34},
+  {cat:"Beilagen", name:"Risotto Beilage", port:"150 g", kcal:215, p:6.3, kh:34.7},
+  {cat:"Beilagen", name:"Risotto Menü", port:"300 g", kcal:636, p:12, kh:72},
+  {cat:"Beilagen", name:"Rösti", port:"250 g", kcal:280, p:4.9, kh:43},
+  {cat:"Beilagen", name:"Spaghetti", port:"250 g", kcal:342, p:12, kh:66},
+  {cat:"Beilagen", name:"Teigwaren (Beilage)", port:"130 g", kcal:178, p:7, kh:34},
+  {cat:"Beilagen", name:"Tortelloni mit Spinat und Ricotta", port:"300 g", kcal:564, p:25.5, kh:91.8},
+  // Gemüse
+  {cat:"Gemüse", name:"Erbsen", port:"80 g", kcal:80, p:4, kh:7},
+  {cat:"Gemüse", name:"Rahmspinat", port:"80 g", kcal:66, p:2.8, kh:4},
+  {cat:"Gemüse", name:"Rüebi", port:"80 g", kcal:35, p:0.6, kh:6.4},
+  {cat:"Gemüse", name:"Zucchetti", port:"80 g", kcal:14, p:1, kh:1.5},
+  // Proteinkomponente warm
+  {cat:"Proteinkomponente warm", name:"Fischstäbchen", port:"120 g", kcal:362, p:19.2, kh:20.2},
+  {cat:"Proteinkomponente warm", name:"Kalbsbratwurst ohne Schwein", port:"130 g", kcal:280, p:17.2, kh:1.7},
+  {cat:"Proteinkomponente warm", name:"Kalbschnitzel", port:"120 g", kcal:222, p:32.2, kh:0},
+  {cat:"Proteinkomponente warm", name:"Omelette", port:"150 g", kcal:267, p:17.9, kh:5.2, neu:true},
+  {cat:"Proteinkomponente warm", name:"Omelette mit Gemüsestreifen", port:"150 g", kcal:240, p:15.2, kh:3.7, neu:true},
+  {cat:"Proteinkomponente warm", name:"Plant based Steak (vegan)", port:"200 g", kcal:346, p:28, kh:13.8},
+  {cat:"Proteinkomponente warm", name:"Poulettbrust nature", port:"130 g", kcal:169, p:34, kh:0.3},
+  {cat:"Proteinkomponente warm", name:"Poulettbrust paniert", port:"140 g", kcal:297, p:19.6, kh:22.4},
+  {cat:"Proteinkomponente warm", name:"Rindsbolognaisse", port:"100 g", kcal:161, p:15, kh:5},
+  {cat:"Proteinkomponente warm", name:"Rindsstereckte", port:"150 g", kcal:228, p:36.2, kh:1.6},
+  {cat:"Proteinkomponente warm", name:"Rührei", port:"100 g", kcal:147, p:11.2, kh:1.6},
+  {cat:"Proteinkomponente warm", name:"Schweinssteak", port:"150 g", kcal:242, p:28.5, kh:1.5},
+  {cat:"Proteinkomponente warm", name:"Spiegelei", port:"60 g", kcal:117, p:7.8, kh:0.6},
+  {cat:"Proteinkomponente warm", name:"Pinsa Verdura", port:"300 g", kcal:848, p:24.8, kh:87},
+  {cat:"Proteinkomponente warm", name:"Pinsa Prosciutto & Funghi", port:"300 g", kcal:840, p:36, kh:81},
+  // Kalte Teller
+  {cat:"Kalte Teller", name:"Aufschnitt-Käseteller", port:"200 g", kcal:590, p:57.4, kh:1.6},
+  {cat:"Kalte Teller", name:"Aufschnittteller", port:"200 g", kcal:496, p:25.6, kh:2},
+  {cat:"Kalte Teller", name:"Fruchtwähe gemischt", port:"250 g", kcal:384, p:7, kh:46},
+  {cat:"Kalte Teller", name:"Käseteller", port:"200 g", kcal:591, p:36.9, kh:12.6},
+  {cat:"Kalte Teller", name:"Lachsteller", port:"250 g", kcal:433, p:58, kh:0},
+  {cat:"Kalte Teller", name:"Salamiteller", port:"300 g", kcal:987, p:63.2, kh:0},
+  {cat:"Kalte Teller", name:"Schinken 3 Scheiben", port:"50 g", kcal:55, p:9.5, kh:0},
+  {cat:"Kalte Teller", name:"Trockenfleischstücke", port:"300 g", kcal:489, p:117.9, kh:12.6},
+  {cat:"Kalte Teller", name:"Trockenfleischstücke ohne Schwein", port:"300 g", kcal:570, p:117.9, kh:1.2},
+  {cat:"Kalte Teller", name:"Truthenschinken 3 Scheiben", port:"50 g", kcal:47, p:7.5, kh:0},
+  {cat:"Kalte Teller", name:"Wienerli 1 Stück", port:"50 g", kcal:152, p:6.5, kh:0},
+  {cat:"Kalte Teller", name:"Wurst-Käsesalat", port:"250 g", kcal:655, p:34.5, kh:1.8},
+  {cat:"Kalte Teller", name:"Wurstsalat", port:"250 g", kcal:560, p:17.8, kh:3.3},
+  // Salat
+  {cat:"Salat", name:"Blattsalat", port:"80 g", kcal:14, p:1, kh:1.3},
+  {cat:"Salat", name:"Blattsalat mit Ei", port:"120 g", kcal:76, p:5.6, kh:1.4, neu:true},
+  {cat:"Salat", name:"Blattsalat mit Feta", port:"140 g", kcal:179, p:4.3, kh:1.9, neu:true},
+  {cat:"Salat", name:"Blattsalat mit Hülsenfrucht", port:"130 g", kcal:78, p:4.8, kh:8.7, neu:true},
+  {cat:"Salat", name:"Blattsalat mit Hüttenkäse", port:"120 g", kcal:54, p:5, kh:2.3, neu:true},
+  {cat:"Salat", name:"Blattsalat mit Linsen rot", port:"100 g", kcal:37, p:6.5, kh:4.4, neu:true},
+  {cat:"Salat", name:"Blattsalat mit Mozzarella", port:"110 g", kcal:100, p:5.9, kh:1.5, neu:true},
+  {cat:"Salat", name:"Gemischter Salat", port:"140 g", kcal:150, p:2, kh:4, neu:true},
+  {cat:"Salat", name:"Gemischter Salat mit Ei", port:"140 g", kcal:198, p:6, kh:4.1, neu:true},
+  {cat:"Salat", name:"Gemischter Salat mit Feta", port:"160 g", kcal:315, p:5.3, kh:4.6, neu:true},
+  {cat:"Salat", name:"Gemischter Salat mit Hülsenfrüchten", port:"150 g", kcal:210, p:5.8, kh:11.4, neu:true},
+  {cat:"Salat", name:"Gemischter Salat mit Hüttenkäse", port:"140 g", kcal:190, p:6, kh:4.2, neu:true},
+  {cat:"Salat", name:"Gemischter Salat mit Linsen rot", port:"130 g", kcal:173, p:5.8, kh:7.1, neu:true},
+  {cat:"Salat", name:"Gemischter Salat mit Mozzarella", port:"180 g", kcal:227, p:4.5, kh:4.2, neu:true},
+  {cat:"Salat", name:"Gurkensalat", port:"80 g", kcal:70, p:0.5, kh:12.6},
+  {cat:"Salat", name:"Kartoffelsalat", port:"80 g", kcal:88, p:1.3, kh:9.6},
+  {cat:"Salat", name:"Rahmkraut", port:"80 g", kcal:38, p:1, kh:7.3},
+  {cat:"Salat", name:"Rüeblisalat", port:"80 g", kcal:78, p:0.6, kh:15.3},
+  {cat:"Salat", name:"Salateller mit 1 Ei", port:"350 g", kcal:200, p:2.9, kh:4.5, neu:true},
+  {cat:"Salat", name:"Salateller mit Hüttenkäse", port:"350 g", kcal:215, p:12.4, kh:17},
+  {cat:"Salat", name:"Tomaten-Mozzarellasalat", port:"80 g", kcal:106, p:7.9, kh:1.5},
+  // Dressing
+  {cat:"Dressing", name:"Französische Salatsauce", port:"33 ml", kcal:77, p:0, kh:0},
+  {cat:"Dressing", name:"Italienische Salatsauce", port:"33 ml", kcal:109, p:0, kh:0},
+  // Dessert
+  {cat:"Dessert", name:"Fruchtsalat", port:"100 g", kcal:55, p:0, kh:11},
+  {cat:"Dessert", name:"Glacebecher Erdbeere", port:"100 ml", kcal:174, p:2.9, kh:24.5},
+  {cat:"Dessert", name:"Glacebecher Light", port:"100 ml", kcal:138, p:4, kh:20.3},
+  {cat:"Dessert", name:"Glacebecher Mokka", port:"100 ml", kcal:212, p:3.6, kh:28},
+  {cat:"Dessert", name:"Glacebecher Schoko", port:"100 ml", kcal:202, p:2.5, kh:24.1},
+  {cat:"Dessert", name:"Glacebecher Vanille", port:"100 ml", kcal:190, p:2.3, kh:22.8},
+  {cat:"Dessert", name:"Karamelflan", port:"100 g", kcal:172, p:1, kh:40.6},
+  {cat:"Dessert", name:"Kompott", port:"120 g", kcal:60, p:0, kh:7},
+  {cat:"Dessert", name:"Schokocrème", port:"100 ml", kcal:122, p:3.6, kh:20},
+  {cat:"Dessert", name:"Sorbet", port:"100 ml", kcal:124, p:0.2, kh:29.5},
+  {cat:"Dessert", name:"Vanillecrème", port:"100 ml", kcal:109, p:4.3, kh:12.7},
+  // Zusatz / ZMZ
+  {cat:"Zusatz / ZMZ", name:"Apfel", port:"100 g", kcal:52, p:0.3, kh:11.6},
+  {cat:"Zusatz / ZMZ", name:"Banane", port:"100 g", kcal:90, p:1.1, kh:19.7},
+  {cat:"Zusatz / ZMZ", name:"Bauernkäse (Weichkäse)", port:"30 g", kcal:97, p:5.1, kh:0.2},
+  {cat:"Zusatz / ZMZ", name:"Birne", port:"100 g", kcal:58, p:0.5, kh:10.9},
+  {cat:"Zusatz / ZMZ", name:"Emmentaler Sticks", port:"27 g", kcal:108, p:7.8, kh:0.3},
+  {cat:"Zusatz / ZMZ", name:"Gekochtes Ei", port:"50 g", kcal:79, p:6, kh:0.2},
+  {cat:"Zusatz / ZMZ", name:"Gruyère Sticks", port:"27 g", kcal:103, p:7.3, kh:0},
+  {cat:"Zusatz / ZMZ", name:"Joghurt Frucht", port:"125 g", kcal:122, p:4.1, kh:18.7},
+  {cat:"Zusatz / ZMZ", name:"Joghurt Frucht light", port:"125 g", kcal:70, p:5.1, kh:9.7},
+  {cat:"Zusatz / ZMZ", name:"Joghurt laktosefrei", port:"90 g", kcal:184, p:4, kh:5.2},
+  {cat:"Zusatz / ZMZ", name:"Joghurt Mocca", port:"125 g", kcal:100, p:4.3, kh:12.8},
+  {cat:"Zusatz / ZMZ", name:"Joghurt Natur", port:"125 g", kcal:85, p:4.8, kh:6.2},
+  {cat:"Zusatz / ZMZ", name:"Joghurt Vanille", port:"125 g", kcal:127, p:4.1, kh:19.1},
+  {cat:"Zusatz / ZMZ", name:"Kiwi", port:"88 g", kcal:55, p:1.6, kh:14},
+  {cat:"Zusatz / ZMZ", name:"LC1", port:"150 g", kcal:140, p:6.3, kh:18.6},
+  {cat:"Zusatz / ZMZ", name:"Orange", port:"100 g", kcal:45, p:0.8, kh:8},
+  {cat:"Zusatz / ZMZ", name:"Quark Frucht", port:"130 g", kcal:210, p:8.6, kh:18.3},
+  {cat:"Zusatz / ZMZ", name:"Quark nature", port:"120 g", kcal:74, p:12.6, kh:5},
+  {cat:"Zusatz / ZMZ", name:"Tiloiter Sticks", port:"27 g", kcal:90, p:6.5, kh:0},
+  {cat:"Zusatz / ZMZ", name:"Trauben", port:"100 g", kcal:69, p:0.6, kh:18},
+  {cat:"Zusatz / ZMZ", name:"Zimt-Zucker", port:"8 g", kcal:32, p:0.7, kh:7.9},
+  // Süssspeisen
+  {cat:"Süssspeisen", name:"Birchermüsli", port:"250 g", kcal:250, p:5, kh:28},
+  {cat:"Süssspeisen", name:"Birchermüsli laktosefrei", port:"250 g", kcal:250, p:5, kh:28},
+  {cat:"Süssspeisen", name:"Birchermüsli light", port:"250 g", kcal:130, p:11, kh:19},
+  {cat:"Süssspeisen", name:"Birchermüsli püriert", port:"250 g", kcal:250, p:5, kh:28},
+  {cat:"Süssspeisen", name:"Griessbrei (auch laktosefrei)", port:"200 g", kcal:186, p:9.4, kh:22.6},
+  {cat:"Süssspeisen", name:"Haferbrei (auch laktosefrei)", port:"200 g", kcal:374, p:12.4, kh:42.6},
+  {cat:"Süssspeisen", name:"Milchreis (auch laktosefrei)", port:"200 g", kcal:186, p:10.2, kh:38},
+  {cat:"Süssspeisen", name:"Reisbrei (auch laktosefrei)", port:"200 g", kcal:186, p:3.6, kh:58},
+  {cat:"Süssspeisen", name:"Zwiebackbrei (auch laktosefrei)", port:"200 g", kcal:286, p:6.6, kh:57.8},
+  // Brot
+  {cat:"Brot", name:"Gipfeli", port:"40 g", kcal:172, p:4, kh:18},
+  {cat:"Brot", name:"Grahambrötchen", port:"50 g", kcal:107, p:4.4, kh:19.3},
+  {cat:"Brot", name:"Paramealbrot Scheibe", port:"50 g", kcal:130, p:7.2, kh:14},
+  {cat:"Brot", name:"Ruchbrot", port:"50 g", kcal:115, p:5, kh:22},
+  {cat:"Brot", name:"Semmeli", port:"50 g", kcal:123, p:4.6, kh:24.3},
+  {cat:"Brot", name:"Toastbrot", port:"30 g", kcal:100, p:3, kh:14},
+  {cat:"Brot", name:"Vollkornbrötli", port:"50 g", kcal:140, p:6, kh:20},
+  {cat:"Brot", name:"Weggli", port:"50 g", kcal:160, p:5, kh:25},
+  {cat:"Brot", name:"Zopf", port:"50 g", kcal:164, p:5, kh:25},
+  {cat:"Brot", name:"Zwieback 1 Pack / 2 Stk.", port:"11 g", kcal:48, p:2, kh:7},
+  // Brotaufstrich
+  {cat:"Brotaufstrich", name:"Butter", port:"10 g", kcal:75, p:0, kh:0},
+  {cat:"Brotaufstrich", name:"Honig", port:"25 g", kcal:82, p:0, kh:20},
+  {cat:"Brotaufstrich", name:"Konfi / Gelee mit Zucker", port:"25 g", kcal:60, p:0, kh:15},
+  {cat:"Brotaufstrich", name:"Konfi / Gelee light", port:"25 g", kcal:26, p:0, kh:6},
+  {cat:"Brotaufstrich", name:"Nutella", port:"15 g", kcal:80, p:1, kh:9},
+];
+
+// ═══════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════
+const MEAL_NAMES = ['Frühstück', 'Mittagessen', 'Abendessen'];
+// selections[meal][foodIdx] = qty (0 = not selected)
+const selections = [
+  new Array(FOOD_DATA.length).fill(0),
+  new Array(FOOD_DATA.length).fill(0),
+  new Array(FOOD_DATA.length).fill(0),
+];
+let activeMeal = 0; // 0,1,2 = meal tabs; 3 = overview
+
+const CATEGORIES = [...new Set(FOOD_DATA.map(f => f.cat))];
+
+// ═══════════════════════════════════════════
+// ACCORDION BUILD
+// ═══════════════════════════════════════════
+function buildAccordion() {
+  const wrap = document.getElementById('accordionWrap');
+  wrap.innerHTML = '';
+  CATEGORIES.forEach((cat, ci) => {
+    const items = FOOD_DATA.map((f, i) => ({...f, idx: i})).filter(f => f.cat === cat);
+    const div = document.createElement('div');
+    div.className = 'mb-2';
+    div.setAttribute('data-cat-block', ci);
+    div.innerHTML = `
+      <div class="category-header" onclick="toggleCat(${ci})">
+        <span>${cat} <span class="badge bg-white text-secondary ms-1" style="font-size:0.68rem">${items.length}</span></span>
+        <span id="catarrow${ci}">▼</span>
+      </div>
+      <div id="catbody${ci}" style="display:block">
+        <table class="item-table">
+          <thead>
+            <tr>
+              <th style="width:28px"></th>
+              <th>Speise</th>
+              <th style="width:68px">Portion</th>
+              <th style="width:55px" class="kcal-col">kcal</th>
+              <th style="width:60px" class="prot-col">Protein</th>
+              <th style="width:52px" class="kh-col">KH</th>
+              <th style="width:78px">Anzahl</th>
+            </tr>
+          </thead>
+          <tbody id="catrows${ci}"></tbody>
+        </table>
+      </div>`;
+    wrap.appendChild(div);
+  });
+  renderRows();
+}
+
+function toggleCat(ci) {
+  const body = document.getElementById(`catbody${ci}`);
+  const arrow = document.getElementById(`catarrow${ci}`);
+  if (body.style.display === 'none') {
+    body.style.display = 'block'; arrow.textContent = '▼';
+  } else {
+    body.style.display = 'none'; arrow.textContent = '▶';
+  }
+}
+
+function renderRows() {
+  const m = activeMeal;
+  CATEGORIES.forEach((cat, ci) => {
+    const tbody = document.getElementById(`catrows${ci}`);
+    if (!tbody) return;
+    const items = FOOD_DATA.map((f, i) => ({...f, idx: i})).filter(f => f.cat === cat);
+    tbody.innerHTML = '';
+    items.forEach(f => {
+      const qty = selections[m][f.idx];
+      const sel = qty > 0;
+      const tr = document.createElement('tr');
+      tr.className = (sel ? 'sel-row ' : '') + (f.neu ? 'neu-item' : '');
+      tr.setAttribute('data-food-idx', f.idx);
+      tr.innerHTML = `
+        <td><input type="checkbox" class="form-check-input" ${sel ? 'checked' : ''}
+          onchange="toggleItem(${f.idx},this)"></td>
+        <td>${f.name}${f.neu ? '<span class="neu-badge">NEU</span>' : ''}</td>
+        <td style="color:#9ca3af;font-size:0.8rem">${f.port}</td>
+        <td class="kcal-col">${f.kcal}</td>
+        <td class="prot-col">${f.p} g</td>
+        <td class="kh-col">${f.kh} g</td>
+        <td>
+          <div class="qty-ctrl" id="qc${m}_${f.idx}"
+            style="${sel ? '' : 'opacity:.3;pointer-events:none'}">
+            <button class="qty-btn" onclick="changeQty(${f.idx},-0.25)">−</button>
+            <input type="text" class="qty-val" id="qv${m}_${f.idx}" value="${fmtQty(qty||1)}"
+              onchange="setQtyManual(${f.idx},this.value)" onblur="setQtyManual(${f.idx},this.value)">
+            <button class="qty-btn" onclick="changeQty(${f.idx},+0.25)">+</button>
+          </div>
+        </td>`;
+      tbody.appendChild(tr);
+    });
+  });
+}
+
+// ═══════════════════════════════════════════
+// INTERACTION
+// ═══════════════════════════════════════════
+function toggleItem(idx, cb) {
+  const m = activeMeal;
+  selections[m][idx] = cb.checked ? 1 : 0;
+  const tr = cb.closest('tr');
+  const f = FOOD_DATA[idx];
+  tr.className = (cb.checked ? 'sel-row ' : '') + (f.neu ? 'neu-item' : '');
+  const qc = document.getElementById(`qc${m}_${idx}`);
+  if (qc) { qc.style.opacity = cb.checked ? '1' : '0.3'; qc.style.pointerEvents = cb.checked ? 'auto' : 'none'; }
+  updateAll();
+}
+
+function fmtQty(q) {
+  // Show as fraction if not whole number: 0.25→¼, 0.5→½, 0.75→¾, else as number
+  const frac = {0.25:'¼', 0.5:'½', 0.75:'¾'};
+  const dec = Math.round((q % 1) * 100) / 100;
+  const whole = Math.floor(q);
+  if (dec === 0) return `${whole}`;
+  if (whole === 0) return frac[dec] || q.toFixed(2);
+  return `${whole}${frac[dec] || '+'+dec}`;
+}
+
+function parseQtyInput(val) {
+  const v = val.trim().replace(',', '.');
+  const fracs = {'1/4':0.25,'1/2':0.5,'3/4':0.75,'¼':0.25,'½':0.5,'¾':0.75};
+  if (fracs[v] !== undefined) return fracs[v];
+  // Handle "1¼", "1½", "1¾", "2½" etc.
+  for (const [f, n] of Object.entries(fracs)) {
+    const m = v.match(new RegExp('^(\\d+)' + f.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + '$'));
+    if (m) return parseInt(m[1]) + n;
+  }
+  const num = parseFloat(v);
+  return isNaN(num) ? null : num;
+}
+
+function setQtyManual(idx, val) {
+  const m = activeMeal;
+  if (!selections[m][idx]) return;
+  const parsed = parseQtyInput(val);
+  if (parsed === null || parsed <= 0) {
+    // reset to current value
+    const qv = document.getElementById(`qv${m}_${idx}`);
+    if (qv) qv.value = fmtQty(selections[m][idx]);
+    return;
+  }
+  selections[m][idx] = Math.round(Math.min(20, Math.max(0.25, Math.round(parsed*4)/4)) * 100) / 100;
+  const qv = document.getElementById(`qv${m}_${idx}`);
+  if (qv) qv.value = fmtQty(selections[m][idx]);
+  updateAll();
+}
+
+function changeQty(idx, delta) {
+  const m = activeMeal;
+  if (!selections[m][idx]) return;
+  selections[m][idx] = Math.round((Math.max(0.25, Math.min(20, selections[m][idx] + delta))) * 100) / 100;
+  const qv = document.getElementById(`qv${m}_${idx}`);
+  if (qv) qv.value = fmtQty(selections[m][idx]);
+  updateAll();
+}
+
+function switchTab(tab, el) {
+  activeMeal = tab;
+  document.querySelectorAll('.meal-tabs .nav-link').forEach(l => l.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('mealPane').style.display    = tab < 3 ? '' : 'none';
+  document.getElementById('overviewPane').style.display = tab === 3 ? '' : 'none';
+  if (tab < 3) {
+    document.getElementById('clearMealBtn').textContent = `${MEAL_NAMES[tab]} leeren`;
+    document.getElementById('searchInput').value = '';
+    filterItems();
+    renderRows();
+  } else {
+    renderOverview();
+  }
+}
+
+function filterItems() {
+  const q = document.getElementById('searchInput').value.toLowerCase().trim();
+  let visible = 0;
+  document.querySelectorAll('tr[data-food-idx]').forEach(tr => {
+    const idx = parseInt(tr.getAttribute('data-food-idx'));
+    const f = FOOD_DATA[idx];
+    const match = !q || f.name.toLowerCase().includes(q) || f.cat.toLowerCase().includes(q);
+    tr.style.display = match ? '' : 'none';
+    if (match) visible++;
+  });
+  document.getElementById('searchInfo').textContent =
+    q ? `${visible} Treffer` : `${FOOD_DATA.length} Artikel`;
+  // show/hide category blocks if all items hidden
+  CATEGORIES.forEach((cat, ci) => {
+    const rows = document.querySelectorAll(`#catrows${ci} tr[data-food-idx]`);
+    const anyVisible = [...rows].some(r => r.style.display !== 'none');
+    const block = document.querySelector(`[data-cat-block="${ci}"]`);
+    if (block) block.style.display = anyVisible ? '' : 'none';
+  });
+}
+
+function clearCurrentMeal() {
+  const m = activeMeal;
+  if (m >= 3) return;
+  selections[m].fill(0);
+  renderRows();
+  updateAll();
+}
+
+function clearAllMeals() {
+  selections.forEach(s => s.fill(0));
+  if (activeMeal < 3) renderRows();
+  else renderOverview();
+  updateAll();
+}
+
+// ═══════════════════════════════════════════
+// SUMMARY
+// ═══════════════════════════════════════════
+function calcMeal(m) {
+  let kcal=0, p=0, kh=0, cnt=0;
+  selections[m].forEach((qty, i) => {
+    if (qty > 0) { kcal += FOOD_DATA[i].kcal*qty; p += FOOD_DATA[i].p*qty; kh += FOOD_DATA[i].kh*qty; cnt++; }
+  });
+  return {kcal, p, kh, cnt};
+}
+
+function updateAll() {
+  const totals = [0,1,2].map(calcMeal);
+  totals.forEach((t, m) => {
+    document.getElementById(`s${m}_kcal`).textContent = Math.round(t.kcal) + ' kcal';
+    document.getElementById(`s${m}_p`).textContent  = t.p.toFixed(1) + 'g';
+    document.getElementById(`s${m}_kh`).textContent = t.kh.toFixed(1) + 'g';
+    document.getElementById(`cnt${m}`).textContent  = t.cnt;
+  });
+  const gk = totals.reduce((a,t)=>a+t.kcal,0);
+  const gp = totals.reduce((a,t)=>a+t.p,0);
+  const gh = totals.reduce((a,t)=>a+t.kh,0);
+  document.getElementById('sg_kcal').textContent = Math.round(gk) + ' kcal';
+  document.getElementById('sg_p').textContent    = gp.toFixed(1) + 'g';
+  document.getElementById('sg_kh').textContent   = gh.toFixed(1) + 'g';
+
+  // Progress bars
+  const zk = parseFloat(document.getElementById('ziel_kcal')?.value) || 0;
+  const zp = parseFloat(document.getElementById('ziel_prot')?.value) || 0;
+  function setProg(barId, pctId, ist, ziel) {
+    const pct = ziel > 0 ? Math.round(ist / ziel * 100) : 0;
+    const w = ziel > 0 ? Math.min(100, pct) : 0;
+    const color = pct >= 100 ? '#4ade80' : pct >= 75 ? '#fde68a' : '#f87171';
+    document.getElementById(barId).style.width = w + '%';
+    document.getElementById(barId).style.background = color;
+    document.getElementById(pctId).textContent = ziel > 0 ? pct + '%' : '—';
+  }
+  setProg('pb_kcal', 'pct_kcal', gk, zk);
+  setProg('pb_p',    'pct_p',    gp, zp);
+
+  if (activeMeal === 3) renderOverview();
+}
+
+// ═══════════════════════════════════════════
+// OVERVIEW
+// ═══════════════════════════════════════════
+function renderOverview() {
+  [0,1,2].forEach(m => {
+    const t = calcMeal(m);
+    const el = document.getElementById(`ov${m}`);
+    const selected = selections[m].map((qty,i)=>({...FOOD_DATA[i],idx:i,qty})).filter(f=>f.qty>0);
+    if (selected.length === 0) {
+      el.innerHTML = `<div class="empty-meal">Keine Speisen ausgewählt</div>`;
+    } else {
+      const rows = selected.map(f => {
+        const tk = f.kcal * f.qty, tp = f.p * f.qty, tkh = f.kh * f.qty;
+        const qtyStr = f.qty !== 1 ? `<span class="ov-qty">×${fmtQty(f.qty)}</span>` : '';
+        return `<div class="ov-item">
+          <span class="ov-name">${f.name}${f.neu ? '<span class="neu-badge ms-1">NEU</span>' : ''}${qtyStr}</span>
+          <span class="ov-kcal">${Math.round(tk)} kcal &nbsp;
+            <span style="color:var(--blue-dark)">${tp.toFixed(1)} g P</span></span>
+        </div>`;
+      }).join('');
+      el.innerHTML = rows + `
+        <div class="overview-total">
+          <span>${Math.round(t.kcal)} kcal</span>
+          <span style="color:var(--blue-dark)">${t.p.toFixed(1)} g P</span>
+          <span style="color:var(--teal)">${t.kh.toFixed(1)} g KH</span>
+          <span style="color:#6b7280;margin-left:auto">${t.cnt} Pos.</span>
+        </div>`;
+    }
+  });
+}
+
+// ═══════════════════════════════════════════
+// PDF EXPORT
+// ═══════════════════════════════════════════
+function exportPDF() {
+  const allSelected = [0,1,2].some(m => selections[m].some(q => q > 0));
+  if (!allSelected) { alert('Bitte wählen Sie zuerst Speisen aus.'); return; }
+
+  const { jsPDF } = window.jspdf;
+  // A4 Querformat: 297 × 210 mm
+  const doc = new jsPDF({ orientation:'landscape', unit:'mm', format:'a4' });
+
+  const vorname  = document.getElementById('pat_vorname').value.trim();
+  const nachname = document.getElementById('pat_nachname').value.trim();
+  const geburt   = document.getElementById('pat_geburt').value;
+  const kostform = document.getElementById('pat_kostform').value;
+  const zk = parseFloat(document.getElementById('ziel_kcal').value) || 0;
+  const zp = parseFloat(document.getElementById('ziel_prot').value) || 0;
+  const today = new Date().toLocaleDateString('de-CH');
+
+  // === Farben (Farbwelt) ===
+  const C_DARK  = [58, 82, 98];    // #3a5262 Pantone 7699 dunkel
+  const C_MID   = [94, 118, 136];  // #5e7688 Pantone 7699
+  const C_LIGHT = [220, 229, 234]; // hell
+  const C_MEAL  = [[58,82,98],[107,138,128],[154,120,96]]; // Frühstück/Mittag/Abend
+  const C_MLIGHT= [[220,229,234],[220,232,228],[240,230,222]];
+  const C_YEL   = [239,218,143]; // #efda8f Pantone 4001
+  const C_WARM  = [220,215,210]; // #dcd7d2 Pantone 7527
+  const LABELS  = ['Frühstück','Mittagessen','Abendessen'];
+
+  // === Header ===
+  const hasPatient = vorname||nachname||geburt||kostform||zk||zp;
+  const headerH = hasPatient ? 28 : 18;
+  doc.setFillColor(...C_DARK);
+  doc.rect(0, 0, 297, headerH, 'F');
+  doc.setTextColor(255,255,255);
+  doc.setFontSize(12); doc.setFont('helvetica','bold');
+  doc.text('Zufuhrberechner Stationär – ASM', 14, 9);
+  doc.setFontSize(8); doc.setFont('helvetica','normal');
+  doc.text(`Nährwertauswertung  |  Datum: ${today}`, 14, 15);
+  if (hasPatient) {
+    const patName = [vorname, nachname].filter(Boolean).join(' ') || '—';
+    const geburtFmt = geburt ? new Date(geburt).toLocaleDateString('de-CH') : '';
+    const parts = [];
+    if (patName !== '—') parts.push(`Patient: ${patName}`);
+    if (geburtFmt) parts.push(`Geb.: ${geburtFmt}`);
+    if (kostform) parts.push(`Kostform: ${kostform}`);
+    if (zk) parts.push(`Ziel Energie: ${zk} kcal`);
+    if (zp) parts.push(`Ziel Protein: ${zp} g`);
+    doc.setFontSize(8.5);
+    doc.text(parts.join('   |   '), 14, 23);
+  }
+
+  // === 3 Spalten nebeneinander ===
+  const startY = headerH + 5;
+  // 3 gleiche Spalten: je 85mm, Abstände 5mm, ab x=14
+  const colW = 85;
+  const colX = [14, 105, 196];
+  const grandTotals = {kcal:0, p:0, kh:0};
+  const finalYs = [startY, startY, startY];
+
+  [0,1,2].forEach(m => {
+    const sel = selections[m].map((qty,i)=>({...FOOD_DATA[i],idx:i,qty})).filter(f=>f.qty>0);
+    const t = calcMeal(m);
+    grandTotals.kcal += t.kcal; grandTotals.p += t.p; grandTotals.kh += t.kh;
+
+    const rows = [];
+    // Titel-Zeile (colSpan:5)
+    rows.push([{content: LABELS[m], colSpan:5, styles:{
+      fillColor:C_MEAL[m], textColor:[255,255,255],
+      fontStyle:'bold', fontSize:10,
+      cellPadding:{top:3,bottom:3,left:3,right:3}
+    }}]);
+    // Spalten-Header (5 Spalten)
+    rows.push([
+      {content:'Speise', styles:{fontStyle:'bold', fillColor:C_WARM, textColor:[50,50,50], fontSize:7.5}},
+      {content:'Anz.',   styles:{fontStyle:'bold', fillColor:C_WARM, textColor:[50,50,50], fontSize:7.5, halign:'center'}},
+      {content:'kcal',   styles:{fontStyle:'bold', fillColor:C_WARM, textColor:[138,106,80], fontSize:7.5, halign:'right'}},
+      {content:'P g',    styles:{fontStyle:'bold', fillColor:C_WARM, textColor:[58,82,98], fontSize:7.5, halign:'right'}},
+      {content:'KH g',   styles:{fontStyle:'bold', fillColor:C_WARM, textColor:[107,138,128], fontSize:7.5, halign:'right'}},
+    ]);
+    if (sel.length === 0) {
+      rows.push([{content:'Keine Auswahl', colSpan:5,
+        styles:{textColor:[170,170,170], fontStyle:'italic', fontSize:7.5}}]);
+    } else {
+      sel.forEach(f => {
+        const tk = f.kcal*f.qty, tp = f.p*f.qty, tkh = f.kh*f.qty;
+        rows.push([
+          f.name + (f.neu ? ' *' : ''),
+          fmtQty(f.qty),
+          f.qty !== 1 ? `${Math.round(tk)}` : `${f.kcal}`,
+          (f.qty !== 1 ? tp : f.p).toFixed(1),
+          (f.qty !== 1 ? tkh : f.kh).toFixed(1),
+        ]);
+      });
+    }
+    // Total-Zeile (colSpan:2 für Name+Anz)
+    rows.push([
+      {content:'Total', colSpan:2,
+       styles:{fontStyle:'bold', fillColor:C_MEAL[m], textColor:[255,255,255], fontSize:8.5}},
+      {content:`${Math.round(t.kcal)}`,
+       styles:{fontStyle:'bold', fillColor:C_MEAL[m], textColor:C_YEL, halign:'right', fontSize:8.5}},
+      {content:`${t.p.toFixed(1)}`,
+       styles:{fontStyle:'bold', fillColor:C_MEAL[m], textColor:[210,225,230], halign:'right', fontSize:8.5}},
+      {content:`${t.kh.toFixed(1)}`,
+       styles:{fontStyle:'bold', fillColor:C_MEAL[m], textColor:[210,225,230], halign:'right', fontSize:8.5}},
+    ]);
+
+    doc.autoTable({
+      startY: startY,
+      margin: {left: colX[m], right: 297 - colX[m] - colW},
+      tableWidth: colW,
+      head: [],
+      body: rows,
+      styles: {fontSize:8, cellPadding:1.8, overflow:'ellipsize'},
+      columnStyles: {
+        0:{cellWidth:37},
+        1:{cellWidth:6, halign:'center'},
+        2:{cellWidth:14, halign:'right'},
+        3:{cellWidth:14, halign:'right'},
+        4:{cellWidth:14, halign:'right'},
+      },
+      alternateRowStyles: {fillColor: C_MLIGHT[m]},
+      didDrawPage: (data) => {
+        doc.setFontSize(7); doc.setTextColor(160);
+        doc.text(`Seite ${data.pageNumber}`, 283, 206, {align:'right'});
+      }
+    });
+    finalYs[m] = doc.lastAutoTable.finalY;
+  });
+
+  // === Gesamt-Total ===
+  const totalY = Math.max(...finalYs) + 6;
+  if (totalY < 198) {
+    const hasT = zk > 0 || zp > 0;
+    const boxH = hasT ? 16 : 11;
+    doc.setFillColor(...C_DARK);
+    doc.roundedRect(14, totalY, 269, boxH, 2, 2, 'F');
+    doc.setTextColor(255,255,255); doc.setFontSize(8.5); doc.setFont('helvetica','bold');
+    doc.text('TAGESGESAMTTOTAL', 18, totalY+7);
+    doc.setFontSize(11);
+    const pctK = zk > 0 ? ` (${Math.round(grandTotals.kcal/zk*100)}%)` : '';
+    const pctP = zp > 0 ? ` (${Math.round(grandTotals.p/zp*100)}%)` : '';
+    const totalLine = `${Math.round(grandTotals.kcal)} kcal${pctK}  |  ${grandTotals.p.toFixed(1)} g Protein${pctP}  |  ${grandTotals.kh.toFixed(1)} g KH`;
+    doc.text(totalLine, 70, totalY+7);
+    if (hasT) {
+      const z = [];
+      if (zk) z.push(`Ziel Energie: ${zk} kcal`);
+      if (zp) z.push(`Ziel Protein: ${zp} g`);
+      doc.setFontSize(7.5); doc.setFont('helvetica','normal');
+      doc.setTextColor(...C_YEL);
+      if (z.length) doc.text(z.join('   |   '), 18, totalY+13);
+    }
+  }
+
+  doc.save(`Zufuhrberechnung_${today.replace(/\./g,'')}.pdf`);
+}
+
+// ═══════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════
+buildAccordion();
+document.getElementById('searchInfo').textContent = `${FOOD_DATA.length} Artikel`;
+document.getElementById('clearMealBtn').textContent = `${MEAL_NAMES[0]} leeren`;
+updateAll();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
