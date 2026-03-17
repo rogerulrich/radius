@@ -55,8 +55,8 @@
 
   .food-card { background: var(--card); border: 1.5px solid var(--border); border-radius: 11px; padding: 12px 14px; display: flex; align-items: center; gap: 10px; transition: border-color 0.2s, box-shadow 0.2s; }
   .food-card.active { border-color: #A2B9AF; box-shadow: 0 0 0 3px rgba(162,185,175,0.18); }
-  .food-info { flex: 1; min-width: 0; }
-  .food-name { font-size: 0.875rem; font-weight: 500; white-space: normal; word-break: break-word; }
+  .food-info { flex: 1; min-width: 0; overflow: hidden; }
+  .food-name { font-size: 0.875rem; font-weight: 500; white-space: normal; overflow-wrap: break-word; word-break: normal; hyphens: auto; }
   .food-protein { font-size: 0.75rem; color: var(--muted); margin-top: 1px; }
   .food-protein span { font-weight: 600; color: var(--accent); }
   .portion-wrap { display: flex; align-items: center; gap: 5px; flex-shrink: 0; }
@@ -538,7 +538,7 @@ function buildUI() {
       card.id = 'card-' + f.idx;
       card.innerHTML =
         '<div class="food-info">' +
-          '<div class="food-name">' + f.name + '</div>' +
+          '<div class="food-name" lang="de">' + f.name + '</div>' +
           '<div class="food-protein"><span>' + f.protein + ' g</span> Protein / Portion (' + f.portion + ')</div>' +
         '</div>' +
         '<div class="portion-wrap">' +
@@ -752,9 +752,9 @@ function exportPDF() {
   // Short form for PDF: e.g. "72.0 kg · ABW" or "72.0 kg · Ist-Gewicht"
   let gewichtPDF = gewichtRaw !== '–' ? gewichtRaw + ' kg' : '–';
   if (cwLabelEl && !cwLabelEl.classList.contains('hidden')) {
-    const modeShort = stateProt.weightMode === 'ibw' ? 'IBW' :
-                      stateProt.weightMode === 'abw' ? 'ABW' :
-                      stateProt.weightMode === 'manual' ? 'Manuell' : 'Ist-Gewicht';
+    const modeShort = stateProt.weightMode === 'ibw' ? 'Idealgewicht (IBW)' :
+                      stateProt.weightMode === 'abw' ? 'Adj. Körpergewicht (ABW)' :
+                      stateProt.weightMode === 'manual' ? 'Manuelles Gewicht' : 'Ist-Gewicht';
     const cwMatch = cwLabelEl.textContent.match(/[\d.]+(?=\s*kg)/);
     const cwKg = cwMatch ? cwMatch[0] : gewichtRaw;
     gewichtPDF = cwKg + ' kg · ' + modeShort;
