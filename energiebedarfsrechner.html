@@ -270,7 +270,7 @@
       <p style="font-size:0.85rem;color:#8aA09a;margin-bottom:0.8rem">Laut ESPEN-Empfehlungen, klinischer Evidenz und bevölkerungsspezifischen Daten (kcal/kg/Tag):</p>
       <div class="field">
         <label>Klinischer Zustand</label>
-        <select id="pathophysio" onchange="state.pathophysioManuallySet=true; document.getElementById('custom-kcal-field').style.display=(this.value==='13'?'block':'none'); calculate()">
+        <select id="pathophysio" onchange="state.pathophysioManuallySet=true; document.getElementById('custom-kcal-field').style.display=(this.value==='14'?'block':'none'); calculate()">
           <optgroup label="── Altersgruppen ──">
             <option value="0">Gesunde Erwachsene (18–65 J.) — Grundumsatz</option>
             <option value="1">Ältere Erwachsene (&gt;65 J.) — 25–30 kcal/kg/Tag</option>
@@ -284,12 +284,13 @@
             <option value="7">Adipositas (nach Idealgewicht) — 20–25 kcal/kg/Tag</option>
             <option value="8">Chronische Nierenerkrankung (Dialyse) — 30–35 kcal/kg/Tag</option>
             <option value="9">Herzinsuffizienz — 22–25 kcal/kg/Tag</option>
-            <option value="10">Lebererkrankung / Zirrhose — 30–40 kcal/kg/Tag</option>
-            <option value="11">Wunden / Dekubitus — 30–35 kcal/kg/Tag</option>
-            <option value="12">Atemwegserkrankung — 30–35 kcal/kg/Tag</option>
+            <option value="10">Pankreatitis (akut &amp; chronisch) — 25–30 kcal/kg/Tag</option>
+            <option value="11">Lebererkrankung / Zirrhose — 30–40 kcal/kg/Tag</option>
+            <option value="12">Wunden / Dekubitus — 30–35 kcal/kg/Tag</option>
+            <option value="13">Atemwegserkrankung — 30–35 kcal/kg/Tag</option>
           </optgroup>
           <optgroup label="── Individuell ──">
-            <option value="13">Individuelle Angabe</option>
+            <option value="14">Individuelle Angabe</option>
           </optgroup>
         </select>
         <div id="custom-kcal-field" style="display:none;margin-top:0.8rem;max-width:260px">
@@ -306,7 +307,7 @@
       <div class="card-title"><span>🥩</span> Proteinbedarf</div>
       <div class="field">
         <label>Proteinempfehlung</label>
-        <select id="proteinRange" onchange="state.proteinManuallySet=true; document.getElementById('custom-protein-field').style.display=(this.value==='12'?'block':'none'); calculate()">
+        <select id="proteinRange" onchange="state.proteinManuallySet=true; document.getElementById('custom-protein-field').style.display=(this.value==='13'?'block':'none'); calculate()">
           <option value="0">Gesunde Erwachsene — 0.8–2.0 g/kg</option>
           <option value="1">Ältere Erwachsene (≥65 J.) / Sarkopenie — 1.0–1.2 g/kg</option>
           <option value="2">Akut krank / postoperativ — 1.2–1.5 g/kg</option>
@@ -314,12 +315,13 @@
           <option value="4">Kritisch krank (schwer katabol / Sepsis) — 1.5–2.0 g/kg</option>
           <option value="5">Wunden / Dekubitus — 1.25–1.5 g/kg</option>
           <option value="6">Verbrennung / Polytrauma — 1.5–2.0 g/kg</option>
-          <option value="7">Zirrhose / Leberinsuffizienz (IBW) — 1.2–1.5 g/kg</option>
-          <option value="8">Niereninsuffizienz (GFR &lt;30, nicht dialysepflichtig) — 0.6–0.8 g/kg</option>
-          <option value="9">Hämodialyse / Peritonealdialyse — 1.2–1.4 g/kg</option>
-          <option value="10">Sport / Training — 1.2–2.0 g/kg</option>
-          <option value="11">Schwangerschaft / Stillzeit — 1.2–1.5 g/kg</option>
-          <option value="12">Individuelle Angabe</option>
+          <option value="7">Pankreatitis (akut &amp; chronisch) — 1.2–1.5 g/kg</option>
+          <option value="8">Zirrhose / Leberinsuffizienz (IBW) — 1.2–1.5 g/kg</option>
+          <option value="9">Niereninsuffizienz (GFR &lt;30, nicht dialysepflichtig) — 0.6–0.8 g/kg</option>
+          <option value="10">Hämodialyse / Peritonealdialyse — 1.2–1.4 g/kg</option>
+          <option value="11">Sport / Training — 1.2–2.0 g/kg</option>
+          <option value="12">Schwangerschaft / Stillzeit — 1.2–1.5 g/kg</option>
+          <option value="13">Individuelle Angabe</option>
         </select>
         <div id="custom-protein-field" style="display:none;margin-top:0.8rem">
           <div style="display:flex;gap:0.75rem;align-items:flex-end">
@@ -433,6 +435,10 @@
         <span class="tag">[P6]</span> Phillips SM, Van Loon LJC. Dietary protein for athletes. <em>J Sports Sci</em> 2011.<br>
         <span class="tag">[P7]</span> Stephens TV et al. Protein requirements during pregnancy. <em>Nutrition</em> 2015.<br>
         <br>
+        <strong style="font-size:0.8rem;color:#6b8a82;letter-spacing:0.04em">PANKREATITIS</strong><br>
+        <span class="tag">[ESPEN-P1]</span> Arvanitakis M, Ockenga J, Bezmarevic M et al. ESPEN Guideline on Clinical Nutrition in Acute and Chronic Pancreatitis. <em>Clin Nutr</em> 2020 · Energiebedarf 25–30 kcal/kg/Tag; Proteinzufuhr 1.2–1.5 g/kg/Tag. Gilt für akute und chronische Pankreatitis. Enterale Ernährung bevorzugt, Beginn innert 24–72 h bei unzureichender oraler Zufuhr.<br>
+        <span class="tag">[ESPEN-P2]</span> Arvanitakis M, Ockenga J, Bezmarevic M et al. ESPEN Practical Guideline on Clinical Nutrition in Acute and Chronic Pancreatitis. <em>Clin Nutr</em> 2024 · Bei schwerer akuter oder chronischer Pankreatitis mit Malabsorption ggf. erhöhter Bedarf; Pankreasenzymsupplementation zur Optimierung der Nährstoffabsorption empfohlen. Regelmässiges Screening auf Mangelernährung und Osteoporose.<br>
+        <br>
         <strong style="font-size:0.8rem;color:#6b8a82;letter-spacing:0.04em">LEBERERKRANKUNG</strong><br>
         <span class="tag">[ESPEN-L1]</span> ESPEN practical guideline: Clinical nutrition in liver disease. <em>Clin Nutr</em> 2019 · 35–40 kcal/kg/Tag; bei Adipositas BMI 30–40: 25–35 kcal/kg/Tag, BMI ≥40: 20–25 kcal/kg/Tag.<br>
         <span class="tag">[ESPEN-L2]</span> Plauth M et al. EASL Clinical Practice Guidelines on nutrition in chronic liver disease. <em>J Hepatol</em> 2019 · Indirekte Kalorimetrie bevorzugt; Proteinzufuhr 1.2–1.5 g/kg/Tag, nicht restriktiv.<br>
@@ -467,6 +473,7 @@ const PATHOPHYSIO = [
   { label: "Adipositas (nach Idealgewicht)", range: [20, 25], ref: "[ESPEN]", group: "Patho" },
   { label: "Chronische Nierenerkrankung (Dialyse)", range: [30, 35], ref: "[ESPEN]", group: "Patho" },
   { label: "Herzinsuffizienz", range: [22, 25], ref: "[ESPEN]", group: "Patho" },
+  { label: "Pankreatitis (akut & chronisch)", range: [25, 30], ref: "[ESPEN-P]", group: "Patho" },
   { label: "Lebererkrankung", range: [30, 40], ref: "[ESPEN-L]", group: "Patho" },
   { label: "Wunden / Dekubitus", range: [30, 35], ref: "[ESPEN]", group: "Patho" },
   { label: "Atemwegserkrankung", range: [30, 35], ref: "[ESPEN]", group: "Patho" },
@@ -481,6 +488,7 @@ const PROTEIN_RANGES = [
   { min: 1.5, max: 2.0, ref: "[P3,P4]" },
   { min: 1.25, max: 1.5, ref: "[W1,W2,W4,W5]" },
   { min: 1.5, max: 2.0, ref: "[P1,P3]" },
+  { min: 1.2, max: 1.5, ref: "[ESPEN-P]" },
   { min: 1.2, max: 1.5, ref: "[P5]" },
   { min: 0.6, max: 0.8, ref: "[P1,P3]" },
   { min: 1.2, max: 1.4, ref: "[P3]" },
@@ -501,6 +509,7 @@ const REFS = {
   '9':  '[9] Mechanick JI et al. Clinical practice guidelines for bariatric surgery. Endocr Pract 2013.',
   '10': '[10] Mechanick JI et al. Post-bariatric surgery nutritional management. Obesity 2020.',
   'ESPEN':   '[ESPEN] ESPEN practical guidelines on clinical nutrition in ICU and critical illness. Clin Nutr (various).',
+  'ESPEN-P': '[ESPEN-P] Arvanitakis M, Ockenga J, Bezmarevic M et al. ESPEN Guideline on Clinical Nutrition in Acute and Chronic Pancreatitis. Clin Nutr 2020 / ESPEN Practical Guideline on Clinical Nutrition in Acute and Chronic Pancreatitis. Clin Nutr 2024.',
   'ESPEN-L': '[ESPEN-L] Bischoff SC et al. ESPEN practical guideline: Clinical nutrition in liver disease. Clin Nutr 2020 / Plauth M et al. EASL Clinical Practice Guidelines on nutrition in chronic liver disease. J Hepatol 2019.',
   'P1': '[P1] Heymsfield SB, Shapses SA. Body Weight: Health and Disease. N Engl J Med 2024.',
   'P2': '[P2] Traylor DA, Gorissen SHM, Phillips SM. Protein Requirements and Optimal Intakes in Aging. Adv Nutr 2018.',
