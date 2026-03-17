@@ -79,6 +79,23 @@
   .sources-table td em { color: var(--muted); font-style: normal; font-size: 0.78rem; display: block; margin-top: 2px; }
   .db-note { margin-top: 14px; font-size: 0.78rem; color: var(--muted); line-height: 1.5; }
 
+  .hidden { display: none !important; }
+  .radio-group { display: flex; flex-wrap: wrap; gap: 6px; }
+  .radio-btn { display: inline-flex; align-items: center; gap: 5px; padding: 6px 12px; border: 1.5px solid var(--border); border-radius: 8px; cursor: pointer; font-size: 0.82rem; color: var(--muted); transition: all 0.15s; user-select: none; }
+  .radio-btn input[type="radio"] { display: none; }
+  .radio-btn.active { border-color: #A2B9AF; background: #eef4f2; color: #3d5a52; font-weight: 600; }
+  .bmi-row { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; margin-top: 0.5rem; font-size: 0.82rem; color: #6b8a82; }
+  .bmi-row strong { color: #3d5a52; }
+  .bmi-badge { font-size: 0.72rem; font-weight: 700; padding: 2px 8px; border-radius: 20px; }
+  .bmi-low { background: #dbeafe; color: #1e40af; }
+  .bmi-normal { background: #dcfce7; color: #166534; }
+  .bmi-over { background: #fef9c3; color: #854d0e; }
+  .bmi-obese { background: #fee2e2; color: #991b1b; }
+  .info-text { font-size: 0.8rem; color: #5c8278; background: #eef4f2; border-radius: 7px; padding: 7px 11px; margin-bottom: 0.6rem; }
+  .calc-weight-label { font-size: 0.8rem; color: #5c8278; margin-top: 0.5rem; font-style: italic; }
+  .weight-section { margin-top: 16px; padding-top: 14px; border-top: 1.5px solid var(--border); }
+  .weight-section-title { font-size: 0.72rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+
   .header-inner { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
   .header-logo { height: 160px; width: auto; object-fit: contain; flex-shrink: 0; margin-right: 24px; }
 
@@ -162,6 +179,21 @@
         <input type="number" id="gewicht" min="20" max="200" placeholder="z.B. 70" oninput="updateBedarf()">
       </div>
       <div class="field">
+        <label>Grösse (cm)</label>
+        <input type="number" id="groesse" min="100" max="220" placeholder="z.B. 170" oninput="updateBedarf()">
+      </div>
+      <div class="field">
+        <label>Geschlecht</label>
+        <div class="radio-group">
+          <label class="radio-btn active" onclick="setSexProt('female', this)">
+            <input type="radio" name="sexProt" value="female" checked /> Weiblich
+          </label>
+          <label class="radio-btn" onclick="setSexProt('male', this)">
+            <input type="radio" name="sexProt" value="male" /> Männlich
+          </label>
+        </div>
+      </div>
+      <div class="field">
         <label>Altersgruppe / Situation</label>
         <select id="altersgruppe" onchange="updateBedarf()">
           <option value="">– wählen –</option>
@@ -205,6 +237,37 @@
         <div class="label">Proteinbedarf</div>
         <div class="value" id="bedarf-display">– g/Tag</div>
       </div>
+    </div>
+
+    <div class="bmi-row" id="bmi-row" style="display:none">
+      <span>BMI: <strong id="bmi-val">—</strong></span>
+      <span class="bmi-badge" id="bmi-badge"></span>
+      <span>Idealgewicht: <strong id="ibw-val">—</strong> kg</span>
+      <span>Adj. Gewicht: <strong id="abw-val">—</strong> kg</span>
+    </div>
+
+    <div class="weight-section">
+      <div class="weight-section-title">⚖️ Gewicht für Berechnung</div>
+      <p class="info-text hidden" id="weight-rec-prot"></p>
+      <div class="radio-group" id="weight-mode-group-prot">
+        <label class="radio-btn active" onclick="setWeightModeProt('actual', this)">
+          <input type="radio" name="weightModeProt" value="actual" checked /> Ist-Gewicht
+        </label>
+        <label class="radio-btn" onclick="setWeightModeProt('ibw', this)">
+          <input type="radio" name="weightModeProt" value="ibw" /> Idealgewicht (IBW)
+        </label>
+        <label class="radio-btn" onclick="setWeightModeProt('abw', this)">
+          <input type="radio" name="weightModeProt" value="abw" /> Adj. Körpergewicht (ABW)
+        </label>
+        <label class="radio-btn" onclick="setWeightModeProt('manual', this)">
+          <input type="radio" name="weightModeProt" value="manual" /> Manuelles Gewicht
+        </label>
+      </div>
+      <div class="field hidden" id="manual-weight-field-prot" style="margin-top:0.8rem;max-width:200px">
+        <label>Gewicht eingeben (kg)</label>
+        <input type="number" id="manualWeightProt" placeholder="kg" oninput="updateBedarf()">
+      </div>
+      <p class="calc-weight-label hidden" id="calc-weight-label-prot"></p>
     </div>
   </div>
 
@@ -416,6 +479,27 @@ const FOODS = [
 const portionen = {};
 let bedarfMin = null, bedarfMax = null;
 
+const stateProt = { weightMode: 'actual', weightModeManuallySet: false, sex: 'female' };
+
+function ibwCalcProt(h, sex) { const base = h - 100; return sex === 'male' ? base * 0.9 : base * 0.85; }
+function abwCalcProt(w, ibw) { return ibw + 0.25 * (w - ibw); }
+
+function setSexProt(val, el) {
+  stateProt.sex = val;
+  document.querySelectorAll('[name="sexProt"]').forEach(r => r.closest('.radio-btn').classList.remove('active'));
+  el.classList.add('active');
+  updateBedarf();
+}
+
+function setWeightModeProt(val, el) {
+  stateProt.weightMode = val;
+  stateProt.weightModeManuallySet = true;
+  document.querySelectorAll('[name="weightModeProt"]').forEach(r => r.closest('.radio-btn').classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('manual-weight-field-prot').classList.toggle('hidden', val !== 'manual');
+  updateBedarf();
+}
+
 function updateAlter() {
   const val = document.getElementById('pat-geburt').value;
   const box = document.getElementById('alter-display-box');
@@ -489,17 +573,86 @@ function updateCard(idx) {
 }
 
 function updateBedarf() {
-  const g = parseFloat(document.getElementById('gewicht').value);
+  const weight = parseFloat(document.getElementById('gewicht').value);
+  const height = parseFloat(document.getElementById('groesse').value);
   const ag = document.getElementById('altersgruppe').value;
   document.getElementById('field-custom').style.display = ag === 'custom' ? '' : 'none';
-  if (!g || !ag) { bedarfMin = bedarfMax = null; updateResult(); return; }
+
+  // BMI / IBW / ABW
+  let bmi = null, ibw = null, abw = null;
+  if (weight > 0 && height > 0) {
+    bmi = weight / ((height / 100) * (height / 100));
+    ibw = ibwCalcProt(height, stateProt.sex);
+    abw = abwCalcProt(weight, ibw);
+    const bmiRow = document.getElementById('bmi-row');
+    bmiRow.style.display = 'flex';
+    document.getElementById('bmi-val').textContent = bmi.toFixed(1);
+    document.getElementById('ibw-val').textContent = ibw.toFixed(1);
+    document.getElementById('abw-val').textContent = abw.toFixed(1);
+    const badge = document.getElementById('bmi-badge');
+    if (bmi < 18.5) { badge.className = 'bmi-badge bmi-low'; badge.textContent = 'Untergewicht'; }
+    else if (bmi < 25) { badge.className = 'bmi-badge bmi-normal'; badge.textContent = 'Normalgewicht'; }
+    else if (bmi < 30) { badge.className = 'bmi-badge bmi-over'; badge.textContent = 'Übergewicht'; }
+    else { badge.className = 'bmi-badge bmi-obese'; badge.textContent = 'Adipositas'; }
+
+    // Auto weight mode recommendation
+    const autoMode = bmi < 18.5 ? 'ibw' : bmi > 25 ? 'abw' : 'actual';
+    const rec = document.getElementById('weight-rec-prot');
+    if (bmi < 18.5) rec.textContent = `Empfehlung (BMI ${bmi.toFixed(1)}): BMI < 18.5 → Idealgewicht (IBW) — automatisch ausgewählt`;
+    else if (bmi > 25) rec.textContent = `Empfehlung (BMI ${bmi.toFixed(1)}): BMI > 25 → Adjusted Body Weight (ABW) — automatisch ausgewählt`;
+    else rec.textContent = `Empfehlung (BMI ${bmi.toFixed(1)}): Ist-Gewicht — automatisch ausgewählt`;
+    rec.classList.remove('hidden');
+
+    if (!stateProt.weightModeManuallySet) {
+      stateProt.weightMode = autoMode;
+      document.querySelectorAll('[name="weightModeProt"]').forEach(r => {
+        r.closest('.radio-btn').classList.toggle('active', r.value === autoMode);
+      });
+      document.getElementById('manual-weight-field-prot').classList.add('hidden');
+    }
+  } else {
+    document.getElementById('bmi-row').style.display = 'none';
+    document.getElementById('weight-rec-prot').classList.add('hidden');
+    if (!stateProt.weightModeManuallySet) {
+      stateProt.weightMode = 'actual';
+      document.querySelectorAll('[name="weightModeProt"]').forEach(r => {
+        r.closest('.radio-btn').classList.toggle('active', r.value === 'actual');
+      });
+    }
+  }
+
+  // Determine calc weight
+  let calcWeight = 0;
+  if (stateProt.weightMode === 'manual') {
+    calcWeight = parseFloat(document.getElementById('manualWeightProt').value) || 0;
+  } else if (stateProt.weightMode === 'ibw' && ibw) {
+    calcWeight = ibw;
+  } else if (stateProt.weightMode === 'abw' && abw) {
+    calcWeight = abw;
+  } else {
+    calcWeight = weight || 0;
+  }
+
+  // Show calc weight label
+  const cwLabel = document.getElementById('calc-weight-label-prot');
+  if (calcWeight > 0) {
+    const modeName = stateProt.weightMode === 'ibw' ? 'Idealgewicht (IBW)' :
+                     stateProt.weightMode === 'abw' ? 'Adjusted Body Weight (ABW)' :
+                     stateProt.weightMode === 'manual' ? 'Manuelles Gewicht' : 'Ist-Gewicht';
+    cwLabel.textContent = `Rechengewicht: ${calcWeight.toFixed(1)} kg (${modeName})`;
+    cwLabel.classList.remove('hidden');
+  } else {
+    cwLabel.classList.add('hidden');
+  }
+
+  if (!calcWeight || !ag) { bedarfMin = bedarfMax = null; updateResult(); return; }
   if (ag === 'custom') {
     const f = parseFloat(document.getElementById('custom-faktor').value);
-    bedarfMin = bedarfMax = f ? Math.round(g * f) : null;
+    bedarfMin = bedarfMax = f ? Math.round(calcWeight * f) : null;
   } else {
     const parts = ag.split('|');
-    bedarfMin = Math.round(g * parseFloat(parts[0]));
-    bedarfMax = parts.length > 1 ? Math.round(g * parseFloat(parts[1])) : bedarfMin;
+    bedarfMin = Math.round(calcWeight * parseFloat(parts[0]));
+    bedarfMax = parts.length > 1 ? Math.round(calcWeight * parseFloat(parts[1])) : bedarfMin;
   }
   updateResult();
 }
@@ -594,7 +747,18 @@ function exportPDF() {
   y = 42;
 
   // Patient / Bedarf box
-  const gewicht = document.getElementById('gewicht').value || '–';
+  const gewichtRaw = document.getElementById('gewicht').value || '–';
+  const cwLabelEl = document.getElementById('calc-weight-label-prot');
+  // Short form for PDF: e.g. "72.0 kg · ABW" or "72.0 kg · Ist-Gewicht"
+  let gewichtPDF = gewichtRaw !== '–' ? gewichtRaw + ' kg' : '–';
+  if (cwLabelEl && !cwLabelEl.classList.contains('hidden')) {
+    const modeShort = stateProt.weightMode === 'ibw' ? 'IBW' :
+                      stateProt.weightMode === 'abw' ? 'ABW' :
+                      stateProt.weightMode === 'manual' ? 'Manuell' : 'Ist-Gewicht';
+    const cwMatch = cwLabelEl.textContent.match(/[\d.]+(?=\s*kg)/);
+    const cwKg = cwMatch ? cwMatch[0] : gewichtRaw;
+    gewichtPDF = cwKg + ' kg · ' + modeShort;
+  }
   const agSelect = document.getElementById('altersgruppe');
   const agText = agSelect.options[agSelect.selectedIndex]?.text || '–';
   const bedarfText = document.getElementById('bedarf-display').textContent;
@@ -608,11 +772,17 @@ function exportPDF() {
   const patLabel = [patVorname, patName].filter(Boolean).join(' ') || '–';
   const geburtFormatted = patGeburt ? new Date(patGeburt).toLocaleDateString('de-CH') : '–';
 
+  // Calculate box height: situation text may wrap
+  const col1x = margin + 5, col2x = margin + colW / 2;
+  const agLines = doc.splitTextToSize('Situation: ' + agText, colW - 10);
+  const extraLines = Math.max(0, agLines.length - 1);
+  const boxH = 52 + extraLines * 5;
+
   doc.setFillColor(...lightGreen);
-  doc.roundedRect(margin, y, colW, 52, 3, 3, 'F');
+  doc.roundedRect(margin, y, colW, boxH, 3, 3, 'F');
   doc.setDrawColor(...green);
   doc.setLineWidth(0.4);
-  doc.roundedRect(margin, y, colW, 52, 3, 3, 'S');
+  doc.roundedRect(margin, y, colW, boxH, 3, 3, 'S');
 
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(9);
@@ -622,15 +792,13 @@ function exportPDF() {
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8.5);
   doc.setTextColor(...text);
-  const col1x = margin + 5, col2x = margin + colW / 2;
   doc.text('Patient/in: ' + patLabel, col1x, y + 17);
   doc.text('Geburtsdatum: ' + geburtFormatted + (patAlter && patAlter !== '– Jahre' ? '  (' + patAlter + ')' : ''), col2x, y + 17);
-  doc.text('Gewicht: ' + gewicht + ' kg', col1x, y + 25);
-  doc.text('Proteinbedarf: ' + bedarfText, col1x, y + 33);
-  const agLines = doc.splitTextToSize('Situation: ' + agText, pageW - margin - col2x - 3);
-  doc.text(agLines, col2x, y + 25);
-  doc.text('Tägliche Ø-Zufuhr: ' + zufuhrText + '  |  Differenz: ' + diffText + '  |  Deckung: ' + pctText, col1x, y + 41);
-  y += 62;
+  doc.text('Gewicht: ' + gewichtPDF, col1x, y + 25);
+  doc.text('Proteinbedarf: ' + bedarfText, col2x, y + 25);
+  doc.text(agLines, col1x, y + 33);
+  doc.text('Tägliche Ø-Zufuhr: ' + zufuhrText + '  |  Differenz: ' + diffText + '  |  Deckung: ' + pctText, col1x, y + 33 + agLines.length * 5 + 3);
+  y += boxH + 10;
 
   // Collect active foods
   const active = [];
