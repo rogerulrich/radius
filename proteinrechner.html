@@ -769,7 +769,11 @@ function exportPDF() {
     gewichtPDF = cwKg + ' kg · ' + modeShort;
   }
   const agSelect = document.getElementById('altersgruppe');
-  const agText = agSelect.options[agSelect.selectedIndex]?.text || '–';
+  const agText = (agSelect.options[agSelect.selectedIndex]?.text || '-')
+    .replace(/\u2013|\u2014/g, '-')   // En-Dash / Em-Dash -> Hyphen
+    .replace(/\u2265/g, '>=')         // ≥
+    .replace(/\u2264/g, '<=')         // ≤
+    .replace(/[^\x00-\xFF]/g, '?');   // restliche Non-Latin-1 Zeichen
   const bedarfText = document.getElementById('bedarf-display').textContent;
   const zufuhrText = document.getElementById('rb-zufuhr').textContent;
   const diffText = document.getElementById('rb-diff').textContent;
