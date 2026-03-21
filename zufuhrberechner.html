@@ -292,8 +292,12 @@ body { background:#f0f4f8; font-size:0.875rem; }
     <!-- MEAL TABS 0,1,2 (shared template, reused) -->
     <div id="mealPane">
       <div class="d-flex align-items-center gap-2 mb-2 mt-2 flex-wrap">
-        <input type="text" id="searchInput" class="form-control form-control-sm"
-          placeholder="🔍 Suchen..." oninput="filterItems()">
+        <div class="d-flex align-items-center" style="position:relative">
+          <input type="text" id="searchInput" class="form-control form-control-sm"
+            placeholder="🔍 Suchen..." oninput="filterItems()" style="padding-right:24px">
+          <button onclick="document.getElementById('searchInput').value='';filterItems();"
+            style="position:absolute;right:5px;border:none;background:none;color:#9ca3af;font-size:1rem;line-height:1;padding:0;cursor:pointer" title="Suche leeren">✕</button>
+        </div>
         <span class="text-muted" style="font-size:0.77rem" id="searchInfo"></span>
         <button class="btn-clear-meal btn" id="clearMealBtn" onclick="clearCurrentMeal()">
           Mahlzeit leeren
