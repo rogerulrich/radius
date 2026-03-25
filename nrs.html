@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nutritional Risk Screening (NRS 2002)</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Arial,sans-serif;font-size:13px;background:#e8ecf0;color:#2c3e50;line-height:1.45}
+.page{max-width:970px;margin:20px auto;background:#fff;box-shadow:0 2px 16px rgba(0,0,0,.14);padding:26px 32px;border-radius:4px}
+
+/* HEADER */
+.hdr{display:flex;align-items:center;gap:16px;padding-bottom:14px;border-bottom:3px solid #1e4d7b;margin-bottom:18px}
+.hdr img{height:64px;object-fit:contain}
+.hdr-t h1{font-size:18px;color:#1e4d7b;font-weight:700}
+.hdr-t .sub{font-size:11px;color:#666;margin-top:2px}
+.hdr-r{margin-left:auto;text-align:right}
+.hdr-r label{font-size:11px;color:#666;display:block;margin-bottom:2px}
+.hdr-r input{border:1px solid #b0bec5;border-radius:3px;padding:4px 8px;font-size:12px}
+
+/* SECTIONS */
+.sec{margin-bottom:14px;border:1px solid #cdd8e3;border-radius:4px;overflow:hidden}
+.sh{background:#1e4d7b;color:#fff;padding:8px 14px;font-weight:700;font-size:13px}
+.sh.lb{background:#2e86c1}
+.sh.gr{background:#1a7a4a}
+.sh.sc{background:#123456;font-size:14px}
+.sb{padding:14px}
+
+/* GRID */
+.pg{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px}
+.fg label{display:block;font-size:11px;color:#555;font-weight:600;margin-bottom:3px}
+.fg input[type=text],.fg input[type=date],.fg input[type=number]{width:100%;border:1px solid #b0bec5;border-radius:3px;padding:6px 8px;font-size:13px}
+.fg input:focus{outline:none;border-color:#1e4d7b;box-shadow:0 0 0 2px rgba(30,77,123,.15)}
+.ac{background:#eaf2fb;border:1px solid #aed6f1;border-radius:3px;padding:6px 8px;font-size:14px;font-weight:700;color:#1e4d7b;min-height:33px}
+.ac.warn{background:#fef9e7;border-color:#f9ca24;color:#9a7d0a}
+.ac.danger{background:#fdedec;border-color:#f1948a;color:#b03a2e}
+
+
+/* OPTION LISTS */
+.ol{list-style:none;padding:0}
+.ol li{padding:5px 8px;border-radius:3px;display:flex;align-items:flex-start;gap:8px;margin:2px 0;cursor:pointer}
+.ol li:hover{background:#f0f5fb}
+.ol li input{margin-top:2px;flex-shrink:0;cursor:pointer}
+.ol li label{cursor:pointer;flex:1}
+.sb-badge{background:#1e4d7b;color:#fff;border-radius:3px;padding:1px 8px;font-size:11px;font-weight:700;flex-shrink:0;align-self:flex-start;white-space:nowrap}
+.sb-badge.s1{background:#2e86c1}
+.sb-badge.s2{background:#d35400}
+.sb-badge.s3{background:#b03a2e}
+
+/* SUB-SECTIONS */
+.ss{margin:8px 0;padding:10px 12px;background:#f8fafc;border-left:3px solid #2e86c1;border-radius:0 3px 3px 0}
+.ss-t{font-weight:700;font-size:12px;color:#1e4d7b;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center}
+.ssc{font-size:11px;background:#e0ecf8;padding:1px 8px;border-radius:10px;color:#1e4d7b}
+
+/* SECTION TITLE IN BODY */
+.sec-t{font-size:14px;font-weight:700;color:#1e4d7b;margin-bottom:8px;padding-bottom:5px;border-bottom:2px solid #eaf2fb;display:flex;justify-content:space-between;align-items:center}
+.sec-t-sc{font-size:12px;background:#1e4d7b;color:#fff;padding:2px 10px;border-radius:3px;font-weight:700}
+.hint{font-size:11px;color:#7f8c8d;font-style:italic;margin-bottom:8px}
+
+/* STRESS DETAIL */
+.sdl{font-size:11px;color:#444;margin-top:5px;padding-left:2px;line-height:1.75}
+.sdl .cat{font-weight:700;color:#1e4d7b}
+.snote{font-size:11px;font-style:italic;color:#7f8c8d;border-top:1px dashed #ccc;margin-top:5px;padding-top:4px}
+.newitem{background:#fffbcc;padding:1px 4px;border-radius:2px;border-left:2px solid #f4d03f}
+
+/* SCORE DISPLAY */
+.score-sec{background:#123456;color:#fff;border-radius:4px;padding:14px;margin-bottom:14px}
+.sg{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:10px}
+.sbox{text-align:center;background:rgba(255,255,255,.12);border-radius:4px;padding:10px 6px}
+.sbox .lbl{font-size:10px;opacity:.85;margin-bottom:4px;line-height:1.3}
+.sbox .val{font-size:28px;font-weight:700}
+.sbox.tot{background:rgba(255,255,255,.25)}
+.ssum{font-size:11px;opacity:.75;text-align:center}
+
+/* CLASSIFICATION */
+.ct{width:100%;border-collapse:collapse;margin-top:10px}
+.ct td{padding:7px 12px;border:1px solid #cdd8e3;font-size:12px}
+.ct tr.act td{background:#fdebd0;font-weight:700;color:#b03a2e}
+
+/* INTERVENTIONS */
+.ib{border-radius:4px;padding:12px 14px;margin-top:8px;border-left:4px solid #ccc;display:none}
+.ib.vis{display:block}
+.ib.r0{border-color:#27ae60;background:#eafaf1}
+.ib.r1{border-color:#f39c12;background:#fef9e7}
+.ib.r2{border-color:#e74c3c;background:#fdedec}
+.ib h4{font-size:12px;margin-bottom:6px}
+.ib ul{padding-left:16px;font-size:12px;line-height:1.8}
+.ib ul ul{margin-top:3px}
+
+/* THERAPIEZIEL */
+.tg{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:12px}
+.yn-lbl{font-size:12px;font-weight:700;margin-bottom:5px}
+.yn-opts{display:flex;gap:16px}
+.yn-opts label{display:flex;align-items:center;gap:5px;cursor:pointer;font-size:13px}
+textarea{width:100%;border:1px solid #b0bec5;border-radius:3px;padding:6px 8px;font-size:13px;resize:vertical;font-family:inherit}
+
+/* BUTTONS */
+.btn-bar{display:flex;gap:10px;justify-content:flex-end;padding-top:14px;border-top:1px solid #e0e6ed;margin-top:14px}
+.btn{padding:10px 22px;border:none;border-radius:4px;cursor:pointer;font-size:13px;font-weight:700;transition:opacity .15s}
+.btn:hover{opacity:.85}
+.btn-pdf{background:#b03a2e;color:#fff}
+.btn-print{background:#1e4d7b;color:#fff}
+.btn-reset{background:#7f8c8d;color:#fff}
+
+/* PRINT */
+@media print{
+  body{background:#fff}
+  .page{box-shadow:none;margin:0;padding:12px;max-width:100%;border-radius:0}
+  .btn-bar{display:none}
+  .ib{display:block!important}
+  .er{display:block!important}
+}
+</style>
+</head>
+<body>
+<div class="page" id="nrs-form">
+
+<!-- HEADER -->
+<div class="hdr">
+  <img src="logo2.jpg" alt="Logo" onerror="this.style.display='none'">
+  <div class="hdr-t">
+    <h1>Nutritional Risk Screening (NRS 2002)</h1>
+    <div class="sub">Kondrup J., Rasmussen HH., Hamburger O., 2002</div>
+  </div>
+  <div class="hdr-r">
+    <label>Datum / Uhrzeit</label>
+    <input type="datetime-local" id="datum">
+  </div>
+</div>
+
+<!-- PATIENTENDATEN -->
+<div class="sec">
+  <div class="sh">Patientendaten</div>
+  <div class="sb">
+    <div class="pg">
+      <div class="fg"><label>Name</label><input type="text" id="name" placeholder="Nachname"></div>
+      <div class="fg"><label>Vorname</label><input type="text" id="vorname" placeholder="Vorname"></div>
+      <div class="fg"><label>Geburtsdatum</label><input type="date" id="geburtsdatum" onchange="updateAge()"></div>
+      <div class="fg"><label>Normalgewicht vor 3 Monaten (kg)</label><input type="number" id="normalgewicht" placeholder="z.B. 75" step="0.1" min="0" oninput="calcGV()"></div>
+      <div class="fg"><label>Aktuelles Gewicht (kg)</label><input type="number" id="aktuell_gew" placeholder="z.B. 70" step="0.1" min="0" oninput="calcAll()"></div>
+      <div class="fg"><label>Grösse (cm)</label><input type="number" id="groesse" placeholder="z.B. 175" step="0.5" min="0" oninput="calcAll()"></div>
+    </div>
+    <div style="display:flex;gap:16px;flex-wrap:wrap;">
+      <div class="fg" style="min-width:170px"><label>BMI (automatisch berechnet)</label><div class="ac" id="bmi-val">– kg/m²</div></div>
+      <div class="fg" style="min-width:150px"><label>Alter</label><div class="ac" id="age-val">–</div></div>
+      <div class="fg" style="min-width:230px"><label>Gewichtsverlust (vs. Normalgewicht vor 3 Mon.)</label><div class="ac" id="gv-val">–</div></div>
+    </div>
+  </div>
+</div>
+
+
+<!-- NRS HAUPTTEIL -->
+<div class="sec">
+  <div class="sh">NRS 2002 – Detaillierte Beurteilung</div>
+  <div class="sb">
+
+    <!-- 1. ERNÄHRUNGSBEURTEILUNG -->
+    <div style="margin-bottom:18px">
+      <div class="sec-t">
+        1. Beeinträchtigung des Ernährungszustandes
+        <span class="sec-t-sc">Score: <span id="ernaehr-sc">0</span></span>
+      </div>
+      <div class="hint">Massgebend ist der höchste Einzelscore aus a), b) und c).</div>
+
+      <!-- a) Gewichtsverlust -->
+      <div class="ss">
+        <div class="ss-t">a) Gewichtsverlust<span class="ssc">Score: <span id="sc-a">0</span></span></div>
+        <ul class="ol">
+          <li><input type="radio" name="gv" id="a0" value="0" onchange="calcScore()" checked>
+              <label for="a0">Kein Gewichtsverlust oder entspricht nicht den untenstehenden Kategorien</label>
+              <span class="sb-badge">0</span></li>
+          <li><input type="radio" name="gv" id="a1" value="1" onchange="calcScore()">
+              <label for="a1">Gewichtsverlust &gt; 5% in 3 Monaten</label>
+              <span class="sb-badge s1">1</span></li>
+          <li><input type="radio" name="gv" id="a2" value="2" onchange="calcScore()">
+              <label for="a2">Gewichtsverlust &gt; 5% in 2 Monaten</label>
+              <span class="sb-badge s2">2</span></li>
+          <li><input type="radio" name="gv" id="a3" value="3" onchange="calcScore()">
+              <label for="a3">Gewichtsverlust &gt; 5% in 1 Monat</label>
+              <span class="sb-badge s3">3</span></li>
+        </ul>
+      </div>
+
+      <!-- b) BMI / AZ -->
+      <div class="ss">
+        <div class="ss-t">
+          b) BMI / Allgemeinzustand (AZ)
+          <span style="font-size:10px;color:#2e86c1;font-weight:400;margin-left:6px">Berechneter BMI: <span id="bmi-ref">–</span></span>
+          <span class="ssc" style="margin-left:auto">Score: <span id="sc-b">0</span></span>
+        </div>
+        <ul class="ol">
+          <li id="b0li"><input type="radio" name="bmi_az" id="b0" value="0" onchange="calcScore()" checked>
+              <label for="b0">BMI &gt; 20.5 kg/m²</label>
+              <span class="sb-badge">0</span></li>
+          <li id="b2li"><input type="radio" name="bmi_az" id="b2" value="2" onchange="calcScore()">
+              <label for="b2">BMI zwischen 18.5 und 20.5 kg/m² <em>und</em> reduzierter Allgemeinzustand</label>
+              <span class="sb-badge s2">2</span></li>
+          <li id="b3li"><input type="radio" name="bmi_az" id="b3" value="3" onchange="calcScore()">
+              <label for="b3">BMI &lt; 18.5 kg/m² <em>und</em> reduzierter Allgemeinzustand</label>
+              <span class="sb-badge s3">3</span></li>
+        </ul>
+        <div style="font-size:11px;color:#7f8c8d;margin-top:5px;font-style:italic">Hinweis: Bei Ödemen, Aszites oder Adipositas den BMI durch klinische Einschätzung ersetzen.</div>
+      </div>
+
+      <!-- c) Essverhalten -->
+      <div class="ss">
+        <div class="ss-t">c) Essverhalten (100% = normale Essensmenge)<span class="ssc">Score: <span id="sc-c">0</span></span></div>
+        <ul class="ol">
+          <li><input type="radio" name="ess" id="c0" value="0" onchange="calcScore()" checked>
+              <label for="c0">Hat nicht weniger gegessen als üblich (75–100% des Bedarfs)</label>
+              <span class="sb-badge">0</span></li>
+          <li><input type="radio" name="ess" id="c1" value="1" onchange="calcScore()">
+              <label for="c1">Hat in der letzten Woche etwas weniger gegessen (50–75% des Bedarfs)</label>
+              <span class="sb-badge s1">1</span></li>
+          <li><input type="radio" name="ess" id="c2" value="2" onchange="calcScore()">
+              <label for="c2">Hat in der letzten Woche etwas weniger als die Hälfte gegessen (25–50% des Bedarfs)</label>
+              <span class="sb-badge s2">2</span></li>
+          <li><input type="radio" name="ess" id="c3" value="3" onchange="calcScore()">
+              <label for="c3">Hat in der letzten Woche praktisch nicht gegessen (0–25% des Bedarfs)</label>
+              <span class="sb-badge s3">3</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 2. STRESSMETABOLISMUS -->
+    <div style="margin-bottom:18px">
+      <div class="sec-t">
+        2. Art der Erkrankung (Schwere des Stressmetabolismus)
+        <span class="sec-t-sc">Score: <span id="stress-sc">0</span></span>
+      </div>
+
+      <ul class="ol">
+        <!-- 0 Punkte -->
+        <li style="align-items:flex-start">
+          <input type="radio" name="stress" id="s0" value="0" onchange="calcScore()" checked style="margin-top:3px">
+          <label for="s0" style="flex:1"><strong>Kein Stressmetabolismus</strong> — Abklärung</label>
+          <span class="sb-badge">0</span>
+        </li>
+
+        <!-- 1 Punkt -->
+        <li style="align-items:flex-start">
+          <input type="radio" name="stress" id="s1" value="1" onchange="calcScore()" style="margin-top:3px">
+          <label for="s1" style="flex:1">
+            <strong>Leichter Stressmetabolismus — 1 Punkt</strong><br>
+            <span style="font-size:11px;color:#555">Hospitalisation auf Grund akuter Komplikationen bei chronischer Krankheit</span>
+            <div class="sdl">
+              <div><span class="cat">Chirurgie:</span> Cholezystektomie, Hüftfraktur, laparoskopische Eingriffe</div>
+              <div><span class="cat">Endo:</span> Diabetes</div>
+              <div><span class="cat">Gastro:</span> Gastrointestinale Blutung, Leber-TX, Leberzirrhose</div>
+              <div><span class="cat">Häma:</span> Knochenmarktransplantation &gt;100 Tage ohne Darm-GVHD</div>
+              <div><span class="cat">Kardio:</span> Herzinfarkt, Herzinsuffizienz, Herzklappenfehler, Herzrhythmusstörungen, KHK, PAVK, Thrombose</div>
+              <div><span class="cat">Nephro:</span> Chronische Hämodialyse; Nieren-TX</div>
+              <div><span class="cat">Neuro:</span> ALS, CVI, MS ohne Dysphagie, Demenz, Delir, Epilepsie, Parkinson, PNP</div>
+              <div><span class="cat">Onko:</span> Strahlentherapie</div>
+              <div><span class="cat">Pneumo:</span> Asthma, COPD, Lungenembolie, pulmonale Hypertonie</div>
+              <div class="snote">⚠ + mit Fieber und/oder CRP-Erhöhung = mässiger Stressmetabolismus (2 Punkte)</div>
+            </div>
+          </label>
+          <span class="sb-badge s1">1</span>
+        </li>
+
+        <!-- 2 Punkte -->
+        <li style="align-items:flex-start">
+          <input type="radio" name="stress" id="s2" value="2" onchange="calcScore()" style="margin-top:3px">
+          <label for="s2" style="flex:1">
+            <strong>Mässiger Stressmetabolismus — 2 Punkte</strong>
+            <div class="sdl">
+              <div><span class="cat">Chirurgie:</span> Grosse Bauchoperationen, wiederholte chirurgische Eingriffe</div>
+              <div><span class="cat">Derma:</span> Grosse Wunden und Ulcera</div>
+              <div><span class="cat">Gastro:</span> Colitis, chronisch entzündliche Darmerkrankungen, Gastroenteritis, Ileus</div>
+              <div><span class="cat">Häma:</span> Schwere hämatologische Erkrankungen, Stammzelltransplantation: &lt;100 Tage, &gt;100 Tage mit Darm-GVHD</div>
+              <div class="newitem"><span class="cat">Infekt:</span> Fieber mit CRP-Erhöhung ab 50 mg/l; Fieber in Neutropenie, offene TBC, unklare generalisierte Infektionen</div>
+              <div><span class="cat">Nephro:</span> Akutes Nierenversagen</div>
+              <div><span class="cat">Neuro:</span> ALS, CVI, MS mit Dysphagie</div>
+              <div><span class="cat">Onko:</span> Chemotherapie, maligne onkologische Erkrankungen</div>
+              <div><span class="cat">Pneumo:</span> Cystische Fibrose mit respiratorischer Insuffizienz, Lungenerkrankungen mit globaler respiratorischer Insuffizienz, schwere Pneumonie</div>
+            </div>
+          </label>
+          <span class="sb-badge s2">2</span>
+        </li>
+
+        <!-- 3 Punkte -->
+        <li style="align-items:flex-start">
+          <input type="radio" name="stress" id="s3" value="3" onchange="calcScore()" style="margin-top:3px">
+          <label for="s3" style="flex:1">
+            <strong>Schwerer Stressmetabolismus — 3 Punkte</strong>
+            <div class="sdl">
+              <div><span class="cat">Gastro:</span> Schwere akute Pankreatitis</div>
+              <div><span class="cat">Chirurgie/Infekt/Intensiv:</span> Knochen-, Knochenmark- und Stammzelltransplantationen</div>
+              <div><span class="cat">Infekt:</span> Schwere Infektionen (Sepsis)</div>
+              <div><span class="cat">Intensiv:</span> Intensivpatienten (APACHE II &gt; 10), SHT, Verbrennungen &gt; 50% der KOF</div>
+            </div>
+          </label>
+          <span class="sb-badge s3">3</span>
+        </li>
+      </ul>
+    </div>
+
+    <!-- 3. ALTER -->
+    <div>
+      <div class="sec-t">
+        3. Alter
+        <span class="sec-t-sc">Score: <span id="age-sc">0</span></span>
+      </div>
+      <ul class="ol">
+        <li><input type="radio" name="alter" id="ag0" value="0" onchange="calcScore()" checked>
+            <label for="ag0">Alter &lt; 70 Jahre</label>
+            <span class="sb-badge">0</span></li>
+        <li><input type="radio" name="alter" id="ag1" value="1" onchange="calcScore()">
+            <label for="ag1">Alter ≥ 70 Jahre</label>
+            <span class="sb-badge s1">+1</span></li>
+      </ul>
+    </div>
+
+  </div><!-- /sb -->
+</div><!-- /sec NRS -->
+
+<!-- GESAMTSCORE -->
+<div class="score-sec" id="score-sec">
+  <div class="sg">
+    <div class="sbox">
+      <div class="lbl">Ernährungsbeurteilung<br>(max aus a, b, c)</div>
+      <div class="val" id="d-ernaehr">0</div>
+    </div>
+    <div class="sbox">
+      <div class="lbl">Stressmetabolismus</div>
+      <div class="val" id="d-stress">0</div>
+    </div>
+    <div class="sbox">
+      <div class="lbl">Alter ≥ 70 Jahre</div>
+      <div class="val" id="d-age">0</div>
+    </div>
+    <div class="sbox tot">
+      <div class="lbl">Gesamtscore NRS</div>
+      <div class="val" id="d-total">0</div>
+    </div>
+  </div>
+  <div class="ssum">Ernährungsbeurteilung + Stressmetabolismus + Alter = Gesamtscore</div>
+</div>
+
+<!-- KLASSIFIKATION + INTERVENTIONEN -->
+<div class="sec">
+  <div class="sh">Klassifikation und Interventionen</div>
+  <div class="sb">
+    <table class="ct">
+      <tr id="cl0"><td style="width:110px;text-align:center;font-weight:700">0 Punkte</td>
+        <td><strong>Kein Risiko für Mangelernährung</strong> — Neueinschätzung in 2 Wochen; keine Interventionen</td></tr>
+      <tr id="cl1"><td style="text-align:center;font-weight:700">1 – 2 Punkte</td>
+        <td><strong>Leichtes Risiko für Mangelernährung</strong></td></tr>
+      <tr id="cl2"><td style="text-align:center;font-weight:700">3 – 7 Punkte</td>
+        <td><strong>Mittleres bis schweres Risiko für Mangelernährung</strong></td></tr>
+    </table>
+
+    <div class="ib r0" id="ib0">
+      <h4>0 Punkte — Kein Risiko</h4>
+      <ul>
+        <li>Keine Interventionen erforderlich</li>
+        <li>Neueinschätzung in 2 Wochen</li>
+      </ul>
+    </div>
+
+    <div class="ib r1" id="ib1">
+      <h4>1 – 2 Punkte — Leichtes Risiko für Mangelernährung</h4>
+      <ul>
+        <li>3 Tage Ess- und Trinkprotokoll schreiben</li>
+        <li>Pflege beachtet anhand des Ess- und Trinkprotokolls, ob der Patient ausreichend isst. Es gelten folgende Kriterien (mindestens eines muss erfüllt sein):
+          <ul>
+            <li>Der Patient hat drei Mahlzeiten (ganze Portionen) vollständig gegessen</li>
+            <li>Der Patient hat drei halbe Portionen und 2–3 energiereiche Zwischenmahlzeiten gegessen</li>
+            <li>Der Patient hat drei halbe Portionen mit 2 energiereichen Trinknahrungen zu sich genommen</li>
+            <li>Der Patient hat drei halbe Portionen mit angereicherten Getränken zu sich genommen</li>
+          </ul>
+        </li>
+        <li>Informationsblatt zum Risiko für Mangelernährung dem Patienten abgeben</li>
+        <li>Neueinschätzung in 2 Wochen</li>
+      </ul>
+    </div>
+
+    <div class="ib r2" id="ib2">
+      <h4>3 – 7 Punkte — Mittleres bis schweres Risiko für Mangelernährung</h4>
+      <ul>
+        <li>3 Tage Ess- und Trinkprotokoll schreiben</li>
+        <li>Ernährungsberatung involvieren, um Protokoll zu beurteilen und weiteres Prozedere festzulegen</li>
+        <li>Evtl. Konsilium Klinische Ernährung (Endokrinologie)</li>
+        <li>Informationsblatt zum Risiko für Mangelernährung dem Patienten abgeben</li>
+        <li>Neueinschätzung in 2 Wochen</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- THERAPIEZIEL -->
+<div class="sec">
+  <div class="sh gr">Therapieziel / Massnahmen</div>
+  <div class="sb">
+    <div class="tg">
+      <div>
+        <div class="yn-lbl">Infobroschüre abgegeben</div>
+        <div class="yn-opts">
+          <label><input type="radio" name="brosch" value="ja"> Ja</label>
+          <label><input type="radio" name="brosch" value="nein"> Nein</label>
+        </div>
+      </div>
+      <div>
+        <div class="yn-lbl">Interventionen eingeleitet</div>
+        <div class="yn-opts">
+          <label><input type="radio" name="interv" value="ja"> Ja</label>
+          <label><input type="radio" name="interv" value="nein"> Nein</label>
+        </div>
+      </div>
+    </div>
+    <div class="fg" style="margin-bottom:12px">
+      <label>Bemerkungen / Begründungen</label>
+      <textarea rows="3" placeholder="Bemerkungen zum Screening, Begründungen für Abweichungen, Therapieziele..."></textarea>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="fg">
+        <label>Unterschrift Pflegefachperson</label>
+        <input type="text" placeholder="Name / Kürzel">
+      </div>
+      <div class="fg">
+        <label>Nächste Einschätzung (automatisch: +2 Wochen)</label>
+        <input type="date" id="naechste">
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BUTTONS -->
+<div class="btn-bar">
+  <button class="btn btn-reset" onclick="resetForm()">Formular zurücksetzen</button>
+  <button class="btn btn-print" onclick="window.print()">Drucken</button>
+  <button class="btn btn-pdf" onclick="generatePDF()">PDF erstellen</button>
+</div>
+
+</div><!-- /page -->
+
+<script>
+// Init
+document.addEventListener('DOMContentLoaded', function() {
+  var now = new Date();
+  var pad = function(n){return String(n).padStart(2,'0')};
+  document.getElementById('datum').value =
+    now.getFullYear()+'-'+pad(now.getMonth()+1)+'-'+pad(now.getDate())+
+    'T'+pad(now.getHours())+':'+pad(now.getMinutes());
+  // Next assessment = +2 weeks
+  var nxt = new Date(now.getTime() + 14*24*60*60*1000);
+  document.getElementById('naechste').value =
+    nxt.getFullYear()+'-'+pad(nxt.getMonth()+1)+'-'+pad(nxt.getDate());
+  calcScore();
+});
+
+function calcAll() { calcBMI(); calcGV(); calcScore(); }
+
+function calcBMI() {
+  var w = parseFloat(document.getElementById('aktuell_gew').value);
+  var h = parseFloat(document.getElementById('groesse').value) / 100;
+  var el = document.getElementById('bmi-val');
+  var ref = document.getElementById('bmi-ref');
+  if (w > 0 && h > 0) {
+    var bmi = (w / (h * h)).toFixed(1);
+    el.textContent = bmi + ' kg/m²';
+    ref.textContent = bmi + ' kg/m²';
+    el.className = bmi < 18.5 ? 'ac danger' : (bmi < 20.5 ? 'ac warn' : 'ac');
+    highlightBMI(parseFloat(bmi));
+  } else {
+    el.textContent = '– kg/m²'; ref.textContent = '–'; el.className = 'ac';
+    clearBMIHighlight();
+  }
+}
+
+function highlightBMI(bmi) {
+  clearBMIHighlight();
+  if (bmi > 20.5) document.getElementById('b0li').style.background = '#eafaf1';
+  else if (bmi >= 18.5) document.getElementById('b2li').style.background = '#fef9e7';
+  else document.getElementById('b3li').style.background = '#fdedec';
+}
+
+function clearBMIHighlight() {
+  ['b0li','b2li','b3li'].forEach(function(id){
+    document.getElementById(id).style.background='';
+  });
+}
+
+function calcGV() {
+  var normal = parseFloat(document.getElementById('normalgewicht').value);
+  var aktuell = parseFloat(document.getElementById('aktuell_gew').value);
+  var el = document.getElementById('gv-val');
+  if (normal > 0 && aktuell > 0) {
+    var diff = normal - aktuell;
+    var pct = ((diff / normal) * 100).toFixed(1);
+    if (diff >= 0) {
+      el.textContent = '-' + diff.toFixed(1) + ' kg (' + pct + '%)';
+      el.className = parseFloat(pct) > 10 ? 'ac danger' : (parseFloat(pct) > 5 ? 'ac warn' : 'ac');
+    } else {
+      el.textContent = '+' + Math.abs(diff).toFixed(1) + ' kg (+' + Math.abs(pct) + '%)';
+      el.className = 'ac';
+    }
+  } else {
+    el.textContent = '–'; el.className = 'ac';
+  }
+}
+
+function updateAge() {
+  var dob = document.getElementById('geburtsdatum').value;
+  var el = document.getElementById('age-val');
+  if (!dob) { el.textContent = '–'; el.className = 'ac'; return; }
+  var birth = new Date(dob);
+  var today = new Date();
+  var age = today.getFullYear() - birth.getFullYear();
+  var m = today.getMonth() - birth.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+  el.textContent = age + ' Jahre';
+  el.className = age >= 70 ? 'ac warn' : 'ac';
+  document.getElementById(age >= 70 ? 'ag1' : 'ag0').checked = true;
+  calcScore();
+}
+
+function calcScore() {
+  var a = parseInt((document.querySelector('input[name=gv]:checked') || {value:0}).value);
+  var b = parseInt((document.querySelector('input[name=bmi_az]:checked') || {value:0}).value);
+  var c = parseInt((document.querySelector('input[name=ess]:checked') || {value:0}).value);
+  var nutrition = Math.max(a, b, c);
+  var stress = parseInt((document.querySelector('input[name=stress]:checked') || {value:0}).value);
+  var age = parseInt((document.querySelector('input[name=alter]:checked') || {value:0}).value);
+  var total = nutrition + stress + age;
+
+  document.getElementById('sc-a').textContent = a;
+  document.getElementById('sc-b').textContent = b;
+  document.getElementById('sc-c').textContent = c;
+  document.getElementById('ernaehr-sc').textContent = nutrition;
+  document.getElementById('stress-sc').textContent = stress;
+  document.getElementById('age-sc').textContent = age;
+  document.getElementById('d-ernaehr').textContent = nutrition;
+  document.getElementById('d-stress').textContent = stress;
+  document.getElementById('d-age').textContent = age;
+  document.getElementById('d-total').textContent = total;
+
+  // Score section color
+  var ss = document.getElementById('score-sec');
+  ss.style.background = total >= 3 ? '#7b241c' : (total >= 1 ? '#784212' : '#123456');
+
+  // Classification highlight
+  ['cl0','cl1','cl2'].forEach(function(id){document.getElementById(id).className='';});
+  ['ib0','ib1','ib2'].forEach(function(id){
+    var el=document.getElementById(id);
+    el.className=el.className.replace(' vis','');
+  });
+  if (total >= 3) {
+    document.getElementById('cl2').className = 'act';
+    document.getElementById('ib2').className += ' vis';
+  } else if (total >= 1) {
+    document.getElementById('cl1').className = 'act';
+    document.getElementById('ib1').className += ' vis';
+  } else {
+    document.getElementById('cl0').className = 'act';
+    document.getElementById('ib0').className += ' vis';
+  }
+}
+
+
+function resetForm() {
+  if (!confirm('Formular wirklich zurücksetzen? Alle Eingaben gehen verloren.')) return;
+  document.querySelectorAll('input[type=text],input[type=number],textarea').forEach(function(el){el.value='';});
+  document.querySelectorAll('input[type=date],input[type=datetime-local]').forEach(function(el){el.value='';});
+  document.querySelectorAll('input[type=radio]').forEach(function(el){el.checked=false;});
+  ['a0','b0','c0','s0','ag0'].forEach(function(id){document.getElementById(id).checked=true;});
+  ['bmi-val','age-val','gv-val'].forEach(function(id){
+    document.getElementById(id).textContent='–';
+    document.getElementById(id).className='ac';
+  });
+  document.getElementById('bmi-ref').textContent='–';
+  clearBMIHighlight();
+  // Re-init dates
+  var now = new Date();
+  var pad = function(n){return String(n).padStart(2,'0')};
+  document.getElementById('datum').value =
+    now.getFullYear()+'-'+pad(now.getMonth()+1)+'-'+pad(now.getDate())+
+    'T'+pad(now.getHours())+':'+pad(now.getMinutes());
+  var nxt = new Date(now.getTime() + 14*24*60*60*1000);
+  document.getElementById('naechste').value =
+    nxt.getFullYear()+'-'+pad(nxt.getMonth()+1)+'-'+pad(nxt.getDate());
+  calcScore();
+}
+
+function generatePDF() {
+  // Show all intervention boxes for PDF
+  ['ib0','ib1','ib2'].forEach(function(id){
+    document.getElementById(id).style.display='block';
+  });
+  var name = document.getElementById('name').value || 'Patient';
+  var vorname = document.getElementById('vorname').value || '';
+  var now = new Date();
+  var pad = function(n){return String(n).padStart(2,'0')};
+  var dateStr = now.getFullYear()+''+pad(now.getMonth()+1)+''+pad(now.getDate());
+  var filename = 'NRS_'+name+'_'+vorname+'_'+dateStr+'.pdf';
+
+  var opt = {
+    margin: [8,8,8,8],
+    filename: filename,
+    image: {type:'jpeg', quality:0.95},
+    html2canvas: {scale:2, useCORS:true, logging:false},
+    jsPDF: {unit:'mm', format:'a4', orientation:'portrait'}
+  };
+  html2pdf().set(opt).from(document.getElementById('nrs-form')).save().then(function(){
+    calcScore(); // restore correct visibility
+  });
+}
+</script>
+</body>
+</html>
