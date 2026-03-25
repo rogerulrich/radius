@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Nutritional Risk Screening (NRS 2002)</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Segoe UI',Arial,sans-serif;font-size:13px;background:#e8ecf0;color:#2c3e50;line-height:1.45}
@@ -17,7 +16,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;font-size:13px;background:#e8ecf0;c
 .hdr-t .sub{font-size:11px;color:#666;margin-top:2px}
 .hdr-r{margin-left:auto;text-align:right}
 .hdr-r label{font-size:11px;color:#666;display:block;margin-bottom:2px}
-.hdr-r input{border:1px solid #b0bec5;border-radius:3px;padding:4px 8px;font-size:12px}
+.hdr-r input{border:1px solid #b0bec5;border-radius:3px;padding:4px 8px;font-size:12px;font-family:inherit}
 
 /* SECTIONS */
 .sec{margin-bottom:14px;border:1px solid #cdd8e3;border-radius:4px;overflow:hidden}
@@ -30,7 +29,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;font-size:13px;background:#e8ecf0;c
 /* GRID */
 .pg{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px}
 .fg label{display:block;font-size:11px;color:#555;font-weight:600;margin-bottom:3px}
-.fg input[type=text],.fg input[type=date],.fg input[type=number]{width:100%;border:1px solid #b0bec5;border-radius:3px;padding:6px 8px;font-size:13px}
+.fg input[type=text],.fg input[type=date],.fg input[type=number]{width:100%;border:1px solid #b0bec5;border-radius:3px;padding:6px 8px;font-size:13px;font-family:inherit}
 .fg input:focus{outline:none;border-color:#1e4d7b;box-shadow:0 0 0 2px rgba(30,77,123,.15)}
 .ac{background:#eaf2fb;border:1px solid #aed6f1;border-radius:3px;padding:6px 8px;font-size:14px;font-weight:700;color:#1e4d7b;min-height:33px}
 .ac.warn{background:#fef9e7;border-color:#f9ca24;color:#9a7d0a}
@@ -62,7 +61,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;font-size:13px;background:#e8ecf0;c
 .sdl{font-size:11px;color:#444;margin-top:5px;padding-left:2px;line-height:1.75}
 .sdl .cat{font-weight:700;color:#1e4d7b}
 .snote{font-size:11px;font-style:italic;color:#7f8c8d;border-top:1px dashed #ccc;margin-top:5px;padding-top:4px}
-.newitem{background:#fffbcc;padding:1px 4px;border-radius:2px;border-left:2px solid #f4d03f}
+.newitem{}
 
 /* SCORE DISPLAY */
 .score-sec{background:#123456;color:#fff;border-radius:4px;padding:14px;margin-bottom:14px}
@@ -109,7 +108,12 @@ textarea{width:100%;border:1px solid #b0bec5;border-radius:3px;padding:6px 8px;f
   .page{box-shadow:none;margin:0;padding:12px;max-width:100%;border-radius:0}
   .btn-bar{display:none}
   .ib{display:block!important}
-  .er{display:block!important}
+  .score-sec{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .sh{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .sb-badge{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .newitem{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .ac{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .ss{-webkit-print-color-adjust:exact;print-color-adjust:exact}
 }
 </style>
 </head>
@@ -125,7 +129,7 @@ textarea{width:100%;border:1px solid #b0bec5;border-radius:3px;padding:6px 8px;f
   </div>
   <div class="hdr-r">
     <label>Datum / Uhrzeit</label>
-    <input type="datetime-local" id="datum">
+    <input type="text" id="datum" placeholder="TT.MM.JJJJ HH:MM" maxlength="16">
   </div>
 </div>
 
@@ -136,7 +140,7 @@ textarea{width:100%;border:1px solid #b0bec5;border-radius:3px;padding:6px 8px;f
     <div class="pg">
       <div class="fg"><label>Name</label><input type="text" id="name" placeholder="Nachname"></div>
       <div class="fg"><label>Vorname</label><input type="text" id="vorname" placeholder="Vorname"></div>
-      <div class="fg"><label>Geburtsdatum</label><input type="date" id="geburtsdatum" onchange="updateAge()"></div>
+      <div class="fg"><label>Geburtsdatum</label><input type="text" id="geburtsdatum" placeholder="TT.MM.JJJJ" maxlength="10" oninput="updateAge()"></div>
       <div class="fg"><label>Normalgewicht vor 3 Monaten (kg)</label><input type="number" id="normalgewicht" placeholder="z.B. 75" step="0.1" min="0" oninput="calcGV()"></div>
       <div class="fg"><label>Aktuelles Gewicht (kg)</label><input type="number" id="aktuell_gew" placeholder="z.B. 70" step="0.1" min="0" oninput="calcAll()"></div>
       <div class="fg"><label>Grösse (cm)</label><input type="number" id="groesse" placeholder="z.B. 175" step="0.5" min="0" oninput="calcAll()"></div>
@@ -421,7 +425,7 @@ textarea{width:100%;border:1px solid #b0bec5;border-radius:3px;padding:6px 8px;f
       </div>
       <div class="fg">
         <label>Nächste Einschätzung (automatisch: +2 Wochen)</label>
-        <input type="date" id="naechste">
+        <input type="text" id="naechste" placeholder="TT.MM.JJJJ" maxlength="10">
       </div>
     </div>
   </div>
@@ -429,7 +433,6 @@ textarea{width:100%;border:1px solid #b0bec5;border-radius:3px;padding:6px 8px;f
 
 <!-- BUTTONS -->
 <div class="btn-bar">
-  <button class="btn btn-reset" onclick="resetForm()">Formular zurücksetzen</button>
   <button class="btn btn-print" onclick="window.print()">Drucken</button>
   <button class="btn btn-pdf" onclick="generatePDF()">PDF erstellen</button>
 </div>
@@ -437,17 +440,48 @@ textarea{width:100%;border:1px solid #b0bec5;border-radius:3px;padding:6px 8px;f
 </div><!-- /page -->
 
 <script>
+// Datum-Hilfsfunktionen
+var pad = function(n){return String(n).padStart(2,'0')};
+
+function fmtDate(d) {
+  return pad(d.getDate())+'.'+pad(d.getMonth()+1)+'.'+d.getFullYear();
+}
+function fmtDateTime(d) {
+  return pad(d.getDate())+'.'+pad(d.getMonth()+1)+'.'+d.getFullYear()+' '+pad(d.getHours())+':'+pad(d.getMinutes());
+}
+function parseDMY(str) {
+  var parts = (str||'').trim().split('.');
+  if (parts.length !== 3) return null;
+  var d = parseInt(parts[0]), m = parseInt(parts[1])-1, y = parseInt(parts[2]);
+  if (isNaN(d)||isNaN(m)||isNaN(y)||y<1900||y>2100) return null;
+  var dt = new Date(y, m, d);
+  return (dt.getFullYear()===y && dt.getMonth()===m && dt.getDate()===d) ? dt : null;
+}
+
+// Auto-Masking für Datumsfelder
+function addDateMask(id, withTime) {
+  document.getElementById(id).addEventListener('input', function() {
+    var cur = this.value;
+    var digits = cur.replace(/[^0-9]/g,'');
+    var r = '';
+    if (digits.length > 0) r += digits.substring(0,2);
+    if (digits.length >= 3) r += '.' + digits.substring(2,4);
+    if (digits.length >= 5) r += '.' + digits.substring(4,8);
+    if (withTime && digits.length >= 9) r += ' ' + digits.substring(8,10);
+    if (withTime && digits.length >= 11) r += ':' + digits.substring(10,12);
+    this.value = r;
+  });
+}
+
 // Init
 document.addEventListener('DOMContentLoaded', function() {
+  addDateMask('datum', true);
+  addDateMask('geburtsdatum', false);
+  addDateMask('naechste', false);
   var now = new Date();
-  var pad = function(n){return String(n).padStart(2,'0')};
-  document.getElementById('datum').value =
-    now.getFullYear()+'-'+pad(now.getMonth()+1)+'-'+pad(now.getDate())+
-    'T'+pad(now.getHours())+':'+pad(now.getMinutes());
-  // Next assessment = +2 weeks
+  document.getElementById('datum').value = fmtDateTime(now);
   var nxt = new Date(now.getTime() + 14*24*60*60*1000);
-  document.getElementById('naechste').value =
-    nxt.getFullYear()+'-'+pad(nxt.getMonth()+1)+'-'+pad(nxt.getDate());
+  document.getElementById('naechste').value = fmtDate(nxt);
   calcScore();
 });
 
@@ -472,9 +506,17 @@ function calcBMI() {
 
 function highlightBMI(bmi) {
   clearBMIHighlight();
-  if (bmi > 20.5) document.getElementById('b0li').style.background = '#eafaf1';
-  else if (bmi >= 18.5) document.getElementById('b2li').style.background = '#fef9e7';
-  else document.getElementById('b3li').style.background = '#fdedec';
+  if (bmi > 20.5) {
+    document.getElementById('b0li').style.background = '#eafaf1';
+    document.getElementById('b0').checked = true;
+  } else if (bmi >= 18.5) {
+    document.getElementById('b2li').style.background = '#fef9e7';
+    document.getElementById('b2').checked = true;
+  } else {
+    document.getElementById('b3li').style.background = '#fdedec';
+    document.getElementById('b3').checked = true;
+  }
+  calcScore();
 }
 
 function clearBMIHighlight() {
@@ -503,10 +545,10 @@ function calcGV() {
 }
 
 function updateAge() {
-  var dob = document.getElementById('geburtsdatum').value;
+  var val = document.getElementById('geburtsdatum').value;
   var el = document.getElementById('age-val');
-  if (!dob) { el.textContent = '–'; el.className = 'ac'; return; }
-  var birth = new Date(dob);
+  var birth = parseDMY(val);
+  if (!birth) { el.textContent = '–'; el.className = 'ac'; return; }
   var today = new Date();
   var age = today.getFullYear() - birth.getFullYear();
   var m = today.getMonth() - birth.getMonth();
@@ -563,7 +605,6 @@ function calcScore() {
 function resetForm() {
   if (!confirm('Formular wirklich zurücksetzen? Alle Eingaben gehen verloren.')) return;
   document.querySelectorAll('input[type=text],input[type=number],textarea').forEach(function(el){el.value='';});
-  document.querySelectorAll('input[type=date],input[type=datetime-local]').forEach(function(el){el.value='';});
   document.querySelectorAll('input[type=radio]').forEach(function(el){el.checked=false;});
   ['a0','b0','c0','s0','ag0'].forEach(function(id){document.getElementById(id).checked=true;});
   ['bmi-val','age-val','gv-val'].forEach(function(id){
@@ -572,40 +613,21 @@ function resetForm() {
   });
   document.getElementById('bmi-ref').textContent='–';
   clearBMIHighlight();
-  // Re-init dates
   var now = new Date();
-  var pad = function(n){return String(n).padStart(2,'0')};
-  document.getElementById('datum').value =
-    now.getFullYear()+'-'+pad(now.getMonth()+1)+'-'+pad(now.getDate())+
-    'T'+pad(now.getHours())+':'+pad(now.getMinutes());
+  document.getElementById('datum').value = fmtDateTime(now);
   var nxt = new Date(now.getTime() + 14*24*60*60*1000);
-  document.getElementById('naechste').value =
-    nxt.getFullYear()+'-'+pad(nxt.getMonth()+1)+'-'+pad(nxt.getDate());
+  document.getElementById('naechste').value = fmtDate(nxt);
   calcScore();
 }
 
 function generatePDF() {
-  // Show all intervention boxes for PDF
+  // Alle Interventionsboxen einblenden damit sie im PDF erscheinen
   ['ib0','ib1','ib2'].forEach(function(id){
     document.getElementById(id).style.display='block';
   });
-  var name = document.getElementById('name').value || 'Patient';
-  var vorname = document.getElementById('vorname').value || '';
-  var now = new Date();
-  var pad = function(n){return String(n).padStart(2,'0')};
-  var dateStr = now.getFullYear()+''+pad(now.getMonth()+1)+''+pad(now.getDate());
-  var filename = 'NRS_'+name+'_'+vorname+'_'+dateStr+'.pdf';
-
-  var opt = {
-    margin: [8,8,8,8],
-    filename: filename,
-    image: {type:'jpeg', quality:0.95},
-    html2canvas: {scale:2, useCORS:true, logging:false},
-    jsPDF: {unit:'mm', format:'a4', orientation:'portrait'}
-  };
-  html2pdf().set(opt).from(document.getElementById('nrs-form')).save().then(function(){
-    calcScore(); // restore correct visibility
-  });
+  window.print();
+  // Nach dem Drucken korrekte Sichtbarkeit wiederherstellen
+  setTimeout(function(){ calcScore(); }, 500);
 }
 </script>
 </body>
