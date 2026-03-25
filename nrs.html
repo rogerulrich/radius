@@ -11,7 +11,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;font-size:13px;background:#e8ecf0;c
 
 /* HEADER */
 .hdr{display:flex;align-items:center;gap:16px;padding-bottom:14px;border-bottom:3px solid #1e4d7b;margin-bottom:18px}
-.hdr img{height:64px;object-fit:contain}
+.hdr img{height:64px;width:auto;object-fit:contain;flex-shrink:0;display:block}
 .hdr-t h1{font-size:18px;color:#1e4d7b;font-weight:700}
 .hdr-t .sub{font-size:11px;color:#666;margin-top:2px}
 .hdr-r{margin-left:auto;text-align:right}
@@ -107,7 +107,7 @@ textarea{width:100%;border:1px solid #b0bec5;border-radius:3px;padding:6px 8px;f
   body{font-size:14px}
   .page{margin:0;padding:14px;border-radius:0;box-shadow:none}
   .hdr{flex-wrap:wrap;gap:10px}
-  .hdr img{height:48px}
+  .hdr img{height:48px;width:auto;display:block;flex-shrink:0}
   .hdr-t h1{font-size:15px}
   .hdr-r{margin-left:0;width:100%;text-align:left}
   .hdr-r input{width:100%}
