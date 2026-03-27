@@ -137,12 +137,15 @@ textarea{width:100%;border:1px solid #b0bec5;border-radius:3px;padding:6px 8px;f
 @media print{
   @page{size:A4 portrait;margin:5mm}
   body{background:#fff;font-size:8.5px}
-  .page{box-shadow:none;margin:0;padding:30px 24px 10px;max-width:100%;border-radius:0}
+  .page{box-shadow:none;margin:0;padding:10px 24px 10px;max-width:100%;border-radius:0}
   .btn-bar{display:none}
   .ib.vis{display:block!important}
   .sdl{display:none!important}
   .snote{display:none!important}
   .hint{display:none!important}
+  .bmi-hint{font-size:6.5px!important}
+  .yn-lbl{font-size:7px!important}
+  .yn-opts label{font-size:7px!important}
   .ol li:has(input:not(:checked)){display:none!important}
   .pdf-hide{display:none!important}
   .bmi-nb{display:none!important}
@@ -285,7 +288,7 @@ textarea{width:100%;border:1px solid #b0bec5;border-radius:3px;padding:6px 8px;f
           <li class="bmi-nb"><input type="radio" name="bmi_az" id="bnb" value="0" onchange="calcScore()" checked>
               <label for="bnb">Nicht beurteilbar</label></li>
         </ul>
-        <div style="font-size:11px;color:#7f8c8d;margin-top:5px;font-style:italic">Hinweis: Bei Ödemen, Aszites oder Adipositas den BMI durch klinische Einschätzung ersetzen.</div>
+        <div class="bmi-hint" style="font-size:11px;color:#7f8c8d;margin-top:5px;font-style:italic">Hinweis: Bei Ödemen, Aszites oder Adipositas den BMI durch klinische Einschätzung ersetzen.</div>
       </div>
 
       <!-- c) Essverhalten -->
