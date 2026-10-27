@@ -43,7 +43,12 @@
     .wb-row { display: grid; grid-template-columns: 180px 1fr 1fr 1fr; gap: 0.8rem; align-items: end; padding: 0.9rem 1rem; border: 1.5px solid #e2ddd6; border-radius: 10px; background: #faf9f7; transition: border-color 0.2s, background 0.2s; }
     .wb-row:not(.start) { grid-template-columns: 160px repeat(3, minmax(0, 1fr)) minmax(140px, 1.2fr); }
     .wb-row .field { min-width: 0; }
-    .wb-reduction { display: block; padding: 0.65rem 0.5rem; border: 1.5px solid #6b8a82; border-radius: 4px; background: #fff; text-align: center; font-size: 0.95rem; color: #3d5a52; font-weight: 600; }
+    .wb-row input[type="number"], .wb-row input[type="date"], .wb-reduction {
+      height: calc(1.2em + 1.3rem + 3px);
+      line-height: 1.2;
+      border-radius: 8px;
+    }
+    .wb-reduction { display: flex; align-items: center; justify-content: center; padding: 0.65rem 0.5rem; border: 1.5px solid #d5cfc6; background: #faf9f7; text-align: center; font-size: 0.95rem; color: #3d5a52; font-weight: 400; }
     .wb-row.start { background: #eaf2ef; border-color: #c7d8d2; }
     .wb-row.filled { background: #f5f8f6; border-color: #b8d0c7; }
     .wb-label { display: flex; flex-direction: column; gap: 0.25rem; }
@@ -54,6 +59,7 @@
     .wb-label .wb-badge.role-today { background: #3d5a52; color: white; }
     .wb-hint { font-size: 0.72rem; color: #aabfba; font-style: italic; margin-top: 0.2rem; }
     .wb-empty { padding: 0.65rem 0.85rem; border: 1.5px dashed #e0dac9; border-radius: 8px; font-size: 1rem; color: #c7c0b6; text-align: center; background: transparent; line-height: 1.45; }
+    .wb-row:has(input[id^="wb-s-"].is-prefilled) .wb-reduction { background: #fffaf0; color: #8d6f3a; }
     input.is-prefilled { background: #fffaf0; color: #8d6f3a; }
 
     /* Chart */
@@ -212,13 +218,17 @@
         gap: 0.6rem !important;
         border: 1px solid #d3ccc1 !important;
         border-radius: 6px;
-        align-items: center !important;
+        align-items: end !important;
       }
       .wb-row:not(.start) { grid-template-columns: 110px repeat(3, minmax(0, 1fr)) minmax(112px, 1.2fr) !important; }
-      .wb-reduction { padding: 0.2rem 0.4rem; font-size: 8.5pt; }
+      .wb-reduction { padding: 0.2rem 0.4rem; font-size: 8.5pt; border: 1px solid #c3bdb2; background: white; color: #2c3e38; }
+      .wb-row:has(input[id^="wb-s-"].is-prefilled) .wb-reduction { background: #fffaf0 !important; color: #7a5a25 !important; }
       .wb-row .field { gap: 0.12rem; }
       .wb-row .field label { font-size: 6.5pt; }
-      .wb-row input[type="number"], .wb-row input[type="date"] {
+      .wb-row input[type="number"], .wb-row input[type="date"], .wb-reduction {
+        height: calc(1.2em + 0.4rem + 2px);
+        line-height: 1.2;
+        border-radius: 8px;
         padding: 0.2rem 0.4rem !important;
         font-size: 8.5pt !important;
       }
@@ -402,7 +412,7 @@
             <input type="number" id="wb-w-1" min="20" max="300" step="0.1" oninput="onBlockChange(1, 'w')" />
           </div>
           <div class="field">
-            <label for="wb-reduction-1">Bisherige prozentuale Gewichtsreduktion</label>
+            <label for="wb-reduction-1">Bisherige prozentuale Abnahme</label>
             <output class="wb-reduction" id="wb-reduction-1" for="wb-w-0 wb-w-1" aria-live="polite">?</output>
           </div>
           <div class="field">
@@ -428,7 +438,7 @@
             <input type="number" id="wb-w-2" min="20" max="300" step="0.1" oninput="onBlockChange(2, 'w')" />
           </div>
           <div class="field">
-            <label for="wb-reduction-2">Bisherige prozentuale Gewichtsreduktion</label>
+            <label for="wb-reduction-2">Bisherige prozentuale Abnahme</label>
             <output class="wb-reduction" id="wb-reduction-2" for="wb-w-0 wb-w-2" aria-live="polite">?</output>
           </div>
           <div class="field">
@@ -454,7 +464,7 @@
             <input type="number" id="wb-w-3" min="20" max="300" step="0.1" oninput="onBlockChange(3, 'w')" />
           </div>
           <div class="field">
-            <label for="wb-reduction-3">Bisherige prozentuale Gewichtsreduktion</label>
+            <label for="wb-reduction-3">Bisherige prozentuale Abnahme</label>
             <output class="wb-reduction" id="wb-reduction-3" for="wb-w-0 wb-w-3" aria-live="polite">?</output>
           </div>
           <div class="field">
@@ -480,7 +490,7 @@
             <input type="number" id="wb-w-4" min="20" max="300" step="0.1" oninput="onBlockChange(4, 'w')" />
           </div>
           <div class="field">
-            <label for="wb-reduction-4">Bisherige prozentuale Gewichtsreduktion</label>
+            <label for="wb-reduction-4">Bisherige prozentuale Abnahme</label>
             <output class="wb-reduction" id="wb-reduction-4" for="wb-w-0 wb-w-4" aria-live="polite">?</output>
           </div>
           <div class="field">
@@ -506,7 +516,7 @@
             <input type="number" id="wb-w-5" min="20" max="300" step="0.1" oninput="onBlockChange(5, 'w')" />
           </div>
           <div class="field">
-            <label for="wb-reduction-5">Bisherige prozentuale Gewichtsreduktion</label>
+            <label for="wb-reduction-5">Bisherige prozentuale Abnahme</label>
             <output class="wb-reduction" id="wb-reduction-5" for="wb-w-0 wb-w-5" aria-live="polite">?</output>
           </div>
           <div class="field">
@@ -532,7 +542,7 @@
             <input type="number" id="wb-w-6" min="20" max="300" step="0.1" oninput="onBlockChange(6, 'w')" />
           </div>
           <div class="field">
-            <label for="wb-reduction-6">Bisherige prozentuale Gewichtsreduktion</label>
+            <label for="wb-reduction-6">Bisherige prozentuale Abnahme</label>
             <output class="wb-reduction" id="wb-reduction-6" for="wb-w-0 wb-w-6" aria-live="polite">?</output>
           </div>
           <div class="field">
