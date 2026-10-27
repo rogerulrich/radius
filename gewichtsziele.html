@@ -41,6 +41,9 @@
     /* Weight blocks */
     .wb-list { display: flex; flex-direction: column; gap: 0.8rem; }
     .wb-row { display: grid; grid-template-columns: 180px 1fr 1fr 1fr; gap: 0.8rem; align-items: end; padding: 0.9rem 1rem; border: 1.5px solid #e2ddd6; border-radius: 10px; background: #faf9f7; transition: border-color 0.2s, background 0.2s; }
+    .wb-row:not(.start) { grid-template-columns: 160px repeat(3, minmax(0, 1fr)) minmax(140px, 1.2fr); }
+    .wb-row .field { min-width: 0; }
+    .wb-reduction { display: block; padding: 0.65rem 0.5rem; border: 1.5px solid #6b8a82; border-radius: 4px; background: #fff; text-align: center; font-size: 0.95rem; color: #3d5a52; font-weight: 600; }
     .wb-row.start { background: #eaf2ef; border-color: #c7d8d2; }
     .wb-row.filled { background: #f5f8f6; border-color: #b8d0c7; }
     .wb-label { display: flex; flex-direction: column; gap: 0.25rem; }
@@ -95,12 +98,12 @@
     .hidden { display: none; }
 
     @media (max-width: 900px) {
-      .wb-row { grid-template-columns: 1fr 1fr; gap: 0.6rem; }
+      .wb-row, .wb-row:not(.start) { grid-template-columns: 1fr 1fr; gap: 0.6rem; }
       .wb-label { grid-column: 1 / -1; }
     }
     @media (max-width: 600px) {
       .grid-2, .grid-3, .result-grid { grid-template-columns: 1fr; }
-      .wb-row { grid-template-columns: 1fr; gap: 0.5rem; }
+      .wb-row, .wb-row:not(.start) { grid-template-columns: 1fr; gap: 0.5rem; }
     }
 
     /* =====================================================================
@@ -167,6 +170,7 @@
       /* Patientendaten – grüner Hintergrund beibehalten */
       .card[style*="A2B9AF"] { background: #A2B9AF !important; border-color: #8eaaa0; }
       .grid-3 { gap: 0.7rem !important; margin-bottom: 0.7rem !important; }
+      .patient-therapy { gap: 0.7rem !important; margin-bottom: 0.7rem !important; }
       .radio-group { gap: 0.5rem; }
       .radio-btn { padding: 0.3rem 0.7rem; font-size: 9pt; border-width: 1px; }
       .bmi-row { gap: 1rem; margin-top: 0.5rem; }
@@ -210,6 +214,8 @@
         border-radius: 6px;
         align-items: center !important;
       }
+      .wb-row:not(.start) { grid-template-columns: 110px repeat(3, minmax(0, 1fr)) minmax(112px, 1.2fr) !important; }
+      .wb-reduction { padding: 0.2rem 0.4rem; font-size: 8.5pt; }
       .wb-row .field { gap: 0.12rem; }
       .wb-row .field label { font-size: 6.5pt; }
       .wb-row input[type="number"], .wb-row input[type="date"] {
@@ -279,6 +285,25 @@
         <div class="field">
           <label>Alter (Jahre)</label>
           <input type="number" id="age" placeholder="auto aus Geburtsdatum" min="1" max="120" readonly style="background:#eef2f0;cursor:not-allowed" />
+        </div>
+      </div>
+      <div class="grid-2 patient-therapy" style="margin-bottom:1rem">
+        <div class="field">
+          <label for="pat-insurance">Name der Krankenkasse</label>
+          <input type="text" id="pat-insurance" placeholder="Krankenkasse" />
+        </div>
+        <div class="field">
+          <label for="pat-medication">Angewendetes Medikament</label>
+          <select id="pat-medication" onchange="onMedicationChange()">
+            <option value="">Bitte auswählen</option>
+            <option value="Mounjaro">Mounjaro</option>
+            <option value="Wegovy">Wegovy</option>
+            <option value="custom">Freitext</option>
+          </select>
+          <div class="field hidden" id="pat-medication-custom-field">
+            <label for="pat-medication-custom">Medikament (Freitext)</label>
+            <input type="text" id="pat-medication-custom" placeholder="Medikament eingeben" disabled />
+          </div>
         </div>
       </div>
       <div class="field" style="margin-bottom:1rem">
@@ -377,6 +402,10 @@
             <input type="number" id="wb-w-1" min="20" max="300" step="0.1" oninput="onBlockChange(1, 'w')" />
           </div>
           <div class="field">
+            <label for="wb-reduction-1">Bisherige prozentuale Gewichtsreduktion</label>
+            <output class="wb-reduction" id="wb-reduction-1" for="wb-w-0 wb-w-1" aria-live="polite">?</output>
+          </div>
+          <div class="field">
             <label>Soll-Gewicht (kg)</label>
             <input type="number" id="wb-s-1" min="20" max="300" step="0.1" oninput="onBlockChange(1, 's')" />
           </div>
@@ -397,6 +426,10 @@
           <div class="field">
             <label>Ist-Gewicht (kg)</label>
             <input type="number" id="wb-w-2" min="20" max="300" step="0.1" oninput="onBlockChange(2, 'w')" />
+          </div>
+          <div class="field">
+            <label for="wb-reduction-2">Bisherige prozentuale Gewichtsreduktion</label>
+            <output class="wb-reduction" id="wb-reduction-2" for="wb-w-0 wb-w-2" aria-live="polite">?</output>
           </div>
           <div class="field">
             <label>Soll-Gewicht (kg)</label>
@@ -421,6 +454,10 @@
             <input type="number" id="wb-w-3" min="20" max="300" step="0.1" oninput="onBlockChange(3, 'w')" />
           </div>
           <div class="field">
+            <label for="wb-reduction-3">Bisherige prozentuale Gewichtsreduktion</label>
+            <output class="wb-reduction" id="wb-reduction-3" for="wb-w-0 wb-w-3" aria-live="polite">?</output>
+          </div>
+          <div class="field">
             <label>Soll-Gewicht (kg)</label>
             <input type="number" id="wb-s-3" min="20" max="300" step="0.1" oninput="onBlockChange(3, 's')" />
           </div>
@@ -441,6 +478,10 @@
           <div class="field">
             <label>Ist-Gewicht (kg)</label>
             <input type="number" id="wb-w-4" min="20" max="300" step="0.1" oninput="onBlockChange(4, 'w')" />
+          </div>
+          <div class="field">
+            <label for="wb-reduction-4">Bisherige prozentuale Gewichtsreduktion</label>
+            <output class="wb-reduction" id="wb-reduction-4" for="wb-w-0 wb-w-4" aria-live="polite">?</output>
           </div>
           <div class="field">
             <label>Soll-Gewicht (kg)</label>
@@ -465,6 +506,10 @@
             <input type="number" id="wb-w-5" min="20" max="300" step="0.1" oninput="onBlockChange(5, 'w')" />
           </div>
           <div class="field">
+            <label for="wb-reduction-5">Bisherige prozentuale Gewichtsreduktion</label>
+            <output class="wb-reduction" id="wb-reduction-5" for="wb-w-0 wb-w-5" aria-live="polite">?</output>
+          </div>
+          <div class="field">
             <label>Soll-Gewicht (kg)</label>
             <input type="number" id="wb-s-5" min="20" max="300" step="0.1" oninput="onBlockChange(5, 's')" />
           </div>
@@ -485,6 +530,10 @@
           <div class="field">
             <label>Ist-Gewicht (kg)</label>
             <input type="number" id="wb-w-6" min="20" max="300" step="0.1" oninput="onBlockChange(6, 'w')" />
+          </div>
+          <div class="field">
+            <label for="wb-reduction-6">Bisherige prozentuale Gewichtsreduktion</label>
+            <output class="wb-reduction" id="wb-reduction-6" for="wb-w-0 wb-w-6" aria-live="polite">?</output>
           </div>
           <div class="field">
             <label>Soll-Gewicht (kg)</label>
@@ -555,6 +604,13 @@
     });
     el.classList.add('active');
     el.querySelector('input').checked = true;
+  }
+
+  function onMedicationChange() {
+    const select = document.getElementById('pat-medication');
+    const isCustom = select.value === 'custom';
+    document.getElementById('pat-medication-custom-field').classList.toggle('hidden', !isCustom);
+    document.getElementById('pat-medication-custom').disabled = !isCustom;
   }
 
   // ---------- Date helpers ----------
@@ -727,11 +783,29 @@
     recalcAll();
   }
 
+  // Positive Werte zeigen eine Abnahme, negative Werte eine Zunahme.
+  function updateWeightReductions(startWeight) {
+    for (let i = 1; i < BLOCKS.length; i++) {
+      const currentWeight = parseFloat(document.getElementById('wb-w-' + i).value);
+      const output = document.getElementById('wb-reduction-' + i);
+      if (!Number.isFinite(startWeight) || startWeight <= 0 ||
+          !Number.isFinite(currentWeight) || currentWeight <= 0) {
+        output.textContent = '?';
+        continue;
+      }
+      const reduction = Math.round((startWeight - currentWeight) / startWeight * 1000) / 10;
+      output.textContent = reduction.toLocaleString('de-CH', {
+        minimumFractionDigits: 1, maximumFractionDigits: 1
+      }) + ' %';
+    }
+  }
+
   // ---------- Main recalculation ----------
   function recalcAll() {
     const startW = parseFloat(document.getElementById('wb-w-0').value);
     const heightCm = parseFloat(document.getElementById('height').value);
     const startBMI = calcBMI(startW, heightCm);
+    updateWeightReductions(startW);
 
     // BMI badge in Patientendaten
     const bmiRow = document.getElementById('bmi-row');
@@ -927,6 +1001,7 @@
 
   // ---------- Init ----------
   document.addEventListener('DOMContentLoaded', () => {
+    onMedicationChange();
     // If no date in block 0 yet, default to today
     const d0 = document.getElementById('wb-d-0');
     if (!d0.value) {
