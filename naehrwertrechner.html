@@ -73,6 +73,23 @@
     .amount-wrap span { font-size: 0.9rem; color: #6b8a82; }
 
     .entries-table-wrap { overflow-x: auto; }
+    /* Ruhiges Raster (Bildschirm) */
+    .day-grid { width: 100%; border-collapse: collapse; font-size: 0.85rem; min-width: 560px; color: #3d5a52; }
+    .day-grid th { text-align: right; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; color: #6b8a82;
+                   padding: 0.35rem 0.5rem; border-bottom: 2px solid #3d5a52; vertical-align: bottom; }
+    .day-grid th small { display: block; font-weight: 400; text-transform: none; color: #9ab0aa; }
+    .day-grid th.l, .day-grid td.l { text-align: left; }
+    .day-grid td { padding: 0.28rem 0.5rem; text-align: right; border-bottom: 1px solid #ece8e2; vertical-align: middle; white-space: nowrap; }
+    .day-grid td.dg-name { white-space: normal; font-weight: 500; min-width: 180px; }
+    .day-grid td.dg-amt input { width: 74px; padding: 0.15rem 0.35rem; text-align: right; }
+    .day-grid tr.dg-item:hover td { background: #faf9f7; }
+    .day-grid tr.dg-meal td { background: #e9efec; font-weight: 700; text-align: left; border-top: 1px solid #A2B9AF; border-bottom: 1px solid #A2B9AF; padding-top: 0.4rem; }
+    .day-grid tr.dg-msum td { font-weight: 700; border-bottom: 1.5px solid #b9b2a8; }
+    .day-grid tr.dg-gap td { border: none; height: 0.5rem; padding: 0; }
+    .day-grid tr.dg-day td { background: #dfe5ea; font-weight: 700; border-top: 2px solid #3d5a52; border-bottom: 1px solid #b9b2a8; padding-top: 0.45rem; padding-bottom: 0.45rem; }
+    .day-grid tr.dg-tgt td { font-size: 0.78rem; color: #6b8a82; border-bottom: 2px solid #3d5a52; }
+    .day-grid .meal-select { font-size: 0.75rem !important; padding: 0.1rem 0.25rem !important; color: #6b8a82; }
+    .day-grid .dg-src { font-size: 0.7rem; color: #9ab0aa; font-weight: 400; }
     .entries-table { width: 100%; border-collapse: collapse; font-size: 0.87rem; min-width: 500px; }
     .entries-table th { text-align: right; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; color: #6b8a82; padding: 0.4rem 0.55rem; border-bottom: 2px solid #e2ddd6; white-space: nowrap; }
     .entries-table th:first-child { text-align: left; }
@@ -115,14 +132,8 @@
     }
 
     /* ===== Nährwertempfehlung / Zielerreichung ===== */
-    .st-ok   { color: #2e7d32; background: #e8f5e9; }
-    .st-warn { color: #e65100; background: #fff3e0; }
-    .st-bad  { color: #c62828; background: #ffebee; }
     .st-none { color: #9ab0aa; }
-    .entries-table td.st-ok, .entries-table td.st-warn, .entries-table td.st-bad,
-    .overview-table td.st-ok, .overview-table td.st-warn, .overview-table td.st-bad { font-weight: 700; }
     .entries-table .target-row td, .overview-table .target-row td { font-size: 0.78rem; color: #6b8a82; background: #faf9f7; border-bottom: none; }
-    .entries-table .reach-row td { border-bottom: none; }
     .tgt-kind { font-size: 0.7rem; opacity: 0.8; }
     .targets-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
     .targets-table th { text-align: left; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; color: #6b8a82; padding: 0.4rem 0.5rem; border-bottom: 2px solid #e2ddd6; }
@@ -132,11 +143,60 @@
     .targets-table input { width: 95px !important; text-align: right; }
     .targets-table select { width: auto !important; }
     .targets-table tr.overridden td { background: #fffde7; }
-    .targets-legend { display: flex; gap: 0.8rem; flex-wrap: wrap; font-size: 0.78rem; margin: 0.6rem 0 0.2rem; }
-    .targets-legend span { padding: 0.15rem 0.5rem; border-radius: 6px; font-weight: 600; }
+    .targets-legend { display: flex; gap: 1.2rem; flex-wrap: wrap; align-items: center; font-size: 0.78rem; margin: 0.6rem 0 0.2rem; color: #5E7688; }
+    .targets-legend i { display: inline-block; width: 22px; height: 8px; border-radius: 2px; vertical-align: middle; margin-right: 0.35rem; }
     .pd-kind { font-size: 0.8em; font-weight: normal; }
     .pd-target td { background: #f7f7f7; }
-    .pd-reach td.st-ok, .pd-reach td.st-warn, .pd-reach td.st-bad { font-weight: 700; }
+    
+    /* Balkenliste Zielerreichung – Farbwelt: blaugrau #5E7688 = ok, rosé #E6C6C7 = Handlungsbedarf, grau #DCD7D2 = Skala */
+    .tb { margin-top: 1.2rem; max-width: 980px; }
+    .tb-caption { font-size: 0.8rem; font-weight: 600; color: #6b8a82; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.4rem; }
+    .tb-row { display: grid; grid-template-columns: 10rem 1.4rem minmax(120px,1fr) 3.4rem 5.5rem 7.5rem 6rem; align-items: center; gap: 0.5rem;
+              padding: 0.22rem 0; border-bottom: 1px solid #f0ede8; font-size: 0.82rem; color: #3d5a52; }
+    .tb-head { font-size: 0.68rem; color: #9ab0aa; text-transform: uppercase; letter-spacing: 0.04em; border-bottom: 1px solid #e2ddd6; }
+    .tb-flag { font-weight: 700; text-align: center; white-space: nowrap; letter-spacing: -2px; }
+    .tb-bar { position: relative; height: 9px; background: #DCD7D2; border-radius: 2px; }
+    .tb-fill { position: absolute; left: 0; top: 0; bottom: 0; background: #5E7688; border-radius: 2px; }
+    .tb-row.lvl1 .tb-fill { background: #EFDA8F; box-shadow: inset 0 0 0 1px #cdb460; }
+    .tb-row.lvl2 .tb-fill { background: #E6C6C7; box-shadow: inset 0 0 0 1px #c9a0a3; }
+    .tb-row.lvl1 .tb-flag, .tb-row.lvl1 .tb-dev { color: #8a7020; }
+    .tb-row.lvl2 .tb-flag, .tb-row.lvl2 .tb-dev { color: #a8676b; }
+    .tb-mark { position: absolute; top: -3px; bottom: -3px; width: 2px; background: #263238; }
+    .tb-scale { position: relative; height: 0.9rem; }
+    .tb-scale span { position: absolute; transform: translateX(-50%); white-space: nowrap; }
+    .tb-pct, .tb-dev { text-align: right; white-space: nowrap; }
+    .tb-val { white-space: nowrap; color: #6b8a82; }
+    .tb-row.lvl1 .tb-dev, .tb-row.lvl2 .tb-dev { font-weight: 700; }
+    .tb-ist { text-align: right; white-space: nowrap; }
+    .tb-soll { white-space: nowrap; color: #6b8a82; }
+    .pd-bars { break-inside: avoid; margin-top: 12px; }
+    .pd-barpage { margin-top: 8pt; }
+    .pd-barpage .tb-caption, .pd-barpage .tb-head { break-after: avoid; }
+    .pd-barpage .tb-row { break-inside: avoid; }
+    .pd-barpage .tb-cols { display: flex; gap: 16pt; align-items: flex-start; }
+    .pd-barpage .tb-col { flex: 1 1 0; min-width: 0; }
+    .pd-barpage .tb-cols .tb-row { grid-template-columns: 19% 5% 1fr 9% 15% 21% 14%; gap: 3pt; font-size: 7.5pt; padding: 2pt 0; }
+    .pd-barpage .tb-cols .tb-bar { height: 7pt; }
+    .pd-barpage .tb-cols .tb-head { font-size: 5.8pt; letter-spacing: 0; }
+    .pd-barpage .tb-cols .tb-row > span:last-child { padding-right: 2pt; }
+    .pd-barpage .tb-cols .tb-scale span:first-child, .pd-barpage .tb-cols .tb-scale span:last-child { display: none; }
+    .pd-barpage .tb { margin-top: 0; max-width: none; }
+    .pd-barpage .tb-caption { font-size: 9pt; color: #000; text-transform: none; letter-spacing: 0; margin-bottom: 4pt; }
+    .pd-barpage .tb-row { grid-template-columns: 17% 4% 1fr 7% 13% 16% 12%; gap: 6pt; font-size: 9pt; color: #000; padding: 3pt 0; border-bottom: 0.5pt solid #ccc; }
+    .pd-barpage .tb-head { font-size: 7pt; color: #555; border-bottom: 1pt solid #000; }
+    .pd-barpage .tb-soll { color: #333; }
+    .pd-barpage .tb-bar { height: 9pt; }
+    .pd-barpage .tb-mark { top: -3pt; bottom: -3pt; }
+    .pd-barpage .tb-legend { font-size: 7.5pt; color: #333; margin-top: 5pt; }
+    .pd-bars .tb { margin-top: 0; max-width: none; }
+    .pd-bars .tb-cols { display: flex; gap: 16pt; align-items: flex-start; }
+    .pd-bars .tb-col { flex: 1 1 0; min-width: 0; }
+    .pd-bars .tb-caption { font-size: 8pt; color: #000; text-transform: none; letter-spacing: 0; margin-bottom: 3px; }
+    .pd-bars .tb-row { break-inside: avoid; grid-template-columns: 17% 5% 1fr 8% 14% 19% 14%; gap: 3pt; font-size: 7pt; color: #000; padding: 1.5pt 0; border-bottom: 0.5pt solid #ccc; }
+    .pd-bars .tb-head { font-size: 6pt; color: #555; }
+    .pd-bars .tb-soll { color: #333; }
+    .pd-bars .tb-bar { height: 6pt; }
+    .pd-bars .tb-legend { font-size: 6.5pt; color: #333; margin-top: 3px; }
 
     /* ===== Tagesprotokoll-Druck (analog Vorlage) ===== */
     #print-days { display: none; padding: 0 2pt 0 1pt; }
@@ -144,7 +204,7 @@
     .pd-page { width: 100%; border-collapse: collapse; font-family: Verdana, Tahoma, Arial, sans-serif; font-size: 8pt; color: #000; }
     .pd-page > tbody > tr > td, .pd-page > tfoot > tr > td { padding: 0; border: none; }
     .pd-page + .pd-page { break-before: page; }
-    .pd-foot-space { height: 1.2cm; }
+    .pd-foot-space { height: 1.6cm; }
     .pd-fixed-foot { position: fixed; left: 0; right: 0; bottom: 0; background: #fff; border-top: 0.5pt solid #000; padding-top: 3px;
                      font-family: Verdana, Tahoma, Arial, sans-serif; font-size: 7pt; line-height: 1.35; color: #000; }
     .pd-head { display: flex; justify-content: flex-end; margin-bottom: 0.3cm; }
@@ -158,7 +218,7 @@
     .pd-table { width: 100%; border-collapse: collapse; table-layout: fixed; margin-top: 10px; }
     .pd-table th, .pd-table td { border: 0.75pt solid #000; padding: 1px 4px; text-align: right; vertical-align: top; }
     .pd-table th { font-weight: normal; line-height: 1.15; vertical-align: bottom; }
-    .pd-table th.pd-nut { text-align: center; padding: 3px 1px; }
+    .pd-table th.pd-nut { text-align: center; vertical-align: top; padding: 4px 1px 3px; }
     .pd-table td { padding-left: 2px; padding-right: 2px; }
     .pd-sum td:nth-child(2) { white-space: normal; }
     .pd-rot { display: inline-block; writing-mode: vertical-rl; transform: rotate(180deg); white-space: nowrap; text-align: left; }
@@ -167,6 +227,24 @@
     .pd-table th.pd-meal { text-align: left; font-weight: 700; }
     .pd-table .pd-g, .pd-table .pd-name { text-align: left; }
     .pd-table tr { break-inside: avoid; }
+    /* Ruhiges Raster: ein Kopf pro Seite, nur waagrechte Linien */
+    .pd-grid { width: 100%; border-collapse: collapse; table-layout: fixed; margin-top: 8px; }
+    .pd-grid th, .pd-grid td { border: none; padding: 1.5pt 3pt; text-align: right; vertical-align: top; white-space: nowrap; }
+    .pd-grid td.pd-name { white-space: normal; text-align: left; }
+    .pd-grid .pd-g { text-align: left; }
+    .pd-grid thead th { font-weight: normal; line-height: 1.15; vertical-align: bottom; border-bottom: 1pt solid #000; }
+    .pd-grid thead th.pd-nut { text-align: center; vertical-align: bottom; padding: 2pt 1pt 3pt; }
+    .pd-grid thead th.pd-lm { text-align: left; font-weight: 700; }
+    .pd-grid tbody td { border-bottom: 0.4pt solid #d0d0d0; }
+    .pd-grid tr { break-inside: avoid; }
+    .pd-grid tbody.pd-end { break-inside: avoid; }
+    .pd-grid tr.pd-mealrow td { background: #e9efec; font-weight: 700; text-align: left; border-top: 0.75pt solid #A2B9AF; border-bottom: 0.4pt solid #A2B9AF; padding-top: 2.5pt; }
+    .pd-grid tr.pd-msum td { font-weight: 700; border-bottom: 0.75pt solid #888; }
+    .pd-grid tr.pd-msum td.pd-name { font-weight: 700; }
+    .pd-grid tr.pd-gap td { border: none; height: 5pt; padding: 0; }
+    .pd-grid tr.pd-dayrow td { background: #dfe5ea; font-weight: 700; border-top: 1.2pt solid #000; border-bottom: 0.4pt solid #888; padding-top: 2.5pt; padding-bottom: 2.5pt; }
+    .pd-grid tr.pd-tgtrow td { color: #333; border-bottom: 1pt solid #000; }
+    .pd-grid tr.pd-tgtrow .pd-kind { color: #666; }
     .pd-sum { margin-top: 7px; }
     .pd-sum td:first-child, .pd-sum td:nth-child(2) { background: #eeeeee; }
     .pd-sum td:nth-child(2) { font-weight: 700; text-align: left; }
@@ -245,30 +323,14 @@
         <div class="field"><label>Geburtsdatum</label><input type="date" id="p-geburtsdatum"></div>
       </div>
       <div class="grid-3">
+        <div class="field"><label>Geschlecht</label>
+          <select id="p-geschlecht"><option value="">&#8211; bitte w&#228;hlen &#8211;</option><option value="w">weiblich</option><option value="m">m&#228;nnlich</option></select></div>
         <div class="field"><label>Gr&#246;sse (cm)</label><input type="number" id="p-groesse" min="100" max="250"></div>
         <div class="field"><label>Gewicht (kg)</label><input type="number" id="p-gewicht" min="20" max="300" step="0.1"></div>
-        <div class="field"><label>Aufnahmedatum</label><input type="date" id="p-aufnahme"></div>
       </div>
       <div class="grid-3">
-        <div class="field"><label>Geschlecht</label>
-          <select id="p-geschlecht"><option value="">– bitte w&#228;hlen –</option><option value="w">weiblich</option><option value="m">m&#228;nnlich</option></select></div>
-        <div class="field"><label>Aktivit&#228;t (PAL)</label>
-          <select id="p-pal">
-            <option value="">1.4 (Standard)</option>
-            <option value="1.2">1.2 &#8211; bettl&#228;gerig / sitzend, immobil</option>
-            <option value="1.3">1.3 &#8211; &#252;berwiegend liegend/sitzend (Spital)</option>
-            <option value="1.4">1.4 &#8211; sitzend, wenig Bewegung</option>
-            <option value="1.6">1.6 &#8211; sitzend, zeitweise gehend/stehend</option>
-            <option value="1.8">1.8 &#8211; &#252;berwiegend gehend/stehend</option>
-            <option value="2.0">2.0 &#8211; k&#246;rperlich anstrengend</option>
-          </select></div>
         <div class="field"><label>Energiebedarf (kcal/Tag)</label>
-          <input type="number" id="p-energie" min="500" max="6000" step="10" placeholder="leer = Harris-Benedict &#215; PAL"></div>
-      </div>
-      <div class="grid-3">
-        <div class="field"><label>Station</label><input type="text" id="p-station" autocomplete="off"></div>
-        <div class="field"><label>Arzt/&#196;rztin</label><input type="text" id="p-arzt" autocomplete="off"></div>
-        <div class="field"><label>Di&#228;tberatung</label><input type="text" id="p-beraterin" autocomplete="off"></div>
+          <input type="number" id="p-energie" min="500" max="6000" step="10" placeholder="aus Energiebedarfsrechner"></div>
       </div>
       <div class="field"><label>Diagnose</label><input type="text" id="p-diagnose" autocomplete="off"></div>
       <div class="field"><label>Bemerkungen</label><textarea id="p-bemerkungen"></textarea></div>
@@ -437,6 +499,7 @@ function loadStateFromStorage() {
   if (!state.viewNuts || !state.viewNuts.length) state.viewNuts = getDefaultNuts();
   if (!state.printNuts || !state.printNuts.length) state.printNuts = getDefaultNuts();
   if (!state.patient) state.patient = {};
+  migrateState();
 }
 
 function saveStateToFile() {
@@ -455,7 +518,7 @@ function handleFileLoad(ev) {
   const file = ev.target.files[0]; if(!file) return;
   const reader = new FileReader();
   reader.onload = e => {
-    try { state = JSON.parse(e.target.result); renderAll(); saveState(); }
+    try { state = JSON.parse(e.target.result); if (!state.patient) state.patient = {}; migrateState(); renderAll(); saveState(); }
     catch(err) { alert('Fehler beim Laden: ' + err.message); }
   };
   reader.readAsText(file);
@@ -674,7 +737,7 @@ function renderAll() {
   renderTargets();
   // Restore patient fields
   const p = state.patient;
-  ['vorname','nachname','geburtsdatum','groesse','gewicht','aufnahme','geschlecht','pal','energie','station','arzt','beraterin','diagnose','bemerkungen'].forEach(id => {
+  ['vorname','nachname','geburtsdatum','geschlecht','groesse','gewicht','energie','diagnose','bemerkungen'].forEach(id => {
     const el = document.getElementById('p-'+id);
     if (el && p[id]!==undefined) el.value = p[id];
   });
@@ -738,28 +801,41 @@ function renderDayTable(dayIdx) {
     return;
   }
   const totals = calcDayTotals(dayIdx);
-  const qn = QUICK_NUTS;
-  const ths = qn.map(k => '<th>'+esc(NUTMAP[k]?.label||k)+'<br><small>'+esc(NUTMAP[k]?.unit||'')+'</small></th>').join('');
-  const rows = entries.map((e,ei) =>
-    '<tr>'
-    +'<td title="'+esc(e.kat||'')+'">'+esc(e.name)+'</td>'
-    +'<td style="text-align:left"><select class="meal-select" onchange="setEntryMeal('+dayIdx+','+ei+',this.value)">'+mealOptions(e.meal, true)+'</select></td>'
-    +'<td><input type="number" value="'+e.amount+'" min="0.1" max="9999" step="0.1" '
-       +'style="width:80px;padding:0.2rem 0.4rem;" '
-       +'onchange="updateEntryAmount('+dayIdx+','+ei+',this.value)"> g</td>'
-    +qn.map(k=>'<td>'+(e.nuts[k]!=null?fmtN(e.nuts[k]):'-')+'</td>').join('')
-    +'<td class="del-col no-print"><button class="btn-icon" onclick="removeEntry('+dayIdx+','+ei+')" title="Entfernen">&times;</button></td>'
-    +'</tr>'
-  ).join('');
-  const totalCols = qn.map(k=>'<td>'+fmtN(totals[k])+'</td>').join('');
+  const nuts = state.viewNuts && state.viewNuts.length ? state.viewNuts : QUICK_NUTS;
+  const nCols = nuts.length + 4;
+  const tg = getTargets();
+  const ths = nuts.map(k => '<th>'+esc(shortNutLabel(k))+'<small>'+esc(NUTMAP[k]?.unit||'')+'</small></th>').join('');
+  const vals = t => nuts.map(k => '<td>'+fmtK(k, t[k])+'</td>').join('');
+  // nach Mahlzeit gruppieren, Original-Index für die Bearbeitung behalten
+  const groups = MEALS.map(m => [m, []]);
+  const other = ['Ohne Mahlzeit', []];
+  entries.forEach((e, ei) => { const g = groups.find(([m]) => m === e.meal); (g || other)[1].push([e, ei]); });
+  groups.push(other);
+  let body = '';
+  groups.forEach(([label, items]) => {
+    if (!items.length) return;
+    body += '<tbody>'
+      + '<tr class="dg-meal"><td colspan="'+nCols+'">'+esc(label)+'</td></tr>'
+      + items.map(([e, ei]) => '<tr class="dg-item">'
+          + '<td class="l"><select class="meal-select" title="Mahlzeit ändern" onchange="setEntryMeal('+dayIdx+','+ei+',this.value)">'+mealOptions(e.meal, true)+'</select></td>'
+          + '<td class="dg-amt"><input type="number" value="'+e.amount+'" min="0.1" max="9999" step="0.1" onchange="updateEntryAmount('+dayIdx+','+ei+',this.value)"></td>'
+          + '<td class="l dg-name" title="'+esc(e.kat||'')+'">'+esc(e.name)+(String(e.id).startsWith('BLS:')?' <span class="dg-src">BLS</span>':'')+'</td>'
+          + vals(e.nuts)
+          + '<td class="del-col"><button class="btn-icon" onclick="removeEntry('+dayIdx+','+ei+')" title="Entfernen">&times;</button></td>'
+          + '</tr>').join('')
+      + '<tr class="dg-msum"><td></td><td></td><td class="l">Summe '+esc(label)+'</td>'+vals(sumEntries(items.map(([e]) => e)))+'<td></td></tr>'
+      + '<tr class="dg-gap"><td colspan="'+nCols+'"></td></tr>'
+      + '</tbody>';
+  });
+  body += '<tbody>'
+    + '<tr class="dg-day"><td></td><td></td><td class="l">Summe Tag</td>'+vals(totals)+'<td></td></tr>'
+    + (nuts.some(k => tg[k]) ? '<tr class="dg-tgt"><td></td><td></td><td class="l">Empfehlung</td>'+nuts.map(k => '<td>'+(tg[k] ? '<span class="tgt-kind">'+KIND_LABEL[tg[k].kind]+'</span> '+fmtK(k, tg[k].val) : '–')+'</td>').join('')+'<td></td></tr>' : '')
+    + '</tbody>';
 
-  wrap.innerHTML = '<div class="entries-table-wrap"><table class="entries-table">'
-    +'<thead><tr><th>Lebensmittel</th><th style="text-align:left">Mahlzeit</th><th>Menge</th>'+ths+'<th class="del-col no-print"></th></tr></thead>'
-    +'<tbody>'+rows+'</tbody>'
-    +'<tfoot><tr class="total-row"><td>Tagesgesamt</td><td></td><td></td>'+totalCols+'<td class="no-print"></td></tr>'
-    +targetRowsHtml(qn, totals, 3)
-    +'</tfoot>'
-    +'</table></div>';
+  wrap.innerHTML = '<div class="entries-table-wrap"><table class="day-grid">'
+    + '<thead><tr><th class="l">Mahlzeit</th><th>g</th><th class="l">Lebensmittel</th>'+ths+'<th class="del-col"></th></tr></thead>'
+    + body + '</table></div>'
+    + barsHtml(nuts, totals, 'Zielerreichung dieses Tages', (v, k) => fmtK(k, v));
 }
 
 function renderOverview(nuts) {
@@ -777,18 +853,18 @@ function renderOverview(nuts) {
     const t = calcDayTotals(i);
     let label = 'Tag '+(i+1);
     if (d.date) { const p=d.date.split('-'); if(p.length===3) label=p[2]+'.'+p[1]+'.'+p[0]; }
-    const tg = getTargets();
-    return '<tr><td>'+esc(label)+'</td>'+nuts.map(k=>{ const ev=evalTarget(tg[k], t[k]); return '<td class="'+(ev?ev.cls:'')+'" title="'+(ev?esc(ev.pctText+' der Empfehlung'):'')+'">'+fmtN(t[k])+'</td>'; }).join('')+'</tr>';
+    return '<tr><td>'+esc(label)+'</td>'+nuts.map(k=>'<td>'+fmtN(t[k])+'</td>').join('')+'</tr>';
   }).filter(Boolean).join('');
   const avg = calcAverage();
   const tgO = getTargets();
-  const avgRow = (avg ? '<tr class="avg-row"><td>&#216; Durchschnitt</td>'+nuts.map(k=>{ const ev=evalTarget(tgO[k], avg[k]); return '<td class="'+(ev?ev.cls:'')+'">'+fmtN(avg[k])+(ev?'<br><small>'+ev.pctText+'</small>':'')+'</td>'; }).join('')+'</tr>' : '')
+  const avgRow = (avg ? '<tr class="avg-row"><td>&#216; Durchschnitt</td>'+nuts.map(k=>'<td>'+fmtN(avg[k])+'</td>').join('')+'</tr>' : '')
     + '<tr class="target-row"><td>Empfehlung</td>'+nuts.map(k=>'<td>'+targetText(tgO[k], fmtN)+'</td>').join('')+'</tr>';
   el.innerHTML = '<div class="overview-wrap"><table class="overview-table">'
     +'<thead><tr><th>Tag</th>'+ths+'</tr></thead>'
     +'<tbody>'+rows+'</tbody>'
     +(avgRow?'<tfoot>'+avgRow+'</tfoot>':'')
-    +'</table></div>';
+    +'</table></div>'
+    +(avg ? barsHtml(nuts, avg, 'Zielerreichung Ø aller erfassten Tage', (v, k) => fmtK(k, v)) : '');
 }
 
 // ===== NUTRIENT SELECTOR =====
@@ -843,6 +919,7 @@ function applyViewNuts() {
   state.viewNuts = sel.length ? sel : ['kcal'];
   saveState();
   renderOverview(state.viewNuts);
+  state.days.forEach((_, i) => renderDayTable(i));
   closeModal('modal-view-nuts');
 }
 
@@ -861,11 +938,16 @@ function doPrint() {
 }
 
 // ===== MAHLZEITEN =====
-const MEALS = ['Frühstück','Vormittagsjause','Mittagessen','Nachmittagsjause','Abendessen','Spätmahlzeit'];
+const MEALS = ['Frühstück','Vormittagssnack','Mittagessen','Nachmittagssnack','Abendessen','Spätmahlzeit'];
+const MEAL_RENAME = {'Vormittagsjause':'Vormittagssnack', 'Nachmittagsjause':'Nachmittagssnack'};
+function migrateState() {
+  (state.days||[]).forEach(d => (d.entries||[]).forEach(e => { if (MEAL_RENAME[e.meal]) e.meal = MEAL_RENAME[e.meal]; }));
+}
 const DAY_PDF_DEFAULT = ['kcal','protein','vitB12','fett','kh','fasern','kalium','calcium','eisen','folat','wasser','natrium'];
 const SOURCE_LINES = [
   'Quelle 1: Schweizer Nährwertdatenbank V 7.0 – Bundesamt für Lebensmittelsicherheit und Veterinärwesen BLV (naehrwertdaten.ch)',
-  'Quelle 2: Bundeslebensmittelschlüssel (BLS) 4.0 (2025) – Max Rubner-Institut; mit «(BLS)» markierte Lebensmittel stammen aus dieser Quelle'
+  'Quelle 2: Bundeslebensmittelschlüssel (BLS) 4.0 (2025) – Max Rubner-Institut; mit «(BLS)» markierte Lebensmittel stammen aus dieser Quelle',
+  'Quelle 3 (Vergleichswerte): D-A-CH-Referenzwerte für die Nährstoffzufuhr – DGE, ÖGE, SGE; Salz max. 5 g gemäss SGE, Natrium max. 2 g gemäss WHO'
 ];
 
 function mealOptions(sel, allowEmpty) {
@@ -879,8 +961,12 @@ function lastMealOf(dayIdx) {
   return MEALS[0];
 }
 function setEntryMeal(dayIdx, ei, meal) {
-  state.days[dayIdx].entries[ei].meal = meal;
+  const es = state.days[dayIdx].entries;
+  const [entry] = es.splice(ei, 1);   // ans Ende verschieben → erscheint zuunterst in der neuen Gruppe
+  entry.meal = meal;
+  es.push(entry);
   saveState();
+  renderDayTable(dayIdx);   // Zeile springt sofort in die neue Mahlzeit-Gruppe
 }
 
 // ===== TAGESPROTOKOLL-PDF =====
@@ -940,6 +1026,14 @@ function setDayPrintPageStyle() {
     + '} }';
 }
 
+// Nachkommastellen je Nährstoff (grosse Werte ganzzahlig, kleine Vitamine mit 2 Stellen)
+const DEC0 = ['kcal','kJ','wasser','kalium','natrium','chlorid','calcium','magnesium','phosphor','folat','vitA','retinol','betacarotin','jod','selen'];
+const DEC2 = ['vitB1','vitB2','vitB6'];
+function fmtK(k, v) {
+  if (v==null) return '—';
+  const d = DEC0.includes(k) ? 0 : DEC2.includes(k) ? 2 : 1;
+  return Number(v).toLocaleString('de-CH', {minimumFractionDigits:d, maximumFractionDigits:d});
+}
 function fmtP(v) {
   if (v==null) return '—';
   return Number(v).toLocaleString('de-CH', {minimumFractionDigits:1, maximumFractionDigits:1});
@@ -975,7 +1069,7 @@ function buildPrintDays(idxs, nuts, withAverage) {
   // Spaltenbreiten dynamisch: längster formatierter Wert je Nährstoff über alle gedruckten Tage
   const maxLen = {}; nuts.forEach(k => maxLen[k] = 0);
   let gLen = 1;
-  const measure = t => nuts.forEach(k => { maxLen[k] = Math.max(maxLen[k], fmtP(t[k]).length); });
+  const measure = t => nuts.forEach(k => { maxLen[k] = Math.max(maxLen[k], fmtK(k, t[k]).length); });
   idxs.forEach(di => {
     const es = state.days[di].entries;
     es.forEach(e => { measure(e.nuts); gLen = Math.max(gLen, fmtAmt(e.amount).length); });
@@ -993,62 +1087,88 @@ function buildPrintDays(idxs, nuts, withAverage) {
     });
   }
   // gedrehte Titel brauchen ca. 3ch (2 Zeilen), fette Summen etwas Reserve
-  const colW = n => 'calc(' + (Math.max(n, 3) * 1.02).toFixed(2) + 'ch + 5px)';
+  const colW = n => 'calc(' + (Math.max(n, 3) * 1.12).toFixed(2) + 'ch + 6px)';
   // Schriftgrösse so wählen, dass alle Spalten + mind. ~26 Zeichen Namensspalte auf A4 quer passen
   // (nutzbare Breite ca. 750pt; 1ch Verdana ≈ 0.64 × Schriftgrösse; 6px+Rahmen ≈ 5.3pt pro Spalte)
-  const sumCh = [gLen].concat(nuts.map(k => maxLen[k])).reduce((s, n) => s + Math.max(n, 3) * 1.02, 0);
+  const sumCh = [gLen].concat(nuts.map(k => maxLen[k])).reduce((s, n) => s + Math.max(n, 3) * 1.12, 0);
   const fixedPt = (nuts.length + 2) * 4.6;
   const fontPt = Math.max(4, Math.min(8, (740 - fixedPt) / (0.64 * sumCh + 0.6 * 30)));
   const colg = '<colgroup><col style="width:' + colW(gLen) + '"><col>' + nuts.map(k => '<col style="width:' + colW(maxLen[k]) + '">').join('') + '</colgroup>';
   const heads = nuts.map(k => '<th class="pd-nut"><span class="pd-rot">'+esc(shortNutLabel(k))+'<br>'+esc(NUTMAP[k]?.unit||'')+'</span></th>').join('');
-  const sumTable = (label, t, cls) => '<table class="pd-table pd-sum '+(cls||'')+'">'+colg
-    + '<tr><td></td><td>'+esc(label)+'</td>' + nuts.map(k=>'<td>'+fmtP(t[k])+'</td>').join('') + '</tr></table>';
+  const fmtByKey = (v, k) => fmtK(k, v);
+  const nCols = nuts.length + 2;
+  const valCells = t => nuts.map(k => '<td>'+fmtK(k, t[k])+'</td>').join('');
   const tgP = getTargets();
-  const targetTables = (t, reachLabel) =>
-    '<table class="pd-table pd-sum pd-target">'+colg+'<tr><td></td><td>Empfehlung</td>'
-      + nuts.map(k => { const x = tgP[k]; return '<td>'+(x ? fmtP(x.val)+'<br><span class="pd-kind">'+KIND_LABEL[x.kind]+'</span>' : '')+'</td>'; }).join('') + '</tr></table>'
-    + '<table class="pd-table pd-sum pd-reach">'+colg+'<tr><td></td><td>'+esc(reachLabel)+'</td>'
-      + nuts.map(k => { const ev = evalTarget(tgP[k], t[k]); return '<td class="'+(ev?ev.cls:'')+'">'+(ev?ev.pctText:'')+'</td>'; }).join('') + '</tr></table>';
+  const dayRows = (label, t) =>
+      '<tr class="pd-gap"><td colspan="'+nCols+'"></td></tr>'
+    + '<tr class="pd-dayrow"><td></td><td class="pd-name">'+esc(label)+'</td>'+valCells(t)+'</tr>'
+    + '<tr class="pd-tgtrow"><td></td><td class="pd-name">Empfehlung</td>'
+      + nuts.map(k => { const x = tgP[k]; return '<td>'+(x ? fmtK(k, x.val)+'<br><span class="pd-kind">'+KIND_LABEL[x.kind]+'</span>' : '')+'</td>'; }).join('') + '</tr>';
   const info = [];
-  if (p.groesse||p.gewicht) info.push([p.groesse?p.groesse+' cm':'', p.gewicht?p.gewicht+' kg':''].filter(Boolean).join(' / '));
+  const sexTxt = p.geschlecht==='m' ? 'männlich' : p.geschlecht==='w' ? 'weiblich' : '';
+  const body = [sexTxt, p.groesse?p.groesse+' cm':'', p.gewicht?p.gewicht+' kg':''].filter(Boolean).join(' · ');
+  const eT = energyTarget();
   if (p.diagnose) info.push('Diagnose: '+p.diagnose);
-  if (p.arzt) info.push('Arzt/Ärztin: '+p.arzt);
-  if (p.aufnahme) info.push('Aufnahme: '+fmtDateCH(p.aufnahme));
   if (p.bemerkungen) info.push(p.bemerkungen);
   info.push('Empfehlung: ' + targetBasisText());
 
   // Fusszeile mit beiden Quellen – position:fixed wird auf jeder Druckseite wiederholt
   let html = '<div class="pd-fixed-foot">' + SOURCE_LINES.map(esc).join('<br>') + '</div>';
+  const barHead = '<div class="pd-head">'+(logo?'<img src="'+logo+'" alt="">':'')+'</div>'
+    + '<div class="pd-row pd-line"><b>Ernährungsprotokoll von '+esc(name)+'</b><span><b>Geburtsdatum:</b> '+esc(fmtDateCH(p.geburtsdatum))+'</span></div>'
+    + '<div class="pd-row pd-line"><span>'+esc(body)+'</span><span><b>Energiebedarf:</b> '+(eT ? esc(fmtN(eT.val))+' kcal/Tag' : '–')+'</span></div>'
+    + '<div class="pd-info">Empfehlung: '+esc(targetBasisText())+'</div>';
+  const wrapPage = (inner, fs) => '<table class="pd-page" style="font-size:' + fs + 'pt"><tbody><tr><td>' + inner + '</td></tr></tbody>'
+    + '<tfoot><tr><td><div class="pd-foot-space"></div></td></tr></tfoot></table>';
   idxs.forEach((di, n) => {
     const d = state.days[di];
     let c = '<div class="pd-head">'+(logo?'<img src="'+logo+'" alt="">':'')+'</div>'
-      + '<div class="pd-row pd-line"><b>Ernährungsprotokoll von '+esc(name)+'</b><b>'+(p.station?'Station: '+esc(p.station):'')+'</b></div>'
-      + '<div class="pd-row pd-line"><span><b>Geburtsdatum:</b> '+esc(fmtDateCH(p.geburtsdatum))+'</span><span><b>Bearbeitet von:</b> '+esc(p.beraterin||'')+'</span></div>'
+      + '<div class="pd-row pd-line"><b>Ernährungsprotokoll von '+esc(name)+'</b><span><b>Geburtsdatum:</b> '+esc(fmtDateCH(p.geburtsdatum))+'</span></div>'
+      + '<div class="pd-row pd-line"><span>'+esc(body)+'</span><span><b>Energiebedarf:</b> '+(eT ? esc(fmtN(eT.val))+' kcal/Tag' : '–')+'</span></div>'
       + '<div class="pd-info">'+esc(info.join(' · '))+'</div>'
       + '<div class="pd-date"><span>'+esc(dayLabel(di))+'</span><small>erstellt '+esc(stamp)+'</small></div>';
     const groups = MEALS.map(m => [m, d.entries.filter(e => e.meal===m)]);
     groups.push(['Ohne Mahlzeit', d.entries.filter(e => !MEALS.includes(e.meal))]);
-    groups.forEach(([label, es]) => {
-      if (!es.length) return;
-      const rows = es.map(e => '<tr><td class="pd-g">'+fmtAmt(e.amount)+'</td><td class="pd-name">'+esc(e.name)
-          + (String(e.id).startsWith('BLS:') ? ' <span class="pd-src">(BLS)</span>' : '') + '</td>'
-          + nuts.map(k => '<td>'+fmtP(e.nuts[k])+'</td>').join('') + '</tr>').join('');
-      c += '<div class="pd-block"><table class="pd-table">'+colg
-        + '<thead><tr><th class="pd-g">g</th><th class="pd-meal">'+esc(label)+'</th>'+heads+'</tr></thead>'
-        + '<tbody>'+rows+'</tbody></table>'
-        + sumTable('Summe Mahlzeit', sumEntries(es)) + '</div>';
+    // Eine Tabelle pro Tag; der Kopf (thead) wiederholt sich automatisch auf Folgeseiten
+    let t = '<table class="pd-grid">'+colg
+      + '<thead><tr><th class="pd-g">g</th><th class="pd-lm">Lebensmittel</th>'+heads+'</tr></thead>';
+    const filled = groups.filter(([, es]) => es.length);
+    filled.forEach(([label, es], gi) => {
+      const isLast = gi === filled.length - 1;
+      // letzte Mahlzeit bleibt mit «Summe Tag» und «Empfehlung» zusammen (keine Seite mit nur einer Zeile)
+      t += '<tbody class="'+(isLast ? 'pd-end' : 'pd-meal')+'">'
+        + '<tr class="pd-mealrow"><td colspan="'+nCols+'">'+esc(label)+'</td></tr>'
+        + es.map(e => '<tr><td class="pd-g">'+fmtAmt(e.amount)+'</td><td class="pd-name">'+esc(e.name)
+            + (String(e.id).startsWith('BLS:') ? ' <span class="pd-src">(BLS)</span>' : '') + '</td>'
+            + valCells(e.nuts) + '</tr>').join('')
+        + '<tr class="pd-msum"><td></td><td class="pd-name">Summe '+esc(label)+'</td>'+valCells(sumEntries(es))+'</tr>'
+        + (isLast ? '' : '<tr class="pd-gap"><td colspan="'+nCols+'"></td></tr></tbody>');
     });
     const dt = calcDayTotals(di);
-    c += sumTable('Summe Tag', dt, 'pd-total');
-    c += targetTables(dt, 'Erreicht (Tag)');
-    if (withAverage && n===idxs.length-1 && idxs.length>1) {
-      const av = calcAverage();
-      c += sumTable('Durchschnitt gesamt', av, 'pd-total') + targetTables(av, 'Erreicht (Ø)');
-    }
+    t += (filled.length ? '' : '<tbody class="pd-end">') + dayRows('Summe Tag', dt);
+    t += '</tbody></table>';
+    c += t;
+    // Zielerreichung auf separater Seite (einspaltig, grösser)
+    let bp = barHead + '<div class="pd-date"><span>Zielerreichung '+esc(dayLabel(di))+'</span><small>erstellt '+esc(stamp)+'</small></div>'
+      + '<div class="pd-barpage">' + barsHtml(nuts, dt, 'Tagessumme im Vergleich zur Empfehlung', fmtByKey, 'page') + '</div>';
     // tfoot reserviert auf jeder Seite Platz für die fixierte Quellen-Fusszeile
-    html += '<table class="pd-page" style="font-size:' + fontPt.toFixed(2) + 'pt"><tbody><tr><td>' + c + '</td></tr></tbody>'
-      + '<tfoot><tr><td><div class="pd-foot-space"></div></td></tr></tfoot></table>';
+    html += wrapPage(c, fontPt.toFixed(2));
+    if (bp.indexOf('tb-row') > -1) html += wrapPage(bp, 8);
   });
+
+  // Durchschnitt aller Tage auf separater Seite: Tagessummen, Durchschnitt, Empfehlung + Zielerreichung
+  if (withAverage && idxs.length > 1) {
+    const av = calcAverage();
+    const dayList = idxs.map(di => dayLabel(di)).join(', ');
+    let a = barHead + '<div class="pd-date"><span>Durchschnitt aller Tage ('+idxs.length+' Tage)</span><small>erstellt '+esc(stamp)+'</small></div>'
+      + '<div class="pd-info">Berücksichtigte Tage: '+esc(dayList)+'</div>'
+      + '<table class="pd-grid">'+colg
+      + '<thead><tr><th class="pd-g"></th><th class="pd-lm">Tag</th>'+heads+'</tr></thead><tbody>'
+      + idxs.map(di => '<tr><td class="pd-g"></td><td class="pd-name">Summe '+esc(dayLabel(di))+'</td>'+valCells(calcDayTotals(di))+'</tr>').join('')
+      + '</tbody><tbody class="pd-end">' + dayRows('Durchschnitt', av) + '</tbody></table>'
+      + '<div class="pd-barpage" style="margin-top:14pt">' + barsHtml(nuts, av, 'Durchschnitt im Vergleich zur Empfehlung', fmtByKey, 'page-cols') + '</div>';
+    html += wrapPage(a, fontPt.toFixed(2));
+  }
   return html;
 }
 
@@ -1095,12 +1215,8 @@ function ageGroup(a) { if (a==null) return 1; return a < 25 ? 0 : a < 51 ? 1 : a
 function energyTarget() {
   const p = state.patient;
   const manual = parseFloat(p.energie);
-  if (manual > 0) return {val: manual, how: 'manuell'};
-  const w = parseFloat(p.gewicht), hgt = parseFloat(p.groesse), a = patientAge(), sex = p.geschlecht;
-  if (!(w>0 && hgt>0 && a!=null && sex)) return null;
-  const gu = sex==='m' ? 88.362 + 13.397*w + 4.799*hgt - 5.677*a : 447.593 + 9.247*w + 3.098*hgt - 4.330*a;
-  const pal = parseFloat(p.pal) || 1.4;
-  return {val: Math.round(gu*pal/10)*10, how: 'Harris-Benedict × PAL '+pal.toFixed(1)};
+  if (manual > 0) return {val: manual, how: 'gemäss Energiebedarfsrechner'};
+  return null;
 }
 
 function autoTargets() {
@@ -1140,11 +1256,14 @@ function getTargets() {
 function evalTarget(tg, v) {
   if (!tg || !(tg.val > 0) || v == null) return null;
   const pct = v / tg.val * 100;
-  let cls;
-  if (tg.kind === 'min') cls = pct >= 100 ? 'st-ok' : pct >= 75 ? 'st-warn' : 'st-bad';
-  else if (tg.kind === 'max') cls = pct <= 100 ? 'st-ok' : pct <= 110 ? 'st-warn' : 'st-bad';
-  else cls = (pct >= 90 && pct <= 110) ? 'st-ok' : (pct >= 75 && pct <= 125) ? 'st-warn' : 'st-bad';
-  return {pct, cls, pctText: Math.round(pct) + ' %'};
+  const pr = Math.round(pct);   // Bewertung auf angezeigten (gerundeten) Prozentwert
+  // Handlungsbedarf erst ab mehr als 10 % Abweichung
+  // Stufen nach Abweichung: bis 25 % ok, 25–50 % Stufe 1 (sand), über 50 % Stufe 2 (rosé)
+  let flag = null, level = 0;
+  const low = tg.kind !== 'max' && pr < 100, high = tg.kind !== 'min' && pr > 100;
+  const dev = Math.abs(pr - 100);
+  if ((low || high) && dev > 25) { flag = low ? 'low' : 'high'; level = dev > 50 ? 2 : 1; }
+  return {pct, flag, level, pctText: pr + ' %'};
 }
 
 function targetText(tg, fmt) {
@@ -1154,7 +1273,7 @@ function targetText(tg, fmt) {
 
 function targetBasisText() {
   const p = state.patient, a = patientAge(), e = energyTarget();
-  const parts = ['D-A-CH-Referenzwerte'];
+  const parts = ['D-A-CH-Referenzwerte (DGE/ÖGE/SGE)'];
   parts.push((p.geschlecht==='m'?'männlich':p.geschlecht==='w'?'weiblich':'Geschlecht nicht angegeben (weibl. Werte)') + (a!=null ? ', '+a+' J.' : ', Alter unbekannt'));
   if (e) parts.push('Energie '+fmtN(e.val)+' kcal ('+e.how+')');
   if (Object.keys(state.targetOverrides||{}).length) parts.push('teilweise individuell angepasst');
@@ -1165,8 +1284,7 @@ function targetRowsHtml(keys, totals, leadCols) {
   const tg = getTargets();
   if (!keys.some(k => tg[k])) return '';
   const lead = n => '<td></td>'.repeat(n);
-  return '<tr class="target-row"><td>Empfehlung</td>'+lead(leadCols-1)+keys.map(k=>'<td>'+targetText(tg[k])+'</td>').join('')+'<td class="no-print"></td></tr>'
-    + '<tr class="reach-row"><td>Erreicht</td>'+lead(leadCols-1)+keys.map(k=>{ const ev=evalTarget(tg[k], totals[k]); return ev ? '<td class="'+ev.cls+'">'+ev.pctText+'</td>' : '<td class="st-none">–</td>'; }).join('')+'<td class="no-print"></td></tr>';
+  return '<tr class="target-row"><td>Empfehlung</td>'+lead(leadCols-1)+keys.map(k=>'<td>'+targetText(tg[k])+'</td>').join('')+'<td class="no-print"></td></tr>';
 }
 
 function renderTargets() {
@@ -1178,10 +1296,14 @@ function renderTargets() {
   if (!p.geschlecht) missing.push('Geschlecht');
   if (!p.geburtsdatum) missing.push('Geburtsdatum');
   if (!(parseFloat(p.gewicht)>0)) missing.push('Gewicht');
-  if (!(parseFloat(p.energie)>0) && !(parseFloat(p.groesse)>0)) missing.push('Grösse oder Energiebedarf');
+  if (!(parseFloat(p.energie)>0)) missing.push('Energiebedarf (kcal)');
   sumEl.innerHTML = esc(targetBasisText())
     + (missing.length ? '<br><strong>Für vollständige Empfehlungen bitte in den Patientendaten ergänzen: '+esc(missing.join(', '))+'.</strong>' : '')
-    + '<div class="targets-legend"><span class="st-ok">erreicht</span><span class="st-warn">knapp (75–99 % bzw. leicht über Max.)</span><span class="st-bad">deutlich verfehlt / überschritten</span></div>';
+    + '<div class="targets-legend">'
+      + '<span><i style="background:#5E7688"></i>bis 25 % Abweichung (im Rahmen)</span>'
+      + '<span><i style="background:#EFDA8F;box-shadow:inset 0 0 0 1px #cdb460"></i><b style="color:#8a7020">↓ / ↑</b> 25–50 % Abweichung</span>'
+      + '<span><i style="background:#E6C6C7;box-shadow:inset 0 0 0 1px #c9a0a3"></i><b style="color:#a8676b">↓↓ / ↑↑</b> mehr als 50 % Abweichung</span>'
+      + '<span><i style="background:#263238;width:2px;height:12px"></i>100 % der Empfehlung</span></div>';
   let rows = '';
   ['makro','vit','min'].forEach(g => {
     rows += '<tr><td colspan="5" style="font-weight:600;color:#6b8a82;padding-top:0.8rem;">'+GROUP_LABELS[g]+'</td></tr>';
@@ -1228,6 +1350,60 @@ function refreshTargetViews() {
   renderOverview();
 }
 
+// ===== BALKENLISTE (Zielerreichung) =====
+const BAR_MAX = 150;  // Skala 0–150 %
+
+function fmtSigned(v, fmt, k) {
+  const s = (fmt||fmtN)(Math.abs(v), k);
+  if (!/[1-9]/.test(s)) return '±0';
+  return (v > 0 ? '+' : '−') + s;
+}
+
+function barsHtml(keys, totals, caption, fmt, forPrint) {
+  const tg = getTargets();
+  fmt = fmt || fmtN;
+  const mark = (100 / BAR_MAX * 100).toFixed(2) + '%';
+  const rows = keys.filter(k => tg[k] && totals && totals[k] != null).map(k => {
+    const t = tg[k], v = totals[k], ev = evalTarget(t, v), u = NUTMAP[k]?.unit || '';
+    const w = (Math.min(Math.max(ev.pct, 0), BAR_MAX) / BAR_MAX * 100).toFixed(2) + '%';
+    const sym = ev.flag === 'low' ? '↓' : ev.flag === 'high' ? '↑' : '';
+    const arrow = sym.repeat(ev.level);
+    return '<div class="tb-row'+(ev.level?' lvl'+ev.level:'')+'">'
+      + '<span class="tb-name">'+esc(shortNutLabel(k))+'</span>'
+      + '<span class="tb-flag">'+arrow+'</span>'
+      + '<span class="tb-bar"><span class="tb-fill" style="width:'+w+'"></span><span class="tb-mark" style="left:'+mark+'"></span></span>'
+      + '<span class="tb-pct">'+ev.pctText+'</span>'
+      + '<span class="tb-ist">'+fmt(v, k)+' '+esc(u)+'</span>'
+      + '<span class="tb-soll">'+KIND_LABEL[t.kind]+' '+fmt(t.val, k)+' '+esc(u)+'</span>'
+      + '<span class="tb-dev">'+fmtSigned(v - t.val, fmt, k)+' '+esc(u)+'</span>'
+      + '</div>';
+  });
+  if (!rows.length) return '';
+  const head = '<div class="tb-row tb-head"><span>Nährstoff</span><span></span>'
+      + '<span class="tb-scale">'+(forPrint===true ? '' : '<span style="left:0;transform:none">0</span>')+'<span style="left:'+mark+'">100 %</span>'+(forPrint===true ? '' : '<span style="left:100%;transform:translateX(-100%)">150 %</span>')+'</span>'
+      + '<span style="text-align:right">Erreicht</span><span style="text-align:right">Ist</span><span>Empfehlung</span><span style="text-align:right">Abweichung</span></div>';
+  const legendTxt = 'Balken: Ist in % der Empfehlung (Skala 0–150 %, Strich = 100 %). '
+      + '↓ / ↑ = 25–50 % unter bzw. über der Empfehlung, ↓↓ / ↑↑ = mehr als 50 %.';
+  if (forPrint === 'page' || forPrint === 'page-cols') {
+    // bis 14 Nährstoffe einspaltig, sonst zweispaltig – damit die Liste auf eine Seite passt
+    if (forPrint === 'page-cols' || rows.length > 14) {
+      const half = Math.ceil(rows.length / 2);
+      return '<div class="tb"><div class="tb-caption">'+esc(caption)+'</div><div class="tb-cols">'
+        + [rows.slice(0, half), rows.slice(half)].map(c => '<div class="tb-col">'+head+c.join('')+'</div>').join('')
+        + '</div><div class="tb-legend">'+legendTxt+'</div></div>';
+    }
+    return '<div class="tb"><div class="tb-caption">'+esc(caption)+'</div>'+head+rows.join('')+'<div class="tb-legend">'+legendTxt+'</div></div>';
+  }
+  if (forPrint) {
+    const half = Math.ceil(rows.length / 2);
+    const cols = rows.length > 6 ? [rows.slice(0, half), rows.slice(half)] : [rows];
+    return '<div class="tb"><div class="tb-caption">'+esc(caption)+'</div><div class="tb-cols">'
+      + cols.map(c => '<div class="tb-col">'+head+c.join('')+'</div>').join('')
+      + '</div><div class="tb-legend">'+legendTxt+'</div></div>';
+  }
+  return '<div class="tb"><div class="tb-caption">'+esc(caption)+'</div>'+head+rows.join('')+'</div>';
+}
+
 function toggleSection(id, btn) {
   const el = document.getElementById(id);
   const hidden = el.style.display==='none';
@@ -1257,12 +1433,12 @@ function esc(s) {
   renderAll();
 
   // Bind patient inputs
-  ['vorname','nachname','geburtsdatum','groesse','gewicht','aufnahme','geschlecht','pal','energie','station','arzt','beraterin','diagnose','bemerkungen'].forEach(id => {
+  ['vorname','nachname','geburtsdatum','geschlecht','groesse','gewicht','energie','diagnose','bemerkungen'].forEach(id => {
     const el = document.getElementById('p-'+id);
     if (!el) return;
     const upd = () => {
       state.patient[id]=el.value; saveState();
-      if (['geburtsdatum','groesse','gewicht','geschlecht','pal','energie'].includes(id)) refreshTargetViews();
+      if (['geburtsdatum','groesse','gewicht','geschlecht','energie'].includes(id)) refreshTargetViews();
     };
     el.addEventListener('input', upd);
     if (el.tagName==='SELECT') el.addEventListener('change', upd);
