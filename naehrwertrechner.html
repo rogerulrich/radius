@@ -115,7 +115,8 @@
     }
 
     /* ===== Tagesprotokoll-Druck (analog Vorlage) ===== */
-    #print-days { display: none; }
+    #print-days { display: none; padding: 0 2pt 0 1pt; }
+    .pd-block, .pd-table { max-width: 100%; }
     .pd-page { width: 100%; border-collapse: collapse; font-family: Verdana, Tahoma, Arial, sans-serif; font-size: 8pt; color: #000; }
     .pd-page > tbody > tr > td, .pd-page > tfoot > tr > td { padding: 0; border: none; }
     .pd-page + .pd-page { break-before: page; }
