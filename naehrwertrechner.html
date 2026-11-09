@@ -114,6 +114,30 @@
       .header { flex-direction: column; align-items: flex-start; }
     }
 
+    /* ===== Nährwertempfehlung / Zielerreichung ===== */
+    .st-ok   { color: #2e7d32; background: #e8f5e9; }
+    .st-warn { color: #e65100; background: #fff3e0; }
+    .st-bad  { color: #c62828; background: #ffebee; }
+    .st-none { color: #9ab0aa; }
+    .entries-table td.st-ok, .entries-table td.st-warn, .entries-table td.st-bad,
+    .overview-table td.st-ok, .overview-table td.st-warn, .overview-table td.st-bad { font-weight: 700; }
+    .entries-table .target-row td, .overview-table .target-row td { font-size: 0.78rem; color: #6b8a82; background: #faf9f7; border-bottom: none; }
+    .entries-table .reach-row td { border-bottom: none; }
+    .tgt-kind { font-size: 0.7rem; opacity: 0.8; }
+    .targets-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    .targets-table th { text-align: left; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; color: #6b8a82; padding: 0.4rem 0.5rem; border-bottom: 2px solid #e2ddd6; }
+    .targets-table td { padding: 0.3rem 0.5rem; border-bottom: 1px solid #f0ede8; color: #3d5a52; vertical-align: middle; }
+    .targets-table td.num { text-align: right; white-space: nowrap; }
+    .targets-table input, .targets-table select { padding: 0.25rem 0.4rem !important; font-size: 0.82rem !important; }
+    .targets-table input { width: 95px !important; text-align: right; }
+    .targets-table select { width: auto !important; }
+    .targets-table tr.overridden td { background: #fffde7; }
+    .targets-legend { display: flex; gap: 0.8rem; flex-wrap: wrap; font-size: 0.78rem; margin: 0.6rem 0 0.2rem; }
+    .targets-legend span { padding: 0.15rem 0.5rem; border-radius: 6px; font-weight: 600; }
+    .pd-kind { font-size: 0.8em; font-weight: normal; }
+    .pd-target td { background: #f7f7f7; }
+    .pd-reach td.st-ok, .pd-reach td.st-warn, .pd-reach td.st-bad { font-weight: 700; }
+
     /* ===== Tagesprotokoll-Druck (analog Vorlage) ===== */
     #print-days { display: none; padding: 0 2pt 0 1pt; }
     .pd-block, .pd-table { max-width: 100%; }
@@ -226,12 +250,43 @@
         <div class="field"><label>Aufnahmedatum</label><input type="date" id="p-aufnahme"></div>
       </div>
       <div class="grid-3">
+        <div class="field"><label>Geschlecht</label>
+          <select id="p-geschlecht"><option value="">– bitte w&#228;hlen –</option><option value="w">weiblich</option><option value="m">m&#228;nnlich</option></select></div>
+        <div class="field"><label>Aktivit&#228;t (PAL)</label>
+          <select id="p-pal">
+            <option value="">1.4 (Standard)</option>
+            <option value="1.2">1.2 &#8211; bettl&#228;gerig / sitzend, immobil</option>
+            <option value="1.3">1.3 &#8211; &#252;berwiegend liegend/sitzend (Spital)</option>
+            <option value="1.4">1.4 &#8211; sitzend, wenig Bewegung</option>
+            <option value="1.6">1.6 &#8211; sitzend, zeitweise gehend/stehend</option>
+            <option value="1.8">1.8 &#8211; &#252;berwiegend gehend/stehend</option>
+            <option value="2.0">2.0 &#8211; k&#246;rperlich anstrengend</option>
+          </select></div>
+        <div class="field"><label>Energiebedarf (kcal/Tag)</label>
+          <input type="number" id="p-energie" min="500" max="6000" step="10" placeholder="leer = Harris-Benedict &#215; PAL"></div>
+      </div>
+      <div class="grid-3">
         <div class="field"><label>Station</label><input type="text" id="p-station" autocomplete="off"></div>
         <div class="field"><label>Arzt/&#196;rztin</label><input type="text" id="p-arzt" autocomplete="off"></div>
         <div class="field"><label>Di&#228;tberatung</label><input type="text" id="p-beraterin" autocomplete="off"></div>
       </div>
       <div class="field"><label>Diagnose</label><input type="text" id="p-diagnose" autocomplete="off"></div>
       <div class="field"><label>Bemerkungen</label><textarea id="p-bemerkungen"></textarea></div>
+    </div>
+  </div>
+
+  <!-- Nährwertempfehlung -->
+  <div class="card no-print">
+    <div class="card-title">
+      <span>N&#228;hrwertempfehlung (Tagesbedarf)</span>
+      <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+        <button class="btn btn-outline btn-sm" onclick="resetTargetOverrides()" title="Alle eigenen Werte l&#246;schen">Auf D-A-CH zur&#252;cksetzen</button>
+        <button class="btn btn-outline btn-sm" onclick="toggleSection('targets-body',this)">&#9658; Ausklappen</button>
+      </div>
+    </div>
+    <div id="targets-summary" class="info-strip" style="margin-bottom:0"></div>
+    <div id="targets-body" style="display:none;margin-top:1rem;">
+      <div id="targets-table"></div>
     </div>
   </div>
 
@@ -616,9 +671,10 @@ function renderAll() {
   updatePatientPrintBlock();
   renderDays();
   renderOverview();
+  renderTargets();
   // Restore patient fields
   const p = state.patient;
-  ['vorname','nachname','geburtsdatum','groesse','gewicht','aufnahme','station','arzt','beraterin','diagnose','bemerkungen'].forEach(id => {
+  ['vorname','nachname','geburtsdatum','groesse','gewicht','aufnahme','geschlecht','pal','energie','station','arzt','beraterin','diagnose','bemerkungen'].forEach(id => {
     const el = document.getElementById('p-'+id);
     if (el && p[id]!==undefined) el.value = p[id];
   });
@@ -700,7 +756,9 @@ function renderDayTable(dayIdx) {
   wrap.innerHTML = '<div class="entries-table-wrap"><table class="entries-table">'
     +'<thead><tr><th>Lebensmittel</th><th style="text-align:left">Mahlzeit</th><th>Menge</th>'+ths+'<th class="del-col no-print"></th></tr></thead>'
     +'<tbody>'+rows+'</tbody>'
-    +'<tfoot><tr class="total-row"><td>Tagesgesamt</td><td></td><td></td>'+totalCols+'<td class="no-print"></td></tr></tfoot>'
+    +'<tfoot><tr class="total-row"><td>Tagesgesamt</td><td></td><td></td>'+totalCols+'<td class="no-print"></td></tr>'
+    +targetRowsHtml(qn, totals, 3)
+    +'</tfoot>'
     +'</table></div>';
 }
 
@@ -719,10 +777,13 @@ function renderOverview(nuts) {
     const t = calcDayTotals(i);
     let label = 'Tag '+(i+1);
     if (d.date) { const p=d.date.split('-'); if(p.length===3) label=p[2]+'.'+p[1]+'.'+p[0]; }
-    return '<tr><td>'+esc(label)+'</td>'+nuts.map(k=>'<td>'+fmtN(t[k])+'</td>').join('')+'</tr>';
+    const tg = getTargets();
+    return '<tr><td>'+esc(label)+'</td>'+nuts.map(k=>{ const ev=evalTarget(tg[k], t[k]); return '<td class="'+(ev?ev.cls:'')+'" title="'+(ev?esc(ev.pctText+' der Empfehlung'):'')+'">'+fmtN(t[k])+'</td>'; }).join('')+'</tr>';
   }).filter(Boolean).join('');
   const avg = calcAverage();
-  const avgRow = avg ? '<tr class="avg-row"><td>&#216; Durchschnitt</td>'+nuts.map(k=>'<td>'+fmtN(avg[k])+'</td>').join('')+'</tr>' : '';
+  const tgO = getTargets();
+  const avgRow = (avg ? '<tr class="avg-row"><td>&#216; Durchschnitt</td>'+nuts.map(k=>{ const ev=evalTarget(tgO[k], avg[k]); return '<td class="'+(ev?ev.cls:'')+'">'+fmtN(avg[k])+(ev?'<br><small>'+ev.pctText+'</small>':'')+'</td>'; }).join('')+'</tr>' : '')
+    + '<tr class="target-row"><td>Empfehlung</td>'+nuts.map(k=>'<td>'+targetText(tgO[k], fmtN)+'</td>').join('')+'</tr>';
   el.innerHTML = '<div class="overview-wrap"><table class="overview-table">'
     +'<thead><tr><th>Tag</th>'+ths+'</tr></thead>'
     +'<tbody>'+rows+'</tbody>'
@@ -922,6 +983,15 @@ function buildPrintDays(idxs, nuts, withAverage) {
     measure(calcDayTotals(di));
   });
   if (withAverage) { const a = calcAverage(); if (a) measure(a); }
+  { // Zielwerte, «mind./max.» und Prozent-Erreichung ebenfalls in die Breite einrechnen
+    const tg = getTargets(); const tv = {}; nuts.forEach(k => tv[k] = tg[k] ? tg[k].val : null); measure(tv);
+    const totals = idxs.map(di => calcDayTotals(di)); if (withAverage) { const a = calcAverage(); if (a) totals.push(a); }
+    nuts.forEach(k => {
+      if (!tg[k]) return;
+      maxLen[k] = Math.max(maxLen[k], 5);
+      totals.forEach(t => { const ev = evalTarget(tg[k], t[k]); if (ev) maxLen[k] = Math.max(maxLen[k], ev.pctText.length + 1); });
+    });
+  }
   // gedrehte Titel brauchen ca. 3ch (2 Zeilen), fette Summen etwas Reserve
   const colW = n => 'calc(' + (Math.max(n, 3) * 1.02).toFixed(2) + 'ch + 5px)';
   // Schriftgrösse so wählen, dass alle Spalten + mind. ~26 Zeichen Namensspalte auf A4 quer passen
@@ -933,12 +1003,19 @@ function buildPrintDays(idxs, nuts, withAverage) {
   const heads = nuts.map(k => '<th class="pd-nut"><span class="pd-rot">'+esc(shortNutLabel(k))+'<br>'+esc(NUTMAP[k]?.unit||'')+'</span></th>').join('');
   const sumTable = (label, t, cls) => '<table class="pd-table pd-sum '+(cls||'')+'">'+colg
     + '<tr><td></td><td>'+esc(label)+'</td>' + nuts.map(k=>'<td>'+fmtP(t[k])+'</td>').join('') + '</tr></table>';
+  const tgP = getTargets();
+  const targetTables = (t, reachLabel) =>
+    '<table class="pd-table pd-sum pd-target">'+colg+'<tr><td></td><td>Empfehlung</td>'
+      + nuts.map(k => { const x = tgP[k]; return '<td>'+(x ? fmtP(x.val)+'<br><span class="pd-kind">'+KIND_LABEL[x.kind]+'</span>' : '')+'</td>'; }).join('') + '</tr></table>'
+    + '<table class="pd-table pd-sum pd-reach">'+colg+'<tr><td></td><td>'+esc(reachLabel)+'</td>'
+      + nuts.map(k => { const ev = evalTarget(tgP[k], t[k]); return '<td class="'+(ev?ev.cls:'')+'">'+(ev?ev.pctText:'')+'</td>'; }).join('') + '</tr></table>';
   const info = [];
   if (p.groesse||p.gewicht) info.push([p.groesse?p.groesse+' cm':'', p.gewicht?p.gewicht+' kg':''].filter(Boolean).join(' / '));
   if (p.diagnose) info.push('Diagnose: '+p.diagnose);
   if (p.arzt) info.push('Arzt/Ärztin: '+p.arzt);
   if (p.aufnahme) info.push('Aufnahme: '+fmtDateCH(p.aufnahme));
   if (p.bemerkungen) info.push(p.bemerkungen);
+  info.push('Empfehlung: ' + targetBasisText());
 
   // Fusszeile mit beiden Quellen – position:fixed wird auf jeder Druckseite wiederholt
   let html = '<div class="pd-fixed-foot">' + SOURCE_LINES.map(esc).join('<br>') + '</div>';
@@ -961,13 +1038,194 @@ function buildPrintDays(idxs, nuts, withAverage) {
         + '<tbody>'+rows+'</tbody></table>'
         + sumTable('Summe Mahlzeit', sumEntries(es)) + '</div>';
     });
-    c += sumTable('Summe Tag', calcDayTotals(di), 'pd-total');
-    if (withAverage && n===idxs.length-1 && idxs.length>1) c += sumTable('Durchschnitt gesamt', calcAverage(), 'pd-total');
+    const dt = calcDayTotals(di);
+    c += sumTable('Summe Tag', dt, 'pd-total');
+    c += targetTables(dt, 'Erreicht (Tag)');
+    if (withAverage && n===idxs.length-1 && idxs.length>1) {
+      const av = calcAverage();
+      c += sumTable('Durchschnitt gesamt', av, 'pd-total') + targetTables(av, 'Erreicht (Ø)');
+    }
     // tfoot reserviert auf jeder Seite Platz für die fixierte Quellen-Fusszeile
     html += '<table class="pd-page" style="font-size:' + fontPt.toFixed(2) + 'pt"><tbody><tr><td>' + c + '</td></tr></tbody>'
       + '<tfoot><tr><td><div class="pd-foot-space"></div></td></tr></tfoot></table>';
   });
   return html;
+}
+
+// ===== NÄHRWERTEMPFEHLUNG (D-A-CH-Referenzwerte, Erwachsene) =====
+// Altersgruppen: 0 = 19–<25, 1 = 25–<51, 2 = 51–<65, 3 = ≥65 Jahre
+// kind: min = mindestens, max = höchstens, ca = Richtwert (Ziel ±10 %)
+const DACH = {
+  fasern:    {kind:'min', m:30, w:30},
+  salz:      {kind:'max', m:5, w:5},                       // SGE: max. 5 g/Tag
+  vitA:      {kind:'min', m:850, w:700},
+  vitB1:     {kind:'min', m:[1.3,1.2,1.2,1.1], w:[1.0,1.0,1.0,1.0]},
+  vitB2:     {kind:'min', m:[1.4,1.4,1.3,1.3], w:[1.1,1.1,1.0,1.0]},
+  vitB6:     {kind:'min', m:1.6, w:1.4},
+  vitB12:    {kind:'min', m:4.0, w:4.0},
+  niacin:    {kind:'min', m:[16,15,15,13], w:[13,12,12,11]},
+  folat:     {kind:'min', m:300, w:300},
+  pantothen: {kind:'min', m:5, w:5},
+  vitC:      {kind:'min', m:110, w:95},
+  vitD:      {kind:'min', m:20, w:20},
+  vitE:      {kind:'min', m:[15,14,13,12], w:[12,12,12,11]},
+  kalium:    {kind:'min', m:4000, w:4000},
+  natrium:   {kind:'max', m:2000, w:2000},                 // WHO: < 2 g Natrium/Tag
+  chlorid:   {kind:'ca',  m:2300, w:2300},
+  calcium:   {kind:'min', m:1000, w:1000},
+  magnesium: {kind:'min', m:350, w:300},
+  phosphor:  {kind:'min', m:700, w:700},
+  eisen:     {kind:'min', m:11, w:[16,16,14,14]},
+  jod:       {kind:'min', m:150, w:150},                   // CH/AT: 150 µg
+  zink:      {kind:'min', m:14, w:8},                      // mittlere Phytatzufuhr
+  selen:     {kind:'min', m:70, w:60},
+};
+const KIND_LABEL = {min:'mind.', max:'max.', ca:'ca.'};
+
+function patientAge() {
+  const g = state.patient.geburtsdatum; if (!g) return null;
+  const b = new Date(g); if (isNaN(b)) return null;
+  const ref = new Date();
+  let a = ref.getFullYear() - b.getFullYear();
+  if (ref.getMonth() < b.getMonth() || (ref.getMonth()===b.getMonth() && ref.getDate() < b.getDate())) a--;
+  return a;
+}
+function ageGroup(a) { if (a==null) return 1; return a < 25 ? 0 : a < 51 ? 1 : a < 65 ? 2 : 3; }
+
+function energyTarget() {
+  const p = state.patient;
+  const manual = parseFloat(p.energie);
+  if (manual > 0) return {val: manual, how: 'manuell'};
+  const w = parseFloat(p.gewicht), hgt = parseFloat(p.groesse), a = patientAge(), sex = p.geschlecht;
+  if (!(w>0 && hgt>0 && a!=null && sex)) return null;
+  const gu = sex==='m' ? 88.362 + 13.397*w + 4.799*hgt - 5.677*a : 447.593 + 9.247*w + 3.098*hgt - 4.330*a;
+  const pal = parseFloat(p.pal) || 1.4;
+  return {val: Math.round(gu*pal/10)*10, how: 'Harris-Benedict × PAL '+pal.toFixed(1)};
+}
+
+function autoTargets() {
+  const p = state.patient;
+  const sex = p.geschlecht === 'm' ? 'm' : 'w';
+  const a = patientAge(), grp = ageGroup(a);
+  const w = parseFloat(p.gewicht);
+  const t = {};
+  Object.entries(DACH).forEach(([k, d]) => {
+    const v = d[sex]; t[k] = {kind: d.kind, val: Array.isArray(v) ? v[grp] : v};
+  });
+  if (w > 0) {
+    t.protein = {kind:'min', val: Math.round(w * (a!=null && a>=65 ? 1.0 : 0.8) * 10) / 10};
+    t.wasser  = {kind:'min', val: Math.round(w * (grp>=2 ? 30 : 35))};
+  }
+  const e = energyTarget();
+  if (e) {
+    t.kcal   = {kind:'ca',  val: e.val};
+    t.kJ     = {kind:'ca',  val: Math.round(e.val*4.184)};
+    t.fett   = {kind:'max', val: Math.round(e.val*0.30/9*10)/10};   // max. 30 % der Energie
+    t.fs_ges = {kind:'max', val: Math.round(e.val*0.10/9*10)/10};   // max. 10 % der Energie
+    t.kh     = {kind:'min', val: Math.round(e.val*0.50/4)};          // mind. 50 % der Energie
+  }
+  return t;
+}
+
+function getTargets() {
+  const t = autoTargets();
+  const ov = state.targetOverrides || {};
+  Object.entries(ov).forEach(([k, o]) => {
+    if (o && o.val != null && o.val !== '' && !isNaN(o.val)) t[k] = {kind: o.kind || (t[k]&&t[k].kind) || 'min', val: Number(o.val), own: true};
+    else if (o && o.kind === 'none') delete t[k];
+  });
+  return t;
+}
+
+function evalTarget(tg, v) {
+  if (!tg || !(tg.val > 0) || v == null) return null;
+  const pct = v / tg.val * 100;
+  let cls;
+  if (tg.kind === 'min') cls = pct >= 100 ? 'st-ok' : pct >= 75 ? 'st-warn' : 'st-bad';
+  else if (tg.kind === 'max') cls = pct <= 100 ? 'st-ok' : pct <= 110 ? 'st-warn' : 'st-bad';
+  else cls = (pct >= 90 && pct <= 110) ? 'st-ok' : (pct >= 75 && pct <= 125) ? 'st-warn' : 'st-bad';
+  return {pct, cls, pctText: Math.round(pct) + ' %'};
+}
+
+function targetText(tg, fmt) {
+  if (!tg) return '<span class="st-none">–</span>';
+  return '<span class="tgt-kind">'+KIND_LABEL[tg.kind]+'</span> '+(fmt||fmtN)(tg.val);
+}
+
+function targetBasisText() {
+  const p = state.patient, a = patientAge(), e = energyTarget();
+  const parts = ['D-A-CH-Referenzwerte'];
+  parts.push((p.geschlecht==='m'?'männlich':p.geschlecht==='w'?'weiblich':'Geschlecht nicht angegeben (weibl. Werte)') + (a!=null ? ', '+a+' J.' : ', Alter unbekannt'));
+  if (e) parts.push('Energie '+fmtN(e.val)+' kcal ('+e.how+')');
+  if (Object.keys(state.targetOverrides||{}).length) parts.push('teilweise individuell angepasst');
+  return parts.join(' · ');
+}
+
+function targetRowsHtml(keys, totals, leadCols) {
+  const tg = getTargets();
+  if (!keys.some(k => tg[k])) return '';
+  const lead = n => '<td></td>'.repeat(n);
+  return '<tr class="target-row"><td>Empfehlung</td>'+lead(leadCols-1)+keys.map(k=>'<td>'+targetText(tg[k])+'</td>').join('')+'<td class="no-print"></td></tr>'
+    + '<tr class="reach-row"><td>Erreicht</td>'+lead(leadCols-1)+keys.map(k=>{ const ev=evalTarget(tg[k], totals[k]); return ev ? '<td class="'+ev.cls+'">'+ev.pctText+'</td>' : '<td class="st-none">–</td>'; }).join('')+'<td class="no-print"></td></tr>';
+}
+
+function renderTargets() {
+  const sumEl = document.getElementById('targets-summary');
+  const tblEl = document.getElementById('targets-table');
+  if (!sumEl || !tblEl) return;
+  const p = state.patient, auto = autoTargets(), tg = getTargets(), ov = state.targetOverrides || {};
+  const missing = [];
+  if (!p.geschlecht) missing.push('Geschlecht');
+  if (!p.geburtsdatum) missing.push('Geburtsdatum');
+  if (!(parseFloat(p.gewicht)>0)) missing.push('Gewicht');
+  if (!(parseFloat(p.energie)>0) && !(parseFloat(p.groesse)>0)) missing.push('Grösse oder Energiebedarf');
+  sumEl.innerHTML = esc(targetBasisText())
+    + (missing.length ? '<br><strong>Für vollständige Empfehlungen bitte in den Patientendaten ergänzen: '+esc(missing.join(', '))+'.</strong>' : '')
+    + '<div class="targets-legend"><span class="st-ok">erreicht</span><span class="st-warn">knapp (75–99 % bzw. leicht über Max.)</span><span class="st-bad">deutlich verfehlt / überschritten</span></div>';
+  let rows = '';
+  ['makro','vit','min'].forEach(g => {
+    rows += '<tr><td colspan="5" style="font-weight:600;color:#6b8a82;padding-top:0.8rem;">'+GROUP_LABELS[g]+'</td></tr>';
+    NUTRIENTS.filter(n=>n.g===g).forEach(n => {
+      const a = auto[n.key], o = ov[n.key], cur = tg[n.key];
+      const kindSel = '<select onchange="setTargetOverride(\''+n.key+'\',\'kind\',this.value)">'
+        + ['min','max','ca'].map(k=>'<option value="'+k+'"'+(cur&&cur.kind===k?' selected':'')+'>'+KIND_LABEL[k]+'</option>').join('')
+        + '<option value="none"'+(!cur?' selected':'')+'>–</option></select>';
+      rows += '<tr class="'+(o?'overridden':'')+'"><td>'+esc(n.label)+'</td><td>'+esc(n.unit)+'</td>'
+        + '<td class="num">'+(a ? targetText(a) : '<span class="st-none">–</span>')+'</td>'
+        + '<td>'+kindSel+'</td>'
+        + '<td><input type="number" step="any" min="0" placeholder="'+(a?String(a.val):'')+'" value="'+(o&&o.val!=null?o.val:'')+'" onchange="setTargetOverride(\''+n.key+'\',\'val\',this.value)"></td></tr>';
+    });
+  });
+  tblEl.innerHTML = '<table class="targets-table"><thead><tr><th>Nährstoff</th><th>Einheit</th><th style="text-align:right">D-A-CH</th><th>Art</th><th>Eigener Wert</th></tr></thead><tbody>'+rows+'</tbody></table>'
+    + '<p style="font-size:0.75rem;color:#9ab0aa;margin-top:0.6rem;">Referenzwerte für gesunde Erwachsene (DGE/ÖGE/SGE). Protein 0.8 g/kg (ab 65 J. 1.0 g/kg), Wasser 35 ml/kg (ab 51 J. 30 ml/kg), Fett max. 30 %, ges. Fettsäuren max. 10 %, Kohlenhydrate mind. 50 % der Energie. Salz max. 5 g (SGE), Natrium max. 2 g (WHO), Jod 150 µg (CH). Für Schwangerschaft, Stillzeit, Kinder oder Erkrankungen bitte eigene Werte eintragen.</p>';
+}
+
+function setTargetOverride(key, field, value) {
+  state.targetOverrides = state.targetOverrides || {};
+  const o = Object.assign({}, state.targetOverrides[key] || {});
+  if (field === 'val') o.val = value === '' ? null : parseFloat(value);
+  else o.kind = value;
+  const auto = autoTargets()[key];
+  // nur speichern, was vom D-A-CH-Wert abweicht
+  if (o.val == null && (!o.kind || (auto && o.kind === auto.kind) || (!auto && o.kind === 'none'))) delete state.targetOverrides[key];
+  else state.targetOverrides[key] = o;
+  saveState();
+  state.days.forEach((_, i) => renderDayTable(i));
+  const sumEl = document.getElementById('targets-summary');
+  if (sumEl) sumEl.firstChild && (sumEl.firstChild.textContent = targetBasisText());
+}
+
+function resetTargetOverrides() {
+  if (!confirm('Alle eigenen Empfehlungswerte löschen und D-A-CH-Werte verwenden?')) return;
+  state.targetOverrides = {};
+  saveState();
+  refreshTargetViews();
+}
+
+function refreshTargetViews() {
+  renderTargets();
+  state.days.forEach((_, i) => renderDayTable(i));
+  renderOverview();
 }
 
 function toggleSection(id, btn) {
@@ -999,10 +1257,15 @@ function esc(s) {
   renderAll();
 
   // Bind patient inputs
-  ['vorname','nachname','geburtsdatum','groesse','gewicht','aufnahme','station','arzt','beraterin','diagnose','bemerkungen'].forEach(id => {
+  ['vorname','nachname','geburtsdatum','groesse','gewicht','aufnahme','geschlecht','pal','energie','station','arzt','beraterin','diagnose','bemerkungen'].forEach(id => {
     const el = document.getElementById('p-'+id);
     if (!el) return;
-    el.addEventListener('input', () => { state.patient[id]=el.value; saveState(); });
+    const upd = () => {
+      state.patient[id]=el.value; saveState();
+      if (['geburtsdatum','groesse','gewicht','geschlecht','pal','energie'].includes(id)) refreshTargetViews();
+    };
+    el.addEventListener('input', upd);
+    if (el.tagName==='SELECT') el.addEventListener('change', upd);
   });
 })();
 
