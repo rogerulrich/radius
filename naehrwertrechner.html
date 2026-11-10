@@ -932,6 +932,7 @@ function doPrint() {
   // Temporarily swap overview to print-selected nutrients
   renderOverview(state.printNuts);
   setTimeout(() => {
+    setPrintFileName();
     window.print();
     setTimeout(() => renderOverview(state.viewNuts), 500);
   }, 200);
@@ -1003,10 +1004,23 @@ function doDayPrint() {
   document.getElementById('print-days').innerHTML = buildPrintDays(idxs, state.dayPrintNuts, scope==='all');
   setDayPrintPageStyle();
   document.body.classList.add('print-days-mode');
+  setPrintFileName();
   setTimeout(() => window.print(), 200);
 }
 
+// Dateiname-Vorschlag beim «Als PDF speichern»: Browser übernehmen den Seitentitel
+const APP_TITLE = document.title;
+function printFileName() {
+  const p = state.patient || {};
+  const parts = [p.nachname, p.vorname].map(s => (s||'').trim()).filter(Boolean);
+  if (p.geburtsdatum) parts.push(fmtDateCH(p.geburtsdatum));
+  const base = parts.length ? parts.join('_') : 'Ernaehrungsprotokoll';
+  return base.replace(/[\/:*?"<>|]+/g, '-').replace(/\s+/g, '_');
+}
+function setPrintFileName() { document.title = printFileName(); }
+
 window.addEventListener('afterprint', () => {
+  document.title = APP_TITLE;
   if (!document.body.classList.contains('print-days-mode')) return;
   document.body.classList.remove('print-days-mode');
   const st = document.getElementById('pd-page-style');
